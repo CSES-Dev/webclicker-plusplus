@@ -1,0 +1,10 @@
+# Do not run ESLint on these paths. Customize as needed.
+.next/
+build/
+dist/
+out/
+public/
+prisma/generated/schemas/
+next.config.js
+vite.config.ts
+.secret-scan/secret-scan-cache.json

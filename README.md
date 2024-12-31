@@ -77,4 +77,3 @@ Branching + PR Guidelines (Work in Progress)
 ## Documentation
 
 Link to Documentation (Work in Progress)
-
