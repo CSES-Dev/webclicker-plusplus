@@ -12,7 +12,84 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id        Int          @id @default(autoincrement())
+  email     String       @unique
+  firstName String
+  lastName  String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  courses   UserCourse[]
+  responses Response[]
+}
+
+model Course {
+  id        Int             @id @default(autoincrement())
+  title     String          @db.VarChar(255)
+  code      String          @unique
+  color     String
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  users     UserCourse[]
+  sessions  CourseSession[]
+}
+
+model UserCourse {
+  user     User     @relation(fields: [userId], references: [id])
+  userId   Int
+  course   Course   @relation(fields: [courseId], references: [id])
+  courseId Int
+  role     Role     @default(STUDENT)
+  linkedAt DateTime @default(now())
+
+  @@id([userId, courseId])
+}
+
+model CourseSession {
+  id        Int        @id @default(autoincrement())
+  course    Course     @relation(fields: [courseId], references: [id])
+  courseId  Int
+  startTime DateTime   @default(now())
+  endTime   DateTime?
+  questions Question[]
+}
+
+model Question {
+  id        Int           @id @default(autoincrement())
+  session   CourseSession @relation(fields: [sessionId], references: [id])
+  sessionId Int
+  text      String        @db.VarChar(1024)
+  type      QuestionType  @default(MCQ)
+  options   Option[]
+  responses Response[]
+}
+
+model Option {
+  id         Int        @id @default(autoincrement())
+  question   Question   @relation(fields: [questionId], references: [id])
+  questionId Int
+  text       String     @db.VarChar(1024)
+  isCorrect  Boolean
+  responses  Response[]
+}
+
+model Response {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId Int
+  option     Option   @relation(fields: [optionId], references: [id])
+  optionId   Int
+  answeredAt DateTime @default(now())
+
+  @@id([userId, questionId, optionId])
+}
+
+enum Role {
+  LECTURER
+  STUDENT
+}
+
+enum QuestionType {
+  MCQ
+  MSQ
 }
