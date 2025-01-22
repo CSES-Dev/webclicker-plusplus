@@ -68,7 +68,9 @@ npm run test
 
 ## Deployment
 
-CI/CD (Work in Progress)
+On opening a PR to the main branch, the GitHub CI pipeline is automatically run. This runs any playwright tests on a clean build of the app.
+
+Continuous Deployment (Work in Progress) 
 
 ## Contributing Guidelines
 
