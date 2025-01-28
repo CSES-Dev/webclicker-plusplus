@@ -66,7 +66,7 @@ export default function Name() {
         - Fixed at the bottom, spanning from left-0 to right-0.
         - Use justify-between so the image goes to the left, button to the right.
       */}
-      <div className="hidden md:flex fixedleft-72 right-72 bottom-44 items-center justify-between p-6">
+      <div className="hidden md:flex left-72 right-72 bottom-44 items-center justify-around p-6">
         <img 
           src="/webclickericon.svg" 
           alt="logo" 
