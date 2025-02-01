@@ -1,15 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
+import { getCourseWithCode } from "@/services/course";
+import { addUserToCourse } from "@/services/userCourse";
 
 export default function page() {
     const [code, setCode] = useState<string>();
     const [course, setCourse] = useState<string>();
+    const [error, setError] = useState<string>();
 
-    const handleSubmit = (event: { preventDefault: () => void }) => {
+    const handleSubmit = async (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        console.log(code);
-        setCourse("COGS 101B");
+        if (code) {
+            const course = await getCourseWithCode(code);
+            if (course) {
+                // find user id with user email
+                const res = await addUserToCourse(course.id, 1);
+                if (res?.error) setError(res.error);
+                else setCourse(course.title);
+            } else setError("Invalid code");
+        } else setError("Invalid code");
     };
 
     return (
@@ -20,11 +30,18 @@ export default function page() {
                     className="flex flex-col justify-center items-center gap-6 pt-56"
                 >
                     <h1 className="text-3xl mb-5">Enter Classroom Code</h1>
-                    <input
-                        type="text"
-                        onChange={(event) => setCode(event?.target.value)}
-                        className="h-[3.5rem] w-80 px-5 mb-8 bg-[#F2F5FF] text-black rounded-[10px]"
-                    ></input>
+                    <div className="mb-8">
+                        <input
+                            type="text"
+                            onChange={(event) => setCode(event?.target.value)}
+                            className="h-[3.5rem] w-80 px-5 bg-[#F2F5FF] text-black rounded-[10px]"
+                        ></input>
+                        {error && (
+                            <p className="text-red-700 mt-2 absolute left-1/2 -translate-x-1/2">
+                                {error}
+                            </p>
+                        )}
+                    </div>
                     <button
                         type="submit"
                         disabled={code ? false : true}
