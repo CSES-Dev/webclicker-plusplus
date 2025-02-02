@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
-
+import { Providers } from "./providers";
 import { ThemeProvider } from "@/components/theme-provider";
-
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import localFont from "next/font/local";
 
+const geistSans = localFont({
+    src: "./fonts/GeistVF.woff",
+    variable: "--font-geist-sans",
+    weight: "100 900",
+});
+const geistMono = localFont({
+    src: "./fonts/GeistMonoVF.woff",
+    variable: "--font-geist-mono",
+    weight: "100 900",
+});
 const figtree = Figtree({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -19,14 +29,18 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${figtree.className} antialiased`}>
+            {/* <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <Providers>{children}</Providers> */}
+            <body className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="light"
                     // enableSystem
                     disableTransitionOnChange
                 >
+                    <Providers>
                     <main>{children}</main>
+                    </Providers>
                     <Toaster />
                 </ThemeProvider>
             </body>
