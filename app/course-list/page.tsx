@@ -25,8 +25,6 @@ export default function page() {
             timeEnd: "11:50 am",
         },
     ];
-    //get courses
-    useEffect(() => {});
     return (
         <div className="w-full flex justify-center items-center pt-6">
             <div className="max-w-[90%]">
