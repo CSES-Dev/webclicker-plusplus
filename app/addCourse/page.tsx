@@ -9,6 +9,10 @@ import { useState } from "react";
 export default function AddCoursePage() {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
 
   const handleDayToggle = (day: string) => {
     setSelectedDays((prev) =>
@@ -23,15 +27,17 @@ export default function AddCoursePage() {
   const handleSubmit = () => {
     // Handle form submission logic
     console.log({
-      name: "",
-      code: "",
+      name: name,
+      code: code,
       days: selectedDays,
       color: selectedColor,
       times: {
-        start: "",
-        end: "",
+        start: startTime,
+        end: endTime,
       },
     });
+    // check if code is already in use by calling a function in services.
+    // if in use throw error otherwise create course component with name, code, date, time, color
   };
 
   return (
@@ -44,6 +50,8 @@ export default function AddCoursePage() {
             type="text"
             className="w-full p-0 bg-white text-black focus:outline-none focus:border-none"
             placeholder="Name of Class"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
         </div>
         <Separator className="mb-4"/>
@@ -55,6 +63,8 @@ export default function AddCoursePage() {
             id="code"
             type="text"
             className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}          
           />
         </div>
         <div className="mb-4">
@@ -99,12 +109,16 @@ export default function AddCoursePage() {
               type="time"
               className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
               placeholder=""
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
             />
             <span className="text-center align-middle">to</span>
             <input
               type="time"
               className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
               placeholder=""
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
             />
           </div>
         </div>
