@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import CourseCard from "../../components/ui/CourseCard";
 import { getUserCourses } from "@/services/userCourse";
-import Link from "next/link";
 
 export default function page() {
     const [courses, setCourses] = useState<
@@ -18,8 +17,8 @@ export default function page() {
 
     useEffect(() => {
         const getCourses = async () => {
-            const courses = await getUserCourses(1);
-            setCourses(courses);
+            const courseInfo = await getUserCourses(1);
+            setCourses(courseInfo);
         };
         getCourses();
     }, []);
@@ -34,7 +33,7 @@ export default function page() {
                                 key={idx}
                                 color={course.color ? course.color : ""}
                                 days={course.days ? course.days : []}
-                                course={course.title ? course.title : "Unknown"}
+                                title={course.title ? course.title : "Unknown"}
                                 timeStart={course.startTime ? course.startTime : ""}
                                 timeEnd={course.endTime ? course.endTime : ""}
                             />

@@ -1,12 +1,12 @@
 "use server";
-import prisma from "@/lib/prisma";
 import { getCourseWithId } from "./course";
+import prisma from "@/lib/prisma";
 
 export async function addUserToCourse(courseId: number, userId: number ){
     const existingUser = await prisma.userCourse.findFirst({
         where: {
-            userId: userId,
-            courseId: courseId,
+            userId,
+            courseId,
         }
     })
     if (!existingUser){

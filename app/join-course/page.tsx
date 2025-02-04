@@ -3,38 +3,44 @@
 import React, { useState } from "react";
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
-import Link from "next/link";
 
 export default function page() {
     const [code, setCode] = useState<string>();
     const [course, setCourse] = useState<string>();
     const [error, setError] = useState<string>();
 
-    const handleSubmit = async (event: { preventDefault: () => void }) => {
+    const handleSubmit = (event: { preventDefault: () => void }) => {
         event.preventDefault();
-        if (code) {
-            const course = await getCourseWithCode(code);
-            if (course) {
-                // find user id with user email
-                const res = await addUserToCourse(course.id, 1);
-                if (res?.error) setError(res.error);
-                else setCourse(course.title);
+        const addUser = async () => {
+            if (code) {
+                const courseInfo = await getCourseWithCode(code);
+                if (courseInfo) {
+                    // find user id with user email
+                    const res = await addUserToCourse(courseInfo.id, 1);
+                    if (res?.error) setError(res.error);
+                    else setCourse(courseInfo.title);
+                } else setError("Invalid code");
             } else setError("Invalid code");
-        } else setError("Invalid code");
+        };
+        addUser();
     };
 
     return (
         <>
             {!course && (
                 <form
-                    onSubmit={handleSubmit}
+                    onSubmit={(event) => {
+                        handleSubmit(event);
+                    }}
                     className="flex flex-col justify-center items-center gap-6 pt-56"
                 >
                     <h1 className="text-3xl mb-5">Enter Classroom Code</h1>
                     <div className="mb-8">
                         <input
                             type="text"
-                            onChange={(event) => setCode(event?.target.value)}
+                            onChange={(event) => {
+                                setCode(event?.target.value);
+                            }}
                             className="h-[3.5rem] w-80 px-5 bg-[#F2F5FF] text-black rounded-[10px]"
                         ></input>
                         {error && (

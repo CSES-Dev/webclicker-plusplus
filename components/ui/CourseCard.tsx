@@ -1,14 +1,13 @@
-import clsx from "clsx";
 import React from "react";
 
-export interface Props {
+export type Props = {
     color: string;
     days: string[];
-    course: string;
+    title: string;
     timeStart: string;
     timeEnd: string;
-}
-export default function CourseCard({ color, days, course, timeStart, timeEnd }: Props) {
+};
+export default function CourseCard({ color, days, title, timeStart, timeEnd }: Props) {
     return (
         <>
             {/* Mobile View */}
@@ -22,7 +21,7 @@ export default function CourseCard({ color, days, course, timeStart, timeEnd }: 
                     <p className={"text-xs"}>
                         Time: {timeStart} - {timeEnd}
                     </p>
-                    <p className="text-xl text-left leading-tight">{course}</p>
+                    <p className="text-xl text-left leading-tight">{title}</p>
                 </div>
                 <p className="px-6 text-xs text-[#585858]">{days.join(", ")}</p>
             </button>
@@ -33,7 +32,7 @@ export default function CourseCard({ color, days, course, timeStart, timeEnd }: 
                     <p className="text-xs text-[#434343]">
                         Time: {timeStart} - {timeEnd}
                     </p>
-                    <p className="text-lg text-left leading-tight">{course}</p>
+                    <p className="text-lg text-left leading-tight">{title}</p>
                 </div>
                 <p className="px-6 py-4 text-xs text-left text-[#434343]">{days.join(", ")}</p>
             </button>
