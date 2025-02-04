@@ -1,6 +1,8 @@
 // app/addCourse/page.tsx
+
 "use client";
 
+import { Separator } from "@/components/ui/separator"
 import { useState } from "react";
 
 export default function AddCoursePage() {
@@ -36,16 +38,17 @@ export default function AddCoursePage() {
       <h1 className="text-2xl font-bold mb-6">Add a Class</h1>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="mb-4">
-          <label htmlFor="name" className="block text-sm font-medium mb-1">
+          {/* <label htmlFor="name" className="block text-sm font-medium mb-1">
             Name of Class
-          </label>
+          </label> */}
           <input
             id="name"
             type="text"
-            className="w-full p-2 border rounded-md bg-white text-black"
-            placeholder="Enter class name"
+            className="w-full p-2 bg-white text-black"
+            placeholder="Name of Class"
           />
         </div>
+        <Separator className="my-4" />
         <div className="mb-4">
           <label htmlFor="code" className="block text-sm font-medium mb-1">
             Class Code:
@@ -82,8 +85,8 @@ export default function AddCoursePage() {
               <button
                 key={color}
                 type="button"
-                className={`w-11 h-11 rounded-full border ${
-                  selectedColor === color ? "ring-2 ring-blue-500" : ""
+                className={`w-11 h-11 rounded-full ${
+                  selectedColor === color ? "ring-2 ring-[hsl(var(--primary))]" : ""
                 }`}
                 style={{ backgroundColor: color }}
                 onClick={() => handleColorSelect(color)}
