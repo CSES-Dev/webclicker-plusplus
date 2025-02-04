@@ -8,3 +8,16 @@ export async function getCourseWithCode(code:string) {
         },
     });
 }
+
+export async function getCourseWithId(courseId: number){
+    const courses = await prisma.course.findFirst({
+        where:{
+            id: courseId
+        }
+    })
+    
+    return {
+        "color": courses?.color,
+        "title": courses?.title
+    }
+}

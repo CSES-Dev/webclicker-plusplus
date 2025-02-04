@@ -1,43 +1,38 @@
-import React, { useEffect } from "react";
+"use client";
+
+import React, { use, useEffect, useState } from "react";
 import CourseCard from "../../components/ui/CourseCard";
-import { Props } from "../../components/ui/CourseCard";
+import { getUserCourses } from "@/services/userCourse";
+
 export default function page() {
-    const placeholder: Props[] = [
+    const [courses, setCourses] = useState<
         {
-            color: "course_pink",
-            days: ["Monday", "Wednesday"],
-            course: "COGS 107A: Neuroanatomy and Physiology",
-            timeStart: "10:00 am",
-            timeEnd: "10:50 am",
-        },
-        {
-            color: "course_yellow",
-            days: ["Monday", "Thursday"],
-            course: "COGS 107B: Neuroanatomy",
-            timeStart: "10:30 am",
-            timeEnd: "11:50 am",
-        },
-        {
-            color: "course_green",
-            days: ["Monday", "Thursday"],
-            course: "COGS 107B: Neuroanatomy",
-            timeStart: "10:30 am",
-            timeEnd: "11:50 am",
-        },
-    ];
+            color: string | undefined;
+            title: string | undefined;
+        }[]
+    >();
+
+    useEffect(() => {
+        const getCourses = async () => {
+            const courses = await getUserCourses(1);
+            setCourses(courses);
+        };
+        getCourses();
+    }, []);
+
     return (
         <div className="w-full flex justify-center items-center pt-6">
             <div className="max-w-[90%]">
                 <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {placeholder.map((course, idx) => {
+                    {courses?.map((course, idx) => {
                         return (
                             <CourseCard
                                 key={idx}
-                                color={course.color}
-                                days={course.days}
-                                course={course.course}
-                                timeStart={course.timeStart}
-                                timeEnd={course.timeEnd}
+                                color={course.color ? course.color : ""}
+                                days={["Monday"]}
+                                course={course.title ? course.title : "Unknown"}
+                                timeStart={"10:00"}
+                                timeEnd={"12:00"}
                             />
                         );
                     })}
