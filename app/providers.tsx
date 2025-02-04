@@ -5,20 +5,20 @@ import { ThemeProvider } from "@/components/theme-provider";
 import React from "react";
 
 interface ProvidersProps {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }
 
 export function Providers({ children }: ProvidersProps) {
-  return (
-    <SessionProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        {children}
-      </ThemeProvider>
-    </SessionProvider>
-  );
+    return (
+        <SessionProvider>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+            >
+                {children}
+            </ThemeProvider>
+        </SessionProvider>
+    );
 }
