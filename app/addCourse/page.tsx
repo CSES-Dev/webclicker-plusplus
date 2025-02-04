@@ -2,6 +2,7 @@
 
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator"
 import { useState } from "react";
 
@@ -37,18 +38,15 @@ export default function AddCoursePage() {
     <div className="p-6 max-w-md mx-auto bg-white rounded-md shadow-md">
       <h1 className="text-2xl font-bold mb-6">Add a Class</h1>
       <form onSubmit={(e) => e.preventDefault()}>
-        <div className="mb-4">
-          {/* <label htmlFor="name" className="block text-sm font-medium mb-1">
-            Name of Class
-          </label> */}
+        <div className="mb-1">
           <input
             id="name"
             type="text"
-            className="w-full p-2 bg-white text-black"
+            className="w-full p-0 bg-white text-black focus:outline-none focus:border-none"
             placeholder="Name of Class"
           />
         </div>
-        <Separator className="my-4" />
+        <Separator className="mb-4"/>
         <div className="mb-4">
           <label htmlFor="code" className="block text-sm font-medium mb-1">
             Class Code:
@@ -100,23 +98,26 @@ export default function AddCoursePage() {
             <input
               type="time"
               className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
-              placeholder="Start Time"
+              placeholder=""
             />
             <span className="text-center align-middle">to</span>
             <input
               type="time"
               className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
-              placeholder="End Time"
+              placeholder=""
             />
           </div>
         </div>
-        <button
+        <Button variant="addClass" size="addClass" onClick={handleSubmit}>
+          Add Class
+        </Button>
+        {/* <button
           type="button"
           onClick={handleSubmit}
-          className="w-full py-2 px-4 bg-[hsl(var(--secondary))] text-white rounded-md font-semibold"
+          className="w-full py-2 px-4 bg-[hsl(var(--secondary))] text-[hsl(var(--input-accent))] border border-[hsl(var(--input-accent))] rounded-md"
         >
           Add Class
-        </button>
+        </button> */}
       </form>
     </div>
   );
