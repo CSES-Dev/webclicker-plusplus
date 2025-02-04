@@ -35,7 +35,7 @@ export default function AddCoursePage() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white rounded-md shadow-md">
+    <div className="p-6 max-w-md mx-auto bg-white flex flex-col justify-between">
       <h1 className="text-2xl font-bold mb-6">Add a Class</h1>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="mb-1">
@@ -84,7 +84,7 @@ export default function AddCoursePage() {
                 key={color}
                 type="button"
                 className={`w-11 h-11 rounded-full ${
-                  selectedColor === color ? "ring-2 ring-[hsl(var(--primary))]" : ""
+                  selectedColor === color ? "ring-2 ring-[hsl(var(--primary))]" : "border border -[hsl(var(--input-border))]"
                 }`}
                 style={{ backgroundColor: color }}
                 onClick={() => handleColorSelect(color)}
@@ -94,7 +94,7 @@ export default function AddCoursePage() {
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Times:</label>
-          <div className="flex space-x-2">
+          <div className="flex space-x-6 items-center">
             <input
               type="time"
               className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
@@ -108,7 +108,12 @@ export default function AddCoursePage() {
             />
           </div>
         </div>
-        <Button variant="addClass" size="addClass" onClick={handleSubmit}>
+        <Button variant="addClass"
+                size="addClass" 
+                onClick={handleSubmit}
+                className="mt-4 bottom-0 right-0"
+                
+        >
           Add Class
         </Button>
         {/* <button
