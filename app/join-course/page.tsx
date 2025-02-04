@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
+import Link from "next/link";
 
 export default function page() {
     const [code, setCode] = useState<string>();
@@ -57,7 +58,10 @@ export default function page() {
                         You have been <br /> successfully added to
                     </h1>
                     <h1 className="text-3xl pb-16">{course}</h1>
-                    <button className="py-2 w-72 pb-2 bg-[#18328D] text-white rounded-lg">
+                    <button
+                        onClick={() => (window.location.href = "/course-list")}
+                        className="py-2 w-72 pb-2 bg-[#18328D] text-white rounded-lg"
+                    >
                         Continue
                     </button>
                     <button className="py-2 w-72 bg-white text-[#18328D] border border-[#18328D] rounded-lg">

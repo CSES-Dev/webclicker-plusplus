@@ -31,6 +31,7 @@ model Course {
   updatedAt DateTime        @updatedAt
   users     UserCourse[]
   sessions  CourseSession[]
+  schedules Schedule[]
 }
 
 model UserCourse {
@@ -48,10 +49,9 @@ model Schedule {
   id         Int       @id @default(autoincrement())
   course     Course    @relation(fields: [courseId], references: [id])
   courseId   Int
-  dayOfWeek  String    @db.VarChar(20)
-  startTime  Time
-  endTime    Time
-  @@unique([courseId, dayOfWeek, startTime, endTime])
+  dayOfWeek  String[]
+  startTime  String
+  endTime    String
 }
 
 model CourseSession {
