@@ -42,7 +42,7 @@ export default function AddCoursePage() {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto bg-white flex flex-col justify-between">
+    <div className="p-8 pr-12 max-w-md mx-auto bg-white flex flex-col justify-between border">
       <h1 className="text-2xl font-bold mb-6">Add a Class</h1>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="mb-1">
@@ -70,7 +70,7 @@ export default function AddCoursePage() {
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Days of the Week:</label>
-          <div className="flex space-x-2">
+          <div className="flex gap-3">
             {["M", "T", "W", "Th", "F"].map((day) => (
               <button
                 key={day}
@@ -89,7 +89,7 @@ export default function AddCoursePage() {
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1">Assign Color:</label>
-          <div className="flex space-x-2">
+          <div className="flex gap-3">
             {["#ED9D9D", "#F3AB7E", "#EEF583", "#94ED79", "#8E87F2"].map((color) => (
               <button
                 key={color}
@@ -103,9 +103,9 @@ export default function AddCoursePage() {
             ))}
           </div>
         </div>
-        <div className="mb-4">
+        <div className="mb-16">
           <label className="block text-sm font-medium mb-1">Times:</label>
-          <div className="flex space-x-6 items-center">
+          <div className="flex justify-between items-center">
             <input
               type="time"
               className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
@@ -123,10 +123,11 @@ export default function AddCoursePage() {
             />
           </div>
         </div>
+        <div className="pb-8 flex justify-end">
         <Button variant="addClass"
                 size="addClass" 
                 onClick={handleSubmit}
-                className="mt-4 bottom-0 right-0"
+                className="mt-4"
                 
         >
           Add Class
@@ -138,6 +139,7 @@ export default function AddCoursePage() {
         >
           Add Class
         </button> */}
+        </div>
       </form>
     </div>
   );
