@@ -2,9 +2,10 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator"
-import { useState } from "react";
+
 
 export default function AddCoursePage() {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
