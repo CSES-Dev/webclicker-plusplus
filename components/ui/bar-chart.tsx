@@ -1,6 +1,6 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { CardContent } from "@/components/ui/card";
 import { ChartConfig, ChartContainer } from "@/components/ui/chart";
@@ -20,11 +20,11 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 //<BarGraph amount={100}/>
+//Singular bar line chart
 export function BarGraph({ amount }: { amount: number }) {
     //amount should be from [0,100]
     const barLeftOver = 100 - amount;
     const chartData = [{ data: amount, dataLeft: barLeftOver }];
-    const total = chartData[0].data + chartData[0].dataLeft;
     let barColor = "";
     if (amount <= 50) {
         barColor = "red";

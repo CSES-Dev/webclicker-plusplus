@@ -43,6 +43,7 @@ export function PieChart({ value, pie_label }: PieData) {
         return;
     }
 
+    //set up pie chart and colors
     const { amount, name } = validated_data.data;
     const graph_end_coordinate = 90 - Number((amount / 100) * 360);
     let color = "";
@@ -86,6 +87,7 @@ export function PieChart({ value, pie_label }: PieData) {
                             className="fill-transparent"
                         />
                         <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                            {/* The score and title in the pie chart */}
                             <Label
                                 content={({ viewBox }) => {
                                     if (viewBox && "cx" in viewBox && "cy" in viewBox) {
@@ -98,7 +100,7 @@ export function PieChart({ value, pie_label }: PieData) {
                                             >
                                                 <tspan
                                                     x={viewBox.cx}
-                                                    y={(viewBox.cy || 0) - 35}
+                                                    y={(viewBox.cy ?? 0) - 35}
                                                     className="fill[black] font-medium text-black"
                                                 >
                                                     {name}
@@ -106,7 +108,7 @@ export function PieChart({ value, pie_label }: PieData) {
 
                                                 <tspan
                                                     x={viewBox.cx}
-                                                    y={(viewBox.cy || 0) + 10}
+                                                    y={(viewBox.cy ?? 0) + 10}
                                                     className="fill[black] text-5xl font-semibold text-black"
                                                 >
                                                     {chartData[0].data_score.toLocaleString()}

@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Visualization } from "@/components/ui/visualization";
-import { CalendarComponent } from "@/components/ui/calendar";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { CalendarComponent } from "@/components/ui/calendar";
+import { Visualization } from "@/components/ui/visualization";
 
 export default function Home() {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -29,20 +29,30 @@ export default function Home() {
 
             {/* Buttons for Chart Selection */}
             <div className="flex gap-4 my-6">
-                <Button variant={selectedChart === "bar" ? "default" : "outline"} onClick={() => setSelectedChart("bar")}>
+                <Button
+                    variant={selectedChart === "bar" ? "default" : "outline"}
+                    onClick={() => {
+                        setSelectedChart("bar");
+                    }}
+                >
                     Show Bar Chart
                 </Button>
-                <Button variant={selectedChart === "pie" ? "default" : "outline"} onClick={() => setSelectedChart("pie")}>
+                <Button
+                    variant={selectedChart === "pie" ? "default" : "outline"}
+                    onClick={() => {
+                        setSelectedChart("pie");
+                    }}
+                >
                     Show Pie Chart
                 </Button>
             </div>
 
             {/* Visualization Component */}
             <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-md">
-                <Visualization 
-                    type={selectedChart} 
-                    value={getDataForDate(selectedDate)} 
-                    label={selectedChart === "bar" ? "Performance" : "Attendance"} 
+                <Visualization
+                    type={selectedChart}
+                    value={getDataForDate(selectedDate)}
+                    label={selectedChart === "bar" ? "Performance" : "Attendance"}
                 />
             </div>
         </div>

@@ -6,71 +6,71 @@
     width: 100%;
     border-radius: 8px;
     padding: 10px;
-  }
-  
-  /* Header (Month & Year) */
-  .react-calendar__navigation {
+}
+
+/* Header (Month & Year) */
+.react-calendar__navigation {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 16px;
     font-weight: bold;
     color: #374151;
-  }
-  
-  /* Days of the Week */
-  .react-calendar__month-view__weekdays {
+}
+
+/* Days of the Week */
+.react-calendar__month-view__weekdays {
     text-transform: uppercase;
     font-size: 12px;
     font-weight: 600;
     color: #6b7280;
-  }
-  
-  /* Each Day Cell */
-  .react-calendar__tile {
+}
+
+/* Each Day Cell */
+.react-calendar__tile {
     border-radius: 8px;
     padding: 10px;
     text-align: center;
     font-size: 14px;
     font-weight: 500;
     transition: 0.2s;
-  }
-  
-  /* Selected Date */
-  .react-calendar__tile--active {
+}
+
+/* Selected Date */
+.react-calendar__tile--active {
     background: #2563eb !important; /* Blue */
     color: white !important;
     font-weight: bold;
-  }
-  
-  /* Weekends (Red) */
-  .react-calendar__month-view__days__day--weekend {
+}
+
+/* Weekends (Red) */
+.react-calendar__month-view__days__day--weekend {
     color: #dc2626 !important; /* Red */
-  }
-  
-  /* Hover Effect */
-  .react-calendar__tile:hover {
+}
+
+/* Hover Effect */
+.react-calendar__tile:hover {
     background: #e5e7eb;
     transition: 0.3s;
-  }
-  
-  /* Navigation Buttons */
-  .react-calendar__navigation button {
+}
+
+/* Navigation Buttons */
+.react-calendar__navigation button {
     background: none;
     border: none;
     font-size: 18px;
     color: #374151;
     cursor: pointer;
-  }
-  
-  /* Disabled Dates */
-  .react-calendar__tile--disabled {
+}
+
+/* Disabled Dates */
+.react-calendar__tile--disabled {
     color: #d1d5db !important;
-  }
-  
-  /* Grid Layout */
-  .react-calendar__month-view__days {
+}
+
+/* Grid Layout */
+.react-calendar__month-view__days {
     display: grid !important;
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
-  }  
+}

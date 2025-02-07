@@ -31,8 +31,7 @@ const buttonVariants = cva(
     },
 );
 
-export type ButtonProps = {
-} & React.ButtonHTMLAttributes<HTMLButtonElement> &
+export type ButtonProps = {} & React.ButtonHTMLAttributes<HTMLButtonElement> &
     VariantProps<typeof buttonVariants>;
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -42,14 +41,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                 className={cn(
                     buttonVariants({ variant, size, className }),
                     "pointer-events-auto",
-                    disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                    disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
                 )}
                 ref={ref}
                 disabled={disabled}
                 {...props}
             />
         );
-    }
+    },
 );
 
 Button.displayName = "Button";

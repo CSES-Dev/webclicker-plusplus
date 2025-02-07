@@ -1,22 +1,9 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {
-    ChartConfig,
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart";
+import { Card, CardContent } from "@/components/ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 export type LineData = {
     day: string;
@@ -40,6 +27,7 @@ export type LineChartConfiguration = Record<
 // <LChart data={lineChartData}/>
 
 export function LChart({ data }: { data: LineData[] }) {
+    //use data for the values
     const chartData = data;
     const chartConfig: LineChartConfiguration = chartData.reduce<LineChartConfiguration>(
         (acc: LineChartConfiguration, item) => {
@@ -76,8 +64,8 @@ export function LChart({ data }: { data: LineData[] }) {
                             stroke="black"
                         />
                         <YAxis
-                            ticks={[20, 40, 60, 80, 100]} // Define your custom ticks here
-                            domain={[0, 100]} // Defines the min and max of the Y-axis
+                            ticks={[20, 40, 60, 80, 100]} //Y-axis ticks
+                            domain={[0, 100]}
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}

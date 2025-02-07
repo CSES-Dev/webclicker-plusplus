@@ -1,23 +1,16 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, Cell, LabelList, XAxis, YAxis } from "recharts";
 
-import { z } from "zod";
 
 import {
     Card,
     CardContent,
-    CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
 import {
-    ChartConfig,
     ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
 } from "@/components/ui/chart";
 
 export type BarData = {
@@ -50,6 +43,7 @@ export function BarB({ title, data }: { title: string; data: BarData[] }) {
         color: item.color,
         valueLeft: 100 - item.value,
     }));
+    // Use data values for bar chart
     const chartConfig: BarChartConfiguration = chartData.reduce<BarChartConfiguration>(
         (acc: BarChartConfiguration, item) => {
             acc[item.topic] = {
