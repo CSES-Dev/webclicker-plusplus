@@ -7,7 +7,7 @@ export default function Home() {
             <main className="flex flex-col gap-8 row-start-2 items-start sm:items-center">
                 <h1 className="text-2xl text-primary-foreground font-semibold">WebClicker++</h1>
                 <Button variant="outline">Click</Button>
-                  <Link href="/addCourse">
+                  <Link href="/add-course">
                     <button className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
                       Add Course
                     </button>
