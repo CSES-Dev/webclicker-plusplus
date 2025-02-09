@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
 import { Providers } from "./providers";
+import AuthGuard from "./auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -30,8 +31,12 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             {/* <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <Providers>{children}</Providers> */}
-            <body className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+                <Providers>
+                    <AuthGuard>{children}</AuthGuard>
+                </Providers> */}
+            <body
+                className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="light"
@@ -39,7 +44,9 @@ export default function RootLayout({
                     disableTransitionOnChange
                 >
                     <Providers>
-                    <main>{children}</main>
+                        <AuthGuard>
+                            <main>{children}</main>
+                        </AuthGuard>
                     </Providers>
                     <Toaster />
                 </ThemeProvider>

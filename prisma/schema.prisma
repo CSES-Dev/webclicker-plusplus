@@ -24,6 +24,35 @@ model User {
   responses          Response[]
   Session            Session[]
   courses            UserCourse[]
+  accounts Account[]
+  sessions Session[]
+
+}
+
+model Account {
+  id                 String   @id @default(cuid())
+  userId             Int
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model Course {
@@ -34,6 +63,7 @@ model Course {
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   sessions  CourseSession[]
+  schedules Schedule[]
   schedules Schedule[]
   users     UserCourse[]
 }
@@ -47,6 +77,15 @@ model UserCourse {
   user     User     @relation(fields: [userId], references: [id])
 
   @@id([userId, courseId])
+}
+
+model Schedule {
+  id         Int       @id @default(autoincrement())
+  course     Course    @relation(fields: [courseId], references: [id])
+  courseId   Int
+  dayOfWeek  String[]
+  startTime  String
+  endTime    String
 }
 
 model Schedule {
