@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { addCourse, getAllCourses } from "@/services/course";
@@ -18,6 +18,8 @@ export default function AddCoursePage() {
   const [code, setCode] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+
+  const [isFormValid, setIsFormValid] = useState(false);
 
   const handleDayToggle = (day: string) => {
     setSelectedDays((prev) =>
@@ -37,16 +39,28 @@ export default function AddCoursePage() {
   };
 
   const handleSubmit = async () => {
-    
-      // Assuming the form values are set in state variables like `name`, `code`, etc.
-      const result = await addCourse(name, code, selectedDays, selectedColor, startTime, endTime);
+    if (!isFormValid) return;
+    // Assuming the form values are set in state variables like `name`, `code`, etc.
+    const result = await addCourse(name, code, selectedDays, selectedColor, startTime, endTime);
 
-      if ('error' in result) {
-        console.log(result.error);  // Handle error
-      } else {
-        console.log(`Course created: ${result.title}`);  // Handle success
-      }
+    if ('error' in result) {
+      console.log(result.error);  // Handle error
+    } else {
+      console.log(`Course created: ${result.title}`);  // Handle success
+    }
   };
+
+  useEffect(() => {
+    const isValid =
+      name.trim() !== "" &&
+      code.trim() !== "" &&
+      selectedDays.length > 0 &&
+      selectedColor !== null &&
+      startTime.trim() !== "" &&
+      endTime.trim() !== "";
+
+    setIsFormValid(isValid);
+  }, [name, code, selectedDays, selectedColor, startTime, endTime]);
 
   return (
     <div className="p-8 pr-12 max-w-md mx-auto bg-white flex flex-col justify-between">
@@ -131,21 +145,13 @@ export default function AddCoursePage() {
           </div>
         </div>
         <div className="pb-8 flex justify-end">
-        <Button variant="addClass"
-                size="addClass" 
+        <Button variant={`${isFormValid ? 'primary' : 'disabled'}`}
+                size="primary" 
                 onClick={handleSubmit}
                 className="mt-4"
-                
         >
           Add Class
         </Button>
-        {/* <button
-          type="button"
-          onClick={handleSubmit}
-          className="w-full py-2 px-4 bg-[hsl(var(--secondary))] text-[hsl(var(--input-accent))] border border-[hsl(var(--input-accent))] rounded-md"
-        >
-          Add Class
-        </button> */}
         </div>
       </form>
     </div>
