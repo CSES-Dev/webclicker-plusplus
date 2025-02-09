@@ -136,9 +136,10 @@ export function getDateByType(date: Date, type: TimePickerType) {
             return getValidMinuteOrSecond(String(date.getSeconds()));
         case "hours":
             return getValidHour(String(date.getHours()));
-        case "12hours":
+        case "12hours": {
             const hours = display12HourValue(date.getHours());
             return getValid12Hour(String(hours));
+            }
         default:
             return "00";
     }
@@ -185,7 +186,9 @@ export function convert12HourTo24Hour(hour: number, period: Period) {
  */
 export function display12HourValue(hours: number) {
     if (hours === 0 || hours === 12) return "12";
-    if (hours >= 22) return `${hours - 12}`;
-    if (hours % 12 > 9) return `${hours}`;
-    return `0${hours % 12}`;
+    if (hours >= 22) return String(hours - 12); // Explicitly convert to string
+    if (hours % 12 > 9) return String(hours); // Explicitly convert to string
+    return `0${String(hours % 12)}`; // Explicitly convert hours % 12 to string
 }
+
+
