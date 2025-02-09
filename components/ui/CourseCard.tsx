@@ -18,7 +18,7 @@ export default function CourseCard({ color, days, title, timeStart, timeEnd }: P
                 ></div>
 
                 <div className="min-h-[60%] py-3 px-6 flex flex-col gap-2 items-start justify-start">
-                    <p className={"text-xs"}>
+                    <p className={"text-xs text-[#18328D]"}>
                         Time: {timeStart} - {timeEnd}
                     </p>
                     <p className="text-xl text-left leading-tight">{title}</p>
