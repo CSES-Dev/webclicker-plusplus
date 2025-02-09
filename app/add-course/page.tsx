@@ -4,7 +4,8 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator";
+import { addCourse, getAllCourses } from "@/services/course";
 // import { TimePickerInput } from "@/components/time-picker/time-picker-input";
 // import { TimePeriodSelect } from "@/components/time-picker/period-select";
 // import { Period } from "@/components/time-picker/time-picker-utils";
@@ -12,7 +13,7 @@ import { Separator } from "@/components/ui/separator"
 
 export default function AddCoursePage() {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -24,28 +25,31 @@ export default function AddCoursePage() {
     );
   };
 
-  const handleColorSelect = (color: string) => {
+  const handleColorSelect = async (color: string) => {
+    const result = await getAllCourses();
+
+    if ('error' in result) {
+      console.log(result.error);  // Logs the error in the server console
+    } else {
+      console.log(result);  // Logs the course data in the server console
+    }
     setSelectedColor(color);
   };
 
-  const handleSubmit = () => {
-    // Handle form submission logic
-    console.log({
-      name: name,
-      code: code,
-      days: selectedDays,
-      color: selectedColor,
-      times: {
-        start: startTime,
-        end: endTime,
-      },
-    });
-    // check if code is already in use by calling a function in services.
-    // if in use throw error otherwise create course component with name, code, date, time, color
+  const handleSubmit = async () => {
+    
+      // Assuming the form values are set in state variables like `name`, `code`, etc.
+      const result = await addCourse(name, code, selectedDays, selectedColor, startTime, endTime);
+
+      if ('error' in result) {
+        console.log(result.error);  // Handle error
+      } else {
+        console.log(`Course created: ${result.title}`);  // Handle success
+      }
   };
 
   return (
-    <div className="p-8 pr-12 max-w-md mx-auto bg-white flex flex-col justify-between border">
+    <div className="p-8 pr-12 max-w-md mx-auto bg-white flex flex-col justify-between">
       <h1 className="text-2xl font-bold mb-6">Add a Class</h1>
       <form onSubmit={(e) => e.preventDefault()}>
         <div className="mb-1">
