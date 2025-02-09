@@ -26,14 +26,7 @@ export default function AddCoursePage() {
         );
     };
 
-    const handleColorSelect = async (color: string) => {
-        const result = await getAllCourses();
-
-        if ("error" in result) {
-            console.log(result.error); // Logs the error in the server console
-        } else {
-            console.log(result); // Logs the course data in the server console
-        }
+    const handleColorSelect = (color: string) => {
         setSelectedColor(color);
     };
 
@@ -47,6 +40,19 @@ export default function AddCoursePage() {
         } else {
             console.log(`Course created: ${result.title}`); // Handle success
         }
+
+        //testing purposes
+        const result2 = await getAllCourses();
+
+        if ("error" in result2) {
+            console.log(result2.error); // Logs the error in the server console
+        } else {
+            console.log(result2); // Logs the course data in the server console
+        }
+    };
+
+    const handleSubmitButton = () => {
+      void handleSubmit();
     };
 
     useEffect(() => {
@@ -130,7 +136,7 @@ export default function AddCoursePage() {
                                         : "border border -[hsl(var(--input-border))]"
                                 }`}
                                 style={{ backgroundColor: color }}
-                                onClick={() => handleColorSelect(color)}
+                                onClick={() => { handleColorSelect(color); }}
                             />
                         ))}
                     </div>
@@ -163,7 +169,7 @@ export default function AddCoursePage() {
                     <Button
                         variant={isFormValid ? "primary" : "disabled"}
                         size="primary"
-                        onClick={handleSubmit}
+                        onClick={handleSubmitButton}
                         className="mt-4"
                     >
                         Add Class
