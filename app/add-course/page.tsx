@@ -6,6 +6,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { addCourse, getAllCourses } from "@/services/course";
+import { colorOptions, daysOptions } from "@/lib/constants";
+import TimeInput from '@/components/ui/TimeInput';
+import {Input} from '@/components/ui/input';
 // import { TimePickerInput } from "@/components/time-picker/time-picker-input";
 // import { TimePeriodSelect } from "@/components/time-picker/period-select";
 // import { Period } from "@/components/time-picker/time-picker-utils";
@@ -105,7 +108,7 @@ export default function AddCoursePage() {
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-2">Days of the Week:</label>
                     <div className="flex gap-3">
-                        {["M", "T", "W", "Th", "F"].map((day) => (
+                        {daysOptions.map((day) => (
                             <button
                                 key={day}
                                 type="button"
@@ -126,7 +129,7 @@ export default function AddCoursePage() {
                 <div className="mb-4">
                     <label className="block text-sm font-medium mb-2">Assign Color:</label>
                     <div className="flex gap-3">
-                        {["#ED9D9D", "#F3AB7E", "#EEF583", "#94ED79", "#8E87F2"].map((color) => (
+                        {colorOptions.map((color) => (
                             <button
                                 key={color}
                                 type="button"
