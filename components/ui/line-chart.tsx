@@ -60,7 +60,11 @@ export function LChart({ data }: { data: LineData[] }) {
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tickFormatter={(value) => value.slice(0, 4)}
+                            tickFormatter={(value) =>
+                                typeof value === "string"
+                                    ? value.slice(0, 4)
+                                    : String(value).slice(0, 4)
+                            }
                             stroke="black"
                         />
                         <YAxis
@@ -69,7 +73,11 @@ export function LChart({ data }: { data: LineData[] }) {
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tickFormatter={(value) => `${value}%`}
+                            tickFormatter={(value: unknown) =>
+                                typeof value === "number"
+                                    ? value.toString() + "%"
+                                    : String(Number(value) || 0) + "%"
+                            }
                             stroke="black"
                         />
                         <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />

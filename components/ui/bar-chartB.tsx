@@ -2,16 +2,8 @@
 
 import { Bar, BarChart, Cell, LabelList, XAxis, YAxis } from "recharts";
 
-
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import {
-    ChartContainer,
-} from "@/components/ui/chart";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
 
 export type BarData = {
     topic: string;
@@ -121,7 +113,7 @@ export function BarB({ title, data }: { title: string; data: BarData[] }) {
                                 dataKey="value"
                                 position="right"
                                 offset={8}
-                                formatter={(value: number) => `${value}%`}
+                                formatter={(value: number) => `${value.toFixed(0)}%`}
                                 className="fill-[black]"
                                 fontSize={12}
                             />

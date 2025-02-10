@@ -56,7 +56,9 @@ export function BarGraph({ amount }: { amount: number }) {
                         tickLine={false}
                         tickMargin={1}
                         axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
+                        tickFormatter={(value: unknown) =>
+                            typeof value === "string" ? value.slice(0, 3) : ""
+                        }
                         hide
                     />
                     <XAxis dataKey="data" type="number" hide domain={[0, 100]} />
@@ -67,7 +69,7 @@ export function BarGraph({ amount }: { amount: number }) {
                         fill={barColor}
                         stroke="black"
                         strokeWidth={1}
-                        radius={amount == 100 ? [25, 25, 25, 25] : [25, 0, 0, 25]}
+                        radius={amount === 100 ? [25, 25, 25, 25] : [25, 0, 0, 25]}
                         height={5}
                         width={200}
                         barSize={15}
