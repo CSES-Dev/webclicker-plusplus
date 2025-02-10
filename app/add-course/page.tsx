@@ -5,8 +5,8 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { addCourse, getAllCourses } from "@/services/course";
 import { colorOptions, daysOptions } from "@/lib/constants";
+import { addCourse, getAllCourses } from "@/services/course";
 // import TimeInput from '@/components/ui/TimeInput';
 // import {Input} from '@/components/ui/input';
 // import { TimePickerInput } from "@/components/time-picker/time-picker-input";
@@ -36,7 +36,7 @@ export default function AddCoursePage() {
     const handleSubmit = async () => {
         if (!isFormValid) return;
         // Assuming the form values are set in state variables like `name`, `code`, etc.
-        const result = await addCourse(name, code, selectedDays, selectedColor, startTime, endTime);
+        const result = await addCourse(name, code, selectedColor); // selectedDays, selectedColor, startTime, endTime);
 
         if ("error" in result) {
             console.log(result.error); // Handle error
@@ -55,7 +55,7 @@ export default function AddCoursePage() {
     };
 
     const handleSubmitButton = () => {
-      void handleSubmit();
+        void handleSubmit();
     };
 
     useEffect(() => {
@@ -139,7 +139,9 @@ export default function AddCoursePage() {
                                         : "border border -[hsl(var(--input-border))]"
                                 }`}
                                 style={{ backgroundColor: color }}
-                                onClick={() => { handleColorSelect(color); }}
+                                onClick={() => {
+                                    handleColorSelect(color);
+                                }}
                             />
                         ))}
                     </div>
