@@ -1,8 +1,44 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import type { NextAuthOptions } from "next-auth";
+import type { NextAuthOptions, Session as NextAuthSession } from "next-auth";
+import {DefaultSession} from "next-auth";
 import NextAuth, { User, getServerSession } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../../lib/prisma";
+import { AdapterUser } from "next-auth/adapters";
+
+type Account = {
+    provider: string;
+    type: string;
+    providerAccountId: string;
+    refresh_token?: string | null;
+    access_token?: string | null;
+    expires_at?: string | null;
+    token_type?: string | null;
+    scope?: string | null;
+    id_token?: string | null;
+    session_state?: string | null;
+    userId: string;
+};
+
+declare module "next-auth" {
+    interface Session extends DefaultSession {
+        user: {
+            id: string;
+        } & DefaultSession["user"]
+    }
+
+    interface User {
+        id: string;
+    }
+}
+
+declare module "next-auth/jwt" {
+    interface JWT {
+        id?: string;
+    }
+}
+
 
 // Create a custom adapter by overriding createUser, linkAccount, and createSession inline.
 const customAdapter = {
@@ -26,15 +62,15 @@ const customAdapter = {
             name: lastName ? `${firstName} ${lastName}` : firstName,
             email: createdUser.email,
             emailVerified: null,
-        };
+        } as AdapterUser;
     },
 
-    async linkAccount(account: any) {
+    async linkAccount(account: Account) {
         return prisma.account.create({
             data: {
-                provider: account.provider!,
-                type: account.type!,
-                providerAccountId: account.providerAccountId!,
+                provider: account.provider,
+                type: account.type,
+                providerAccountId: account.providerAccountId,
                 refresh_token: account.refresh_token ?? null,
                 access_token: account.access_token ?? null,
                 expires_at: account.expires_at ? parseInt(account.expires_at, 10) : null,
@@ -47,12 +83,20 @@ const customAdapter = {
         });
     },
 
-    async createSession(session: any) {
+    async createSession({
+        sessionToken,
+        userId,
+        expires,
+    }: {
+        sessionToken: string;
+        userId: string;
+        expires: Date;
+    }) {
         const createdSession = await prisma.session.create({
             data: {
-                sessionToken: session.sessionToken,
-                userId: parseInt(session.userId, 10),
-                expires: session.expires,
+                sessionToken,
+                userId: parseInt(userId, 10),
+                expires,
             },
         });
         return {
@@ -71,16 +115,16 @@ export const authOptions: NextAuthOptions = {
     ],
     adapter: customAdapter,
     callbacks: {
-        async signIn({ user, account, profile, email, credentials }) {
+        async signIn({ credentials }) {
             return true;
         },
-        jwt({ token, user }) {
+        jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
                 token.id = user.id;
             }
             return token;
         },
-        session({ session, token }: { session: any; token: any }) {
+        session({ session, token }: { session: NextAuthSession; token: JWT }) {
             if (session.user && token?.id) {
                 session.user.id = token.id;
             }

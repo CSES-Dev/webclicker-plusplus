@@ -1,3 +1,4 @@
+import Image from "next/image";
 import React from "react";
 
 export default function Name() {
@@ -25,7 +26,14 @@ export default function Name() {
             </section>
             {/* Logo container - visible on medium screens and larger */}
             <div className="bg-neutral hidden md:flex mt-18 items-center p-6 justify-center rounded-2xl">
-                <img src="/webclickericon.svg" alt="logo" className="w-28 h-28" />
+                <Image
+                    src="/webclickericon.svg"
+                    alt="logo"
+                    width={112} // equivalent to w-28 (28 * 4 = 112px)
+                    height={112} // equivalent to h-28 (28 * 4 = 112px)
+                    className="w-28 h-28"
+                    priority
+                />
             </div>
         </main>
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import AuthButton from "@/components/auth-button";
 
@@ -11,10 +12,13 @@ export default function Login() {
             {/* Left-side (Logo Section) */}
             <section className="h-[50vh] lg:h-screen w-full lg:w-1/2 card bg-base-300 rounded-box grid flex-grow place-items-center bg-custom-blue-background">
                 <div className="flex flex-col justify-center items-center">
-                    <img
+                    <Image
                         src="/cube.svg"
-                        alt="png"
+                        alt="Cube illustration"
+                        width={80}
+                        height={80}
                         className="w-20 h-20 sm:w-12 sm:h-12 lg:w-20 lg:h-20 pb-2"
+                        priority
                     />
                     <h1 className="text-2xl text-primary-foreground font-semibold">WebClicker++</h1>
                 </div>
