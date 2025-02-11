@@ -31,6 +31,7 @@ model Course {
   updatedAt DateTime        @updatedAt
   users     UserCourse[]
   sessions  CourseSession[]
+  schedules Schedule[]
 }
 
 model UserCourse {
@@ -42,6 +43,15 @@ model UserCourse {
   linkedAt DateTime @default(now())
 
   @@id([userId, courseId])
+}
+
+model Schedule {
+  id         Int       @id @default(autoincrement())
+  course     Course    @relation(fields: [courseId], references: [id])
+  courseId   Int
+  dayOfWeek  String[]
+  startTime  String
+  endTime    String
 }
 
 model CourseSession {

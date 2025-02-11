@@ -51,6 +51,12 @@ export default {
                     "4": "hsl(var(--chart-4))",
                     "5": "hsl(var(--chart-5))",
                 },
+                course_pink: "#ED9D9D",
+                course_orange: "#F3AB7E",
+                course_yellow: "#EEF583",
+                course_green: "#94ED79",
+                course_purple: "#8E87F2",
+
             },
             borderRadius: {
                 lg: "var(--radius)",
