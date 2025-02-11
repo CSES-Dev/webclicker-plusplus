@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { colorOptions, daysOptions } from "@/lib/constants";
 import { addCourse, getAllCourses } from "@/services/course";
 // import TimeInput from '@/components/ui/TimeInput';
-// import {Input} from '@/components/ui/input';
+import {Input} from '@/components/ui/input';
 // import { TimePickerInput } from "@/components/time-picker/time-picker-input";
 // import { TimePeriodSelect } from "@/components/time-picker/period-select";
 // import { Period } from "@/components/time-picker/time-picker-utils";
@@ -72,7 +72,7 @@ export default function AddCoursePage() {
 
     return (
         <div className="p-8 pr-12 max-w-md mx-auto bg-white flex flex-col justify-between">
-            <h1 className="text-2xl font-bold mb-6">Add a Class</h1>
+            <h1 className="text-2xl mb-6">Add a class</h1>
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -82,7 +82,7 @@ export default function AddCoursePage() {
                     <input
                         id="name"
                         type="text"
-                        className="w-full p-0 bg-white text-black focus:outline-none focus:border-none"
+                        className="w-full p-0 bg-white text-m text-black focus:outline-none focus:border-none"
                         placeholder="Name of Class"
                         value={name}
                         onChange={(e) => {
@@ -92,13 +92,13 @@ export default function AddCoursePage() {
                 </div>
                 <Separator className="mb-4" />
                 <div className="mb-4">
-                    <label htmlFor="code" className="block text-sm font-medium mb-2">
+                    <label htmlFor="code" className="block text-m mb-2">
                         Class Code:
                     </label>
                     <input
                         id="code"
                         type="text"
-                        className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
+                        className="h-8 w-32 bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
                         value={code}
                         onChange={(e) => {
                             setCode(e.target.value);
@@ -106,7 +106,7 @@ export default function AddCoursePage() {
                     />
                 </div>
                 <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Days of the Week:</label>
+                    <label className="block text-m mb-2">Days of the Week:</label>
                     <div className="flex gap-3">
                         {daysOptions.map((day) => (
                             <button
@@ -127,7 +127,7 @@ export default function AddCoursePage() {
                     </div>
                 </div>
                 <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Assign Color:</label>
+                    <label className="block text-m mb-2">Assign Color:</label>
                     <div className="flex gap-3">
                         {colorOptions.map((color) => (
                             <button
@@ -147,7 +147,7 @@ export default function AddCoursePage() {
                     </div>
                 </div>
                 <div className="mb-16">
-                    <label className="block text-sm font-medium mb-2">Times:</label>
+                    <label className="block text-m mb-2">Times:</label>
                     <div className="flex justify-between items-center">
                         <input
                             type="time"
@@ -158,7 +158,7 @@ export default function AddCoursePage() {
                                 setStartTime(e.target.value);
                             }}
                         />
-                        <span className="text-center align-middle">to</span>
+                        <span className="text-center text-m align-middle">to</span>
                         <input
                             type="time"
                             className="bg-[hsl(var(--secondary))] text-[hsl(var(--foreground))] border border-[hsl(var(--input-border))] rounded-md p-2"
