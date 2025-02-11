@@ -31,9 +31,9 @@ export default function AddCoursePage() {
 
     const handleSubmit = async () => {
         if (!isFormValid) return;
-        // Assuming the form values are set in state variables like `name`, `code`, etc.
+
         const result = await addCourse(name, code, selectedDays, selectedColor, startTime, endTime);
-        console.log(result)
+
         if ("error" in result) {
             console.log(result.error); // Handle error
         } else {
