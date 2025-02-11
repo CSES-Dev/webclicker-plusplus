@@ -22,16 +22,15 @@ export default function Home() {
     );
 }
 
-
 // LandingPage.js
- 
+
 // import { signIn } from 'next-auth/react';
- 
+
 // export const LandingPage = () => {
 //   const handleSignIn = async () => {
 //     await signIn('google');
 //   };
- 
+
 //   return (
 //     <div>
 //       <h1>Welcome to Our Next.js App!</h1>
