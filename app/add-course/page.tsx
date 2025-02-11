@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { colorOptions, daysOptions } from "@/lib/constants";
 import { addCourse } from "@/services/course";
-import TimeInput from "@/components/ui/TimeInput";
-
+// import TimeInput from "@/components/ui/TimeInput";
 
 export default function AddCoursePage() {
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
