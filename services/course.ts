@@ -39,11 +39,13 @@ export async function addCourse(
             code,
             color,
             Schedule: {
-                create: [{
-                    dayOfWeek: days,
-                    startTime,
-                    endTime,
-                }],
+                create: [
+                    {
+                        dayOfWeek: days,
+                        startTime,
+                        endTime,
+                    },
+                ],
             },
         },
         include: { Schedule: true },

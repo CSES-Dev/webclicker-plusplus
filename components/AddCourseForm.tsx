@@ -167,4 +167,4 @@ export const AddCourseForm = () => {
             </form>
         </div>
     );
-}
+};
