@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { colorOptions, daysOptions } from "@/lib/constants";
-import { addCourse, getAllCourses } from "@/services/course";
+import { addCourse } from "@/services/course";
 
 
 export default function AddCoursePage() {
