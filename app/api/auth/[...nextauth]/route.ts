@@ -1,11 +1,13 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import type { NextAuthOptions, Session as NextAuthSession } from "next-auth";
-import {DefaultSession} from "next-auth";
-import NextAuth, { User, getServerSession } from "next-auth";
+import NextAuth, { DefaultSession, User, getServerSession } from "next-auth";
+import { AdapterUser } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../../lib/prisma";
-import { AdapterUser } from "next-auth/adapters";
+import { NextResponse } from "next/server";
+import Email from "next-auth/providers/email";
+
 
 type Account = {
     provider: string;
@@ -25,7 +27,8 @@ declare module "next-auth" {
     interface Session extends DefaultSession {
         user: {
             id: string;
-        } & DefaultSession["user"]
+            isNew: boolean;
+        } & DefaultSession["user"];
     }
 
     interface User {
@@ -38,7 +41,6 @@ declare module "next-auth/jwt" {
         id?: string;
     }
 }
-
 
 // Create a custom adapter by overriding createUser, linkAccount, and createSession inline.
 const customAdapter = {
@@ -115,21 +117,36 @@ export const authOptions: NextAuthOptions = {
     ],
     adapter: customAdapter,
     callbacks: {
-        async signIn({ credentials }) {
-            return true;
+        async signIn({ user, account, profile, credentials }) {
+            return true
         },
-        jwt({ token, user }: { token: JWT; user?: User }) {
+        async jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
                 token.id = user.id;
             }
             return token;
         },
-        session({ session, token }: { session: NextAuthSession; token: JWT }) {
+        async session({ session, token }: { session: NextAuthSession; token: JWT }) {
+            // if (session.user && token?.id) {
+            //     session.user.id = token.id;
+            // }
+            // return session;
             if (session.user && token?.id) {
                 session.user.id = token.id;
+
+                // Check if this is the user's first session (newly created account)
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: parseInt(session.user.id, 10) },
+                    select: { id: true },
+                });
+
+                session.user.isNew = !dbUser
             }
             return session;
         },
+    },
+    pages: {
+        signIn: "signup/name", 
     },
 };
 

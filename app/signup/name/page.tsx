@@ -34,14 +34,14 @@ export default function Name() {
             </section>
             {/* Desktop/tablet layout with logo and continue button */}
             <div className="hidden md:flex left-72 right-72 bottom-44 items-center justify-around p-6">
-            <Image 
-                src="/webclickericon.svg" 
-                alt="logo" 
-                width={112} // 28 * 4 = 112px
-                height={112} 
-                className="w-28 h-28"
-                priority
-            />
+                <Image
+                    src="/webclickericon.svg"
+                    alt="logo"
+                    width={112} // 28 * 4 = 112px
+                    height={112}
+                    className="w-28 h-28"
+                    priority
+                />
                 <button className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all">
                     Continue
                 </button>
