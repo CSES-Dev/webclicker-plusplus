@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BarGraph } from "./bar-chart";
+import { BarChartSingle } from "./bar-chart";
 import { PieChart } from "./pie-chart";
 
 export type VisualizationProps = {
@@ -13,7 +13,7 @@ export type VisualizationProps = {
 export function Visualization({ type, value, label }: VisualizationProps) {
     return (
         <div className="p-4 bg-white shadow-md rounded-lg">
-            {type === "bar" && <BarGraph amount={value} />}
+            {type === "bar" && <BarChartSingle amount={value} />}
             {type === "pie" && <PieChart value={value} pie_label={label} />}
         </div>
     );

@@ -28,7 +28,7 @@ export type BarChartConfiguration = Record<
 // ];
 // <BarB title={"Chart!!!"} data={items}/>
 
-export function BarB({ title, data }: { title: string; data: BarData[] }) {
+export function Bar_Chart({ title, data }: { title: string; data: BarData[] }) {
     const chartData = data.map((item) => ({
         topic: item.topic,
         value: item.value,
