@@ -16,10 +16,10 @@ type AddCourseResult =
 export async function addCourse(
     name: string,
     code: string,
-    // days: string[],
+    days: string[],
     color: string,
-    //startTime: string,
-    // endTime: string,
+    startTime: string,
+    endTime: string,
 ): Promise<AddCourseResult> {
     // Check if a course with the same code already exists
     const existingCourse = await prisma.course.findFirst({
@@ -37,13 +37,16 @@ export async function addCourse(
         data: {
             title: name,
             code,
-            // days: days,  // Assuming days is an array of strings
             color,
-            // startTime: startTime,
-            // endTime: endTime,
-            //   users: ,
-            //   sessions: ,
+            Schedule: {
+                create: [{
+                    dayOfWeek: days,
+                    startTime,
+                    endTime,
+                }],
+            },
         },
+        include: { Schedule: true },
     });
 
     return newCourse;
