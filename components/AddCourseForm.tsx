@@ -1,5 +1,3 @@
-// app/addCourse/page.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { colorOptions, daysOptions } from "@/lib/constants";
 import { addCourse } from "@/services/course";
-import TimeInput from "@/components/ui/TimeInput";
 
-
-export default function AddCoursePage() {
+export const AddCourseForm = () => {
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
     const [selectedColor, setSelectedColor] = useState<string>("");
     const [name, setName] = useState("");
