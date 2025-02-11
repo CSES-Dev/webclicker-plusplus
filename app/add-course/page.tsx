@@ -7,11 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { colorOptions, daysOptions } from "@/lib/constants";
 import { addCourse, getAllCourses } from "@/services/course";
-// import TimeInput from '@/components/ui/TimeInput';
-import {Input} from '@/components/ui/input';
-// import { TimePickerInput } from "@/components/time-picker/time-picker-input";
-// import { TimePeriodSelect } from "@/components/time-picker/period-select";
-// import { Period } from "@/components/time-picker/time-picker-utils";
+
 
 export default function AddCoursePage() {
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -42,15 +38,6 @@ export default function AddCoursePage() {
             console.log(result.error); // Handle error
         } else {
             console.log(`Course created: ${result.title}`); // Handle success
-        }
-
-        //testing purposes
-        const result2 = await getAllCourses();
-
-        if ("error" in result2) {
-            console.log(result2.error); // Logs the error in the server console
-        } else {
-            console.log(result2); // Logs the course data in the server console
         }
     };
 
