@@ -51,11 +51,11 @@ export default function Page() {
                         return (
                             <CourseCard
                                 key={idx}
-                                color={course.color ? course.color : ""}
-                                days={course.days ? course.days : []}
-                                title={course.title ? course.title : "Unknown"}
-                                timeStart={course.startTime ? course.startTime : ""}
-                                timeEnd={course.endTime ? course.endTime : ""}
+                                color={course.color ?? ""}
+                                days={course.days ?? []}
+                                title={course.title ?? "Unknown"}
+                                timeStart={course.startTime ?? ""}
+                                timeEnd={course.endTime ?? ""}
                             />
                         );
                     })}

@@ -37,13 +37,13 @@ export default function Page() {
 
     return (
         <>
-            {!course && (
+            {!course ? (
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
                         void handleSubmit(() => onFormSubmit())();
                     }}
-                    className="flex flex-col justify-center items-center gap-6 pt-56"
+                    className="flex flex-col justify-center items-center gap-6 pt-72"
                 >
                     <h1 className="text-3xl mb-5">Enter Classroom Code:</h1>
                     <div className="mb-8">
@@ -66,8 +66,7 @@ export default function Page() {
                         Enter
                     </button>
                 </form>
-            )}
-            {course && (
+            ) : (
                 <div className="flex flex-col justify-center items-center gap-9 pt-44">
                     <h1 className="text-3xl text-center">
                         You have been <br /> successfully added to:
