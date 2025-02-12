@@ -8,7 +8,6 @@ import prisma from "../../../../lib/prisma";
 import { NextResponse } from "next/server";
 import Email from "next-auth/providers/email";
 
-
 type Account = {
     provider: string;
     type: string;
@@ -115,14 +114,23 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GOOGLE_SECRET ?? "",
         }),
     ],
+    secret: process.env.NEXTAUTH_SECRET,
+    session: {
+        strategy: "jwt",
+    },
     adapter: customAdapter,
     callbacks: {
         async signIn({ user, account, profile, credentials }) {
-            return true
+            return true;
         },
         async jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
                 token.id = user.id;
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: parseInt(user.id, 10) },
+                    select: { id: true },
+                });
+                token.isNew = !dbUser;
             }
             return token;
         },
@@ -140,14 +148,14 @@ export const authOptions: NextAuthOptions = {
                     select: { id: true },
                 });
 
-                session.user.isNew = !dbUser
+                session.user.isNew = !dbUser;
             }
             return session;
         },
     },
-    pages: {
-        signIn: "signup/name", 
-    },
+    // pages: {
+    //     signIn: "signup/name",
+    // },
 };
 
 const handler = NextAuth(authOptions);

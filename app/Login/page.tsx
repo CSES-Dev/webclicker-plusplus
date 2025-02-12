@@ -1,25 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation"; // Import router for navigation
-import { useSession } from "next-auth/react";
 import AuthButton from "@/components/auth-button";
 
 export default function Login() {
-    const { data: session, status } = useSession();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (status === "authenticated") {
-            if (session?.user?.isNew) {
-                router.push("signup/name"); // Redirect new users
-            } else {
-                router.push("dashboard/"); // Redirect existing users
-            }
-        }
-    }, [session, status, router]);
-
     return (
         <div className="flex w-full flex-col lg:flex-row">
             {/* Left-side (Logo Section) */}
@@ -45,14 +29,7 @@ export default function Login() {
                     </h1>
 
                     <div className="flex flex-col mt-11 items-center">
-                        {!session ? (
-                            <AuthButton />
-                        ) : (
-                            <p className="text-lg font-semibold text-gray-800 dark:text-black">
-                                Signed in as {session.user?.name}
-                            </p>
-                        )}
-
+                        <AuthButton />
                         <p className="text-gray-500 pt-6 text-sm">
                             Don't have an account?{" "}
                             <a className="text-blue-700 underline" href="">
