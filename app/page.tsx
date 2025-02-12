@@ -1,6 +1,7 @@
 // import Link from "next/link";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { AddCourseForm } from "@/components/AddCourseForm";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 // import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -14,6 +15,9 @@ export default function Home() {
                             Add Course
                         </button>
                     </SheetTrigger>
+                    <VisuallyHidden>
+                        <SheetTitle></SheetTitle>
+                    </VisuallyHidden>
                     <SheetContent className="p-0 m-0 max-w-md min-w-[350px] w-full">
                         <AddCourseForm />
                     </SheetContent>

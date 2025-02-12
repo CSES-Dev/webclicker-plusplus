@@ -56,7 +56,6 @@ export default {
                 course_yellow: "#EEF583",
                 course_green: "#94ED79",
                 course_purple: "#8E87F2",
-
             },
             borderRadius: {
                 lg: "var(--radius)",

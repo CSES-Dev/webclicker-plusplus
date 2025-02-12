@@ -48,12 +48,12 @@ model UserCourse {
 }
 
 model Schedule {
-  id         Int       @id @default(autoincrement())
-  course     Course    @relation(fields: [courseId], references: [id])
-  courseId   Int
-  dayOfWeek  String[]
-  startTime  String
-  endTime    String
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  dayOfWeek String[]
+  startTime String
+  endTime   String
+  course    Course   @relation(fields: [courseId], references: [id])
 }
 
 model CourseSession {
@@ -112,15 +112,6 @@ model Account {
   User              User    @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
-}
-
-model Schedule {
-  id        Int      @id @default(autoincrement())
-  courseId  Int
-  dayOfWeek String[]
-  startTime String
-  endTime   String
-  Course    Course   @relation(fields: [courseId], references: [id])
 }
 
 model Session {

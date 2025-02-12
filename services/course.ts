@@ -9,30 +9,30 @@ export async function getCourseWithCode(code: string) {
     });
 }
 
-export async function getCourseWithId(courseId: number){
+export async function getCourseWithId(courseId: number) {
     const course = await prisma.course.findFirst({
-        where:{
-            id: courseId
-        }
-    })
+        where: {
+            id: courseId,
+        },
+    });
 
     const schedule = await prisma.schedule.findFirst({
-        where:{
-            courseId
-        }
-    })
+        where: {
+            courseId,
+        },
+    });
 
     return {
-        "color": course?.color,
-        "title": course?.title,
-        "days": schedule?.dayOfWeek,
-        "startTime": schedule?.startTime,
-        "endTime": schedule?.endTime
-    }
+        color: course?.color,
+        title: course?.title,
+        days: schedule?.dayOfWeek,
+        startTime: schedule?.startTime,
+        endTime: schedule?.endTime,
+    };
 }
-type AddCourseResult = 
-  | { id: number; title: string; code: string; color: string; createdAt: Date; updatedAt: Date; } 
-  | { error: string };
+type AddCourseResult =
+    | { id: number; title: string; code: string; color: string; createdAt: Date; updatedAt: Date }
+    | { error: string };
 
 export async function addCourse(
     name: string,
@@ -60,11 +60,13 @@ export async function addCourse(
             code,
             color,
             schedules: {
-                create: [{
-                    dayOfWeek: days,
-                    startTime,
-                    endTime,
-                }],
+                create: [
+                    {
+                        dayOfWeek: days,
+                        startTime,
+                        endTime,
+                    },
+                ],
             },
         },
         include: { schedules: true },
@@ -74,10 +76,10 @@ export async function addCourse(
 }
 
 export async function getAllCourses() {
-  try {
-      const courses = await prisma.course.findMany();
-      return courses;
-  } catch (error) {
-      return { error };
-  }
+    try {
+        const courses = await prisma.course.findMany();
+        return courses;
+    } catch (error) {
+        return { error };
+    }
 }
