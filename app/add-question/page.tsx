@@ -26,7 +26,7 @@ export default function page() {
                 </DrawerHeader>
                 <DrawerFooter className="mb-6">
                     <Button className="w-36 bg-[#18328D] h-10">Save Question</Button>
-                    <DrawerClose></DrawerClose> {/*create drawer close button at top right*/}
+                    {/* <DrawerClose></DrawerClose> */}
                 </DrawerFooter>
             </DrawerContent>
         </Drawer>
