@@ -1,0 +1,1 @@
+export const questionTypes = ["Multiple Choice", "Select All", "Free Response"]
