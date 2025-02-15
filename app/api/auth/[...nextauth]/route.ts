@@ -14,8 +14,8 @@ import Email from "next-auth/providers/email";
 export const authOptions: NextAuthOptions = {
     session:{
         strategy: "jwt"
-
     },
+    adapter: PrismaAdapter(prisma),
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_ID ?? "",
@@ -23,10 +23,11 @@ export const authOptions: NextAuthOptions = {
             profile(profile) {
                 return {
                     id: profile.sub,
-                    name: `${profile.given_name} ${profile.family_name}`,
+                    firstName: `${profile.given_name}`,
+                    lastName: `${profile.family_name}`,
+                    // name: `${profile.given_name} ${profile.family_name}`,
                     email: profile.email,
-                    image: profile.picture,
-                    role: profile.role ? profile.role : "user",
+                    // role: profile.role ? profile.role : "user",
                 };
             },
         }),
