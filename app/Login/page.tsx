@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import AuthButton from "@/components/auth-button";
+import SigninButton from "@/components/signup-button";
 
 export default function Login() {
     return (
@@ -37,6 +38,7 @@ export default function Login() {
                             </a>
                         </p>
                     </div>
+                    <SigninButton/>
                 </div>
             </section>
 

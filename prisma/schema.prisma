@@ -12,18 +12,14 @@ datasource db {
 }
 
 model User {
-  id                 String       @id
-  email              String?      @unique
-  firstName          String
-  lastName           String?
-  updatedAt          DateTime     @updatedAt
-  emailVerified      DateTime?
-  createdAt          DateTime     @default(now())
-  finishedOnboarding Boolean      @default(false)
-  Account            Account[]
-  responses          Response[]
-  Session            Session[]
-  courses            UserCourse[]
+  id        String       @id @default(cuid())
+  email     String?       @unique
+  firstName String
+  lastName  String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  courses   UserCourse[]
+  responses Response[]
   accounts Account[]
   sessions Session[]
 
@@ -31,7 +27,7 @@ model User {
 
 model Account {
   id                 String   @id @default(cuid())
-  userId             Int
+  userId             String
   type               String
   provider           String
   providerAccountId  String
@@ -50,7 +46,7 @@ model Account {
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
-  userId       Int
+  userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id])
 }
@@ -69,7 +65,9 @@ model Course {
 }
 
 model UserCourse {
+  user     User     @relation(fields: [userId], references: [id])
   userId   String
+  course   Course   @relation(fields: [courseId], references: [id])
   courseId Int
   role     Role     @default(STUDENT)
   linkedAt DateTime @default(now())
@@ -126,7 +124,9 @@ model Option {
 }
 
 model Response {
+  user       User     @relation(fields: [userId], references: [id])
   userId     String
+  question   Question @relation(fields: [questionId], references: [id])
   questionId Int
   optionId   Int
   answeredAt DateTime @default(now())
