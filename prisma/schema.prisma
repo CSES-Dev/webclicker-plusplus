@@ -16,7 +16,8 @@ model User {
   email     String?       @unique
   firstName String
   lastName  String?
-  emailVerified DateTime     @default(now())
+  emailVerified DateTime?
+  createdAt DateTime @default(now())
   updatedAt DateTime     @updatedAt
   courses   UserCourse[]
   responses Response[]

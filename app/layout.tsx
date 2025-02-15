@@ -20,6 +20,8 @@ const geistMono = localFont({
 });
 const figtree = Figtree({ subsets: ["latin"] });
 
+
+
 export const metadata: Metadata = {
     title: "WebClicker++",
 };

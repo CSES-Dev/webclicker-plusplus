@@ -9,5 +9,5 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  type JWT = User;
+  interface JWT extends User {}
 }

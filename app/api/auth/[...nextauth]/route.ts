@@ -1,15 +1,8 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import type { NextAuthOptions, Session as NextAuthSession } from "next-auth";
-import NextAuth, { DefaultSession, User, getServerSession } from "next-auth";
-import { AdapterUser } from "next-auth/adapters";
-import { JWT } from "next-auth/jwt";
+import NextAuth, { DefaultSession, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../../lib/prisma";
-import { NextResponse } from "next/server";
-import Email from "next-auth/providers/email";
-
-
-
 
 export const authOptions: NextAuthOptions = {
     session:{
@@ -25,18 +18,20 @@ export const authOptions: NextAuthOptions = {
                     id: profile.sub,
                     firstName: `${profile.given_name}`,
                     lastName: `${profile.family_name}`,
-                    // name: `${profile.given_name} ${profile.family_name}`,
                     email: profile.email,
-                    // role: profile.role ? profile.role : "user",
                 };
             },
         }),
     ],
     callbacks:{
         async jwt({ token, user }){
-            return{...token, ...user}
+            return {...token, ...user}
         },
         async session({session, token}){
+            if (session.user) {
+                session.user.firstName = token.firstName as string;
+                session.user.lastName = token.lastName as string;
+            }
             return session;
         }
         
