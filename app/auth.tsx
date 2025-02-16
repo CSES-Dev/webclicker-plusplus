@@ -4,13 +4,13 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import Login from "@/app/login/page";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Login from "@/app/login/page";
+
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
     const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
@@ -18,13 +18,16 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
         if (!session) {
             setShowAlert(true);
-            router.push("/login");
-        } else {
-            setLoading(false);
+            // Add a small delay before redirecting to ensure the alert is visible
+            const timeout = setTimeout(() => {
+                router.push("/login");
+            }, 2000);
+            return () => clearTimeout(timeout);
         }
     }, [session, status, router]);
 
-    if (loading) {
+    // Show alert if there's no session
+    if (!session) {
         return (
             <div className="relative">
                 {showAlert && (
@@ -33,10 +36,8 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                             <AlertDescription className="flex items-center justify-between">
                                 Please sign in to continue
                                 <button
-                                    onClick={() => {
-                                        setShowAlert(false);
-                                    }}
-                                    className=" round rounded-full "
+                                    onClick={() => setShowAlert(false)}
+                                    className="rounded-full p-1 hover:bg-red-100 transition-colors"
                                 >
                                     <X className="h-4 w-4" />
                                 </button>
@@ -44,10 +45,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                         </Alert>
                     </div>
                 )}
-                <Login />
+                <Login/>
             </div>
         );
     }
 
+    // If we have a session, render the children
     return <>{children}</>;
 }

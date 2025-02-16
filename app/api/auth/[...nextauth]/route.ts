@@ -4,6 +4,7 @@ import NextAuth, { DefaultSession, getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "../../../../lib/prisma";
 
+
 export const authOptions: NextAuthOptions = {
     session:{
         strategy: "jwt"
@@ -25,16 +26,41 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks:{
         async jwt({ token, user }){
+            if(user) {
+                token.id = user.id;
+                const existingUser = await prisma.user.findUnique({
+                    where: { email: token.email as string }
+                });
+                
+                // Add firstTimeUser flag to token
+                token.firstTimeUser = !existingUser;
+            }
+
             return {...token, ...user}
         },
+        // async jwt({ token, user }){
+        //     if (token.email) {
+        //         const userCourse = await prisma.userCourse.findFirst({
+        //             where: {
+        //                 user: {
+        //                     email: token.email
+        //                 }
+        //             }
+        //         })
+        //         token.hasRole = !!userCourse
+        //     }
+        //     return {...token, ...user}
+        // },
         async session({session, token}){
             if (session.user) {
+                session.user.id = token.id as string;
                 session.user.firstName = token.firstName as string;
                 session.user.lastName = token.lastName as string;
+                (session as any).firstTimeUser = token.firstTimeUser;
+
             }
             return session;
-        }
-        
+        },
     },
     secret: process.env.NEXTAUTH_SECRET,
 };

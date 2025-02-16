@@ -3,7 +3,8 @@
 import Image from "next/image";
 import AuthButton from "@/components/auth-button";
 import SigninButton from "@/components/signup-button";
-
+import { signIn, useSession } from "next-auth/react";
+import { NextResponse } from "next/server";
 export default function Login() {
     return (
         <div className="flex w-full flex-col lg:flex-row">
@@ -33,15 +34,17 @@ export default function Login() {
                         <AuthButton />
                         <p className="text-gray-500 pt-6 text-sm">
                             Don't have an account?{" "}
-                            <a className="text-blue-700 underline" href="">
+                            <button
+                                className="text-blue-700 underline"
+                                onClick={() => signIn("google")}
+                            >
                                 Sign up
-                            </a>
+                            </button>
                         </p>
                     </div>
-                    <SigninButton/>
+                    <SigninButton />
                 </div>
             </section>
-
             <div className="divider lg:divider-horizontal"></div>
         </div>
     );

@@ -9,5 +9,7 @@ declare module "next-auth" {
 }
 
 declare module "next-auth/jwt" {
-  interface JWT extends User {}
+  interface JWT extends User {
+    hasUserCousre?: boolean
+  }
 }
