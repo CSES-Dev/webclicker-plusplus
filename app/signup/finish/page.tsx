@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
+// import { useToast } from "@/components/ui/use-toast";
 
 interface APIResponse {
     error?: string;
@@ -34,7 +35,6 @@ export default function Name() {
                 const data = (await response.json()) as APIResponse;
                 throw new Error(data.error ?? "Failed to update onboarding status");
             }
-
             await update();
             // 3. On success, navigate to the dashboard
             router.push("/dashboard");
