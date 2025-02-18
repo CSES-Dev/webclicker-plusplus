@@ -26,32 +26,35 @@ export const authOptions: NextAuthOptions = {
     ],
     callbacks:{
         async jwt({ token, user }){
-            if(user) {
-                token.id = user.id;
-                const existingUser = await prisma.user.findUnique({
-                    where: { email: token.email as string }
-                });
-                
-                // Add firstTimeUser flag to token
-                token.firstTimeUser = !existingUser;
-            }
 
-            return {...token, ...user}
+        if (user) {
+            token.id = user.id;            
+            const typedUser = user as { id: string; email?: string; firstName?: string; lastName?: string; finishedOnboarding?: boolean };
+            console.log("User finishedOnboarding: " +typedUser.finishedOnboarding );
+            token.firstName = typedUser.firstName;
+            token.lastName = typedUser.lastName;
+            token.firstTimeUser = !typedUser.finishedOnboarding;
+
+            // 1) finishedOnboarding false beginning -> true once you sign in 
+            // 2) finishedOnboarding == TRUE
+
+          } else {
+            // On subsequent token refreshes (e.g. via update())
+            // Re-fetch the latest user record from the database.
+            const dbUser = await prisma.user.findUnique({
+              where: { id: token.id },
+              select: { finishedOnboarding: true},
+            });
+            if (dbUser) {
+              console.log("User finishedOnboarding (DB lookup):", dbUser.finishedOnboarding);
+              token.firstTimeUser = !dbUser.finishedOnboarding;
+            }
+          }
+          return token
+            //return {...token, ...user};
         },
-        // async jwt({ token, user }){
-        //     if (token.email) {
-        //         const userCourse = await prisma.userCourse.findFirst({
-        //             where: {
-        //                 user: {
-        //                     email: token.email
-        //                 }
-        //             }
-        //         })
-        //         token.hasRole = !!userCourse
-        //     }
-        //     return {...token, ...user}
-        // },
         async session({session, token}){
+          console.log("Session callback token:", token); 
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.firstName = token.firstName as string;

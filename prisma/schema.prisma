@@ -17,6 +17,7 @@ model User {
   firstName String
   lastName  String?
   emailVerified DateTime?
+  finishedOnboarding Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime     @updatedAt
   courses   UserCourse[]
