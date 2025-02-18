@@ -5,7 +5,6 @@ import { getToken } from "next-auth/jwt";
 export async function middleware(req: NextRequest) {
     const token = await getToken({ req });
     const path = req.nextUrl.pathname;
-    console.log("Middleware token:", token);
     if (!token) {
         return NextResponse.redirect(new URL("/login", req.url));
     }

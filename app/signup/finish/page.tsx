@@ -33,8 +33,8 @@ export default function Name() {
             await update();
             // 3. On success, navigate to the dashboard
             router.push("/dashboard");
-        } catch (err: unknown) {
-            console.error("Error updating onboarding:", err);
+        } catch (error: unknown) {
+            console.error("Error updating user:", error);
             setError("An unexpected error occured");
         } finally {
             setLoading(false);
@@ -61,7 +61,7 @@ export default function Name() {
                     {/* Mobile button */}
                     <div className="block md:hidden lg:hidden text-center mt-8">
                         <button
-                            onClick={handleGetStarted}
+                            onClick={() => void handleGetStarted()}
                             className="px-10 py-2 rounded-lg text-lg bg-custom-blue-background text-white hover:bg-white hover:text-[#0029BD] outline outline-1 outline-[#0029BD] transition-all w-[204px]"
                         >
                             Get Started

@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { signIn } from "next-auth/react";
 import AuthButton from "@/components/auth-button";
-import SigninButton from "@/components/signup-button";
 export default function Login() {
     return (
         <div className="flex w-full flex-col lg:flex-row">
@@ -32,16 +31,15 @@ export default function Login() {
                     <div className="flex flex-col mt-11 items-center">
                         <AuthButton />
                         <p className="text-gray-500 pt-6 text-sm">
-                            Don't have an account?{" "}
+                            Don&apos;t have an account?{" "}
                             <button
                                 className="text-blue-700 underline"
-                                onClick={() => signIn("google")}
+                                onClick={() => void signIn("google")}
                             >
                                 Sign up
                             </button>
                         </p>
                     </div>
-                    <SigninButton />
                 </div>
             </section>
             <div className="divider lg:divider-horizontal"></div>

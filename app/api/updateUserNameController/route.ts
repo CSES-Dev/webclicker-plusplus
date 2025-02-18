@@ -52,7 +52,7 @@ export async function PUT(request: Request) {
         }
 
         // Parse and validate the request body using Zod.
-        const body = await request.json();
+        const body: unknown = await request.json();
         const parsed = updateUserNameSchema.safeParse(body);
         if (!parsed.success) {
             return NextResponse.json(
@@ -71,7 +71,7 @@ export async function PUT(request: Request) {
 
         return NextResponse.json(updatedUser, { status: 200 });
     } catch (error) {
-        console.error("Error updating user name:", error);
+        console.error("Error updating user:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
