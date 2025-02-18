@@ -99,7 +99,7 @@ export default function Name() {
     };
 
     if (loadingName) {
-        return <div>Loading current name...</div>;
+        return <div>...</div>;
     }
     return (
         <main className="min-h-screen bg-gray-50">
