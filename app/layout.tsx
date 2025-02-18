@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
-
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
     variable: "--font-geist-sans",
@@ -19,8 +18,6 @@ const geistMono = localFont({
     weight: "100 900",
 });
 const figtree = Figtree({ subsets: ["latin"] });
-
-
 
 export const metadata: Metadata = {
     title: "WebClicker++",

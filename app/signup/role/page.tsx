@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -15,21 +15,20 @@ export default function Name() {
         }
     }, []);
 
+    const handleRoleSelect = (role: string) => {
+        setSelectedRole(role);
+    };
 
-    const handleRoleSelect = (role: string) =>{
-        setSelectedRole(role)
-    }
-
-    const handleBack = () =>{
-        router.push('/signup/name')
-    }
+    const handleBack = () => {
+        router.push("/signup/name");
+    };
 
     const handleContinue = () => {
         if (selectedRole) {
-            localStorage.setItem('userRole', selectedRole);
-            router.push('finish')         
+            localStorage.setItem("userRole", selectedRole);
+            router.push("finish");
         }
-    }
+    };
 
     return (
         <main className="min-h-screen bg-gray-50">
@@ -44,19 +43,30 @@ export default function Name() {
             <section className="flex justify-center pt-20">
                 <div className="flex flex-col space-y-8 content-center justify-center gap-1">
                     {/* Heading */}
-                    <p className="text-center text-2xl">
-                        Select the role that best describes you:
-                    </p>
+                    <p className="text-center text-2xl">Select the role that best describes you:</p>
                     {/* Role selection buttons */}
-                    <button onClick={() => { handleRoleSelect('student'); }}  className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white transition-all focus:bg-[#0029BD] focus:text-white">
+                    <button
+                        onClick={() => {
+                            handleRoleSelect("student");
+                        }}
+                        className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white transition-all focus:bg-[#0029BD] focus:text-white"
+                    >
                         Student
                     </button>
-                    <button onClick={() => { handleRoleSelect('lecturer'); }} className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white  focus:bg-[#0029BD] focus:text-white transition-all">
+                    <button
+                        onClick={() => {
+                            handleRoleSelect("lecturer");
+                        }}
+                        className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white  focus:bg-[#0029BD] focus:text-white transition-all"
+                    >
                         Lecturer
                     </button>
                     <div className="block md:hidden lg:hidden text-center mt-8">
                         {/* Button for mobile (below inputs) */}
-                        <button onClick={handleContinue} className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all">
+                        <button
+                            onClick={handleContinue}
+                            className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all"
+                        >
                             Continue
                         </button>
                     </div>
@@ -72,7 +82,10 @@ export default function Name() {
                     className="w-28 h-28"
                     priority
                 />
-                <button onClick={handleContinue} className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all">
+                <button
+                    onClick={handleContinue}
+                    className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all"
+                >
                     Continue
                 </button>
             </div>
