@@ -6,7 +6,9 @@ import { JWT } from "next-auth/jwt";
 
 declare module "next-auth" {
     interface Session {
-        user: User;
+        user: User & {
+            firstTimeUser?: boolean;
+        };
     }
 }
 
@@ -14,5 +16,6 @@ declare module "next-auth/jwt" {
     interface JWT extends User {
         lastName?: string;
         firstName?: string;
+        firstTimeUser?: boolean;
     }
 }
