@@ -1,12 +1,12 @@
 "use client";
 
+import { Role } from "@prisma/client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import CourseCard from "../../components/ui/CourseCard";
+import { AddCourseForm } from "@/components/AddCourseForm";
 import { getUser } from "@/services/user";
 import { getUserCourses } from "@/services/userCourse";
-import { AddCourseForm } from "@/components/AddCourseForm";
-import { Role } from "@prisma/client";
 
 export default function Page() {
     const [courses, setCourses] = useState<

@@ -1,18 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import zod from "zod";
 
-import { Button } from "@/components/ui/button";
-import { colorOptions, daysOptions } from "@/lib/constants";
-
-import { useToast } from "@/hooks/use-toast";
-import { addCourse } from "@/services/course";
-import { useState } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetFooter, SheetTitle, SheetTrigger } from "./ui/sheet";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { colorOptions, daysOptions } from "@/lib/constants";
+
+import { addCourse } from "@/services/course";
 
 const schema = zod
     .object({
@@ -28,10 +29,11 @@ const schema = zod
     });
 
 export const AddCourseForm = () => {
+    const router = useRouter();
+    const { toast } = useToast();
+
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-
-    const { toast } = useToast();
 
     const form = useForm<zod.infer<typeof schema>>({
         resolver: zodResolver(schema),
@@ -55,9 +57,10 @@ export const AddCourseForm = () => {
                 }
                 form.reset();
                 setIsOpen(false);
+                router.refresh();
                 return toast({ description: "Course created succesfuly with code " + result.code });
             })
-            .catch((err) => {
+            .catch((err: unknown) => {
                 setLoading(false);
                 console.error(err);
                 return toast({ variant: "destructive", description: "Unknown error occurred" });
@@ -98,9 +101,12 @@ export const AddCourseForm = () => {
                 <SheetTitle className="text-4xl mb-8 font-normal">Add a class</SheetTitle>
                 <Form {...form}>
                     <form
-                        onSubmit={form.handleSubmit(handleSubmit, (err) => {
-                            console.log(err);
-                        })}
+                        onSubmit={() => {
+                            form.handleSubmit(handleSubmit, (err) => {
+                                console.log(err);
+                            });
+                            return;
+                        }}
                         className="flex-1 flex flex-col justify-between"
                     >
                         <div className="flex flex-col gap-8">
@@ -140,11 +146,12 @@ export const AddCourseForm = () => {
                                                     }`}
                                                     onClick={() => {
                                                         if (value.includes(day)) {
-                                                            return onChange(
+                                                            onChange(
                                                                 value.filter(
                                                                     (item) => item !== day,
                                                                 ),
                                                             );
+                                                            return;
                                                         }
                                                         onChange([...value, day]);
                                                     }}
@@ -176,7 +183,9 @@ export const AddCourseForm = () => {
                                                             : "border border-[hsl(var(--input-border))]"
                                                     }`}
                                                     style={{ backgroundColor: color }}
-                                                    onClick={() => onChange(color)}
+                                                    onClick={() => {
+                                                        onChange(color);
+                                                    }}
                                                 />
                                             ))}
                                         </div>

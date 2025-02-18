@@ -1,7 +1,7 @@
 "use server";
+import { Role } from "@prisma/client";
 import { getCourseWithId } from "./course";
 import prisma from "@/lib/prisma";
-import { Role } from "@prisma/client";
 
 export async function addUserToCourse(courseId: number, userId: number, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({
@@ -15,7 +15,7 @@ export async function addUserToCourse(courseId: number, userId: number, role: Ro
             data: {
                 userId,
                 courseId,
-                role
+                role,
             },
         });
     } else {
