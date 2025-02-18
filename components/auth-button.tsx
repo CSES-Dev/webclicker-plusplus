@@ -6,10 +6,10 @@ export default function AuthButton() {
     const handleSignIn = async () => {
         try {
             await signIn("google", {
-                callbackUrl: '/signup/name', // Middleware will handle redirecting from here
+                callbackUrl: "/signup/name",
             });
         } catch (error) {
-            console.error('Sign in error:', error);
+            console.error("Sign in error:", error);
         }
     };
 

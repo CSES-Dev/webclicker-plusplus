@@ -1,17 +1,15 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { signOut } from 'next-auth/react'
+import { signOut } from "next-auth/react";
+import React from "react";
 
 const page = () => {
-  return (
-    <div>
-      THIS IS DASHBOARD
-      <button onClick={() => signOut()}>
-      sign out
-    </button>
-    </div>
-  )
-}
+    return (
+        <div>
+            THIS IS DASHBOARD
+            <button onClick={() => signOut()}>sign out</button>
+        </div>
+    );
+};
 
-export default page
+export default page;

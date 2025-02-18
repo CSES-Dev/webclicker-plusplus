@@ -4,9 +4,8 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Login from "@/app/login/page";
-
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const { data: session, status } = useSession();
@@ -22,7 +21,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             const timeout = setTimeout(() => {
                 router.push("/login");
             }, 2000);
-            return () => clearTimeout(timeout);
+            return () => {
+                clearTimeout(timeout);
+            };
         }
     }, [session, status, router]);
 
@@ -36,7 +37,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                             <AlertDescription className="flex items-center justify-between">
                                 Please sign in to continue
                                 <button
-                                    onClick={() => setShowAlert(false)}
+                                    onClick={() => {
+                                        setShowAlert(false);
+                                    }}
                                     className="rounded-full p-1 hover:bg-red-100 transition-colors"
                                 >
                                     <X className="h-4 w-4" />
@@ -45,7 +48,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                         </Alert>
                     </div>
                 )}
-                <Login/>
+                <Login />
             </div>
         );
     }

@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { signIn } from "next-auth/react";
 import AuthButton from "@/components/auth-button";
 import SigninButton from "@/components/signup-button";
-import { signIn, useSession } from "next-auth/react";
-import { NextResponse } from "next/server";
 export default function Login() {
     return (
         <div className="flex w-full flex-col lg:flex-row">
