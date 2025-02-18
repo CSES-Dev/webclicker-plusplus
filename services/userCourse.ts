@@ -1,8 +1,9 @@
 "use server";
 import { getCourseWithId } from "./course";
 import prisma from "@/lib/prisma";
+import { Role } from "@prisma/client";
 
-export async function addUserToCourse(courseId: number, userId: number) {
+export async function addUserToCourse(courseId: number, userId: number, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({
         where: {
             userId,
@@ -14,6 +15,7 @@ export async function addUserToCourse(courseId: number, userId: number) {
             data: {
                 userId,
                 courseId,
+                role
             },
         });
     } else {
