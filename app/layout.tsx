@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
-
-import { Providers } from "./providers";
+import localFont from "next/font/local";
 import AuthGuard from "./auth";
+import { Providers } from "./providers";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import localFont from "next/font/local";
 
 
 const geistSans = localFont({

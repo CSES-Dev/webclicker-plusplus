@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import Login from "@/app/login/page";
+import Login from "@/app/Login/page";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {

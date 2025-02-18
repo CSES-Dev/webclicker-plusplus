@@ -1,9 +1,8 @@
 'use client'
-
-import Image from "next/image";
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 
 export default function Name() {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -46,13 +45,13 @@ export default function Name() {
                 <div className="flex flex-col space-y-8 content-center justify-center gap-1">
                     {/* Heading */}
                     <p className="text-center text-2xl">
-                        Select the role that bests describes you:
+                        Select the role that best describes you:
                     </p>
                     {/* Role selection buttons */}
-                    <button onClick={() => handleRoleSelect('student')}  className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white transition-all focus:bg-[#0029BD] focus:text-white">
+                    <button onClick={() => { handleRoleSelect('student'); }}  className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white transition-all focus:bg-[#0029BD] focus:text-white">
                         Student
                     </button>
-                    <button onClick={() => handleRoleSelect('lecturer')} className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white  focus:bg-[#0029BD] focus:text-white transition-all">
+                    <button onClick={() => { handleRoleSelect('lecturer'); }} className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white  focus:bg-[#0029BD] focus:text-white transition-all">
                         Lecturer
                     </button>
                     <div className="block md:hidden lg:hidden text-center mt-8">

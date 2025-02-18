@@ -60,10 +60,9 @@ model Course {
   color     String
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
+  users     UserCourse[]
   sessions  CourseSession[]
   schedules Schedule[]
-  schedules Schedule[]
-  users     UserCourse[]
 }
 
 model UserCourse {
@@ -73,8 +72,6 @@ model UserCourse {
   courseId Int
   role     Role     @default(STUDENT)
   linkedAt DateTime @default(now())
-  course   Course   @relation(fields: [courseId], references: [id])
-  user     User     @relation(fields: [userId], references: [id])
 
   @@id([userId, courseId])
 }
@@ -88,40 +85,31 @@ model Schedule {
   endTime    String
 }
 
-model Schedule {
-  id        Int      @id @default(autoincrement())
-  courseId  Int
-  dayOfWeek String[]
-  startTime String
-  endTime   String
-  course    Course   @relation(fields: [courseId], references: [id])
-}
-
 model CourseSession {
   id        Int        @id @default(autoincrement())
+  course    Course     @relation(fields: [courseId], references: [id])
   courseId  Int
   startTime DateTime   @default(now())
   endTime   DateTime?
-  course    Course     @relation(fields: [courseId], references: [id])
   questions Question[]
 }
 
 model Question {
   id        Int           @id @default(autoincrement())
+  session   CourseSession @relation(fields: [sessionId], references: [id])
   sessionId Int
   text      String        @db.VarChar(1024)
   type      QuestionType  @default(MCQ)
   options   Option[]
-  session   CourseSession @relation(fields: [sessionId], references: [id])
   responses Response[]
 }
 
 model Option {
   id         Int        @id @default(autoincrement())
+  question   Question   @relation(fields: [questionId], references: [id])
   questionId Int
   text       String     @db.VarChar(1024)
   isCorrect  Boolean
-  question   Question   @relation(fields: [questionId], references: [id])
   responses  Response[]
 }
 
@@ -130,39 +118,11 @@ model Response {
   userId     String
   question   Question @relation(fields: [questionId], references: [id])
   questionId Int
+  option     Option   @relation(fields: [optionId], references: [id])
   optionId   Int
   answeredAt DateTime @default(now())
-  option     Option   @relation(fields: [optionId], references: [id])
-  question   Question @relation(fields: [questionId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
 
   @@id([userId, questionId, optionId])
-}
-
-model Account {
-  id                String  @id
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  User              User    @relation(fields: [userId], references: [id])
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  User         User     @relation(fields: [userId], references: [id])
 }
 
 enum Role {
