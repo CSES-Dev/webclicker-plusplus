@@ -76,7 +76,7 @@ export async function addCourse(
             title: name,
             code,
             color,
-            Schedule: {
+            schedules: {
                 create: [
                     {
                         dayOfWeek: days,
@@ -86,10 +86,10 @@ export async function addCourse(
                 ],
             },
         },
-        include: { Schedule: true, users: true },
+        include: { schedules: true, users: true },
     });
 
-    const response = await addUserToCourse(newCourse.id, 1, "LECTURER");
+    const response = await addUserToCourse(newCourse.id, "1", "LECTURER");
     if (response?.error) {
         console.log("User course link failed. Deleting course to rollback");
         await prisma.course.delete({ where: { id: newCourse.id } });

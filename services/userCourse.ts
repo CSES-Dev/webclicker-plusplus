@@ -3,7 +3,7 @@ import { Role } from "@prisma/client";
 import { getCourseWithId } from "./course";
 import prisma from "@/lib/prisma";
 
-export async function addUserToCourse(courseId: number, userId: number, role: Role = "STUDENT") {
+export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({
         where: {
             userId,
@@ -23,7 +23,7 @@ export async function addUserToCourse(courseId: number, userId: number, role: Ro
     }
 }
 
-export async function getUserCourses(userId: number) {
+export async function getUserCourses(userId: string) {
     const userCourses = await prisma.userCourse.findMany({
         where: {
             userId,

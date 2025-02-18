@@ -24,7 +24,7 @@ export default function Page() {
     useEffect(() => {
         const getUsername = async () => {
             try {
-                const id = 1;
+                const id = "1";
                 const user = await getUser({ id });
                 setName(user?.firstName);
             } catch (err) {
@@ -33,7 +33,7 @@ export default function Page() {
         };
         const getCourses = async () => {
             try {
-                const courseInfo = await getUserCourses(1);
+                const courseInfo = await getUserCourses("1");
                 setCourses(courseInfo);
             } catch (err) {
                 console.log("Error fetching courses", err);
