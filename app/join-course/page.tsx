@@ -25,7 +25,7 @@ export default function Page() {
                     setError("Invalid code");
                     return;
                 }
-                const res = await addUserToCourse(courseInfo.id, 1);
+                const res = await addUserToCourse(courseInfo.id, "1");
                 if (res?.error) setError(res.error);
                 else setCourse(courseInfo.title);
             }
