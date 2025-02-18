@@ -10,8 +10,6 @@ body {
 
 @layer base {
     :root {
-        --primary-background-dark-blue: 227 71% 35%; /* #18328D */
-        --google-button-background-color: 200 81% 18%; /* #092C4C */
         --background: 0 0% 100%;
         --foreground: 240 10% 3.9%;
         --card: 0 0% 100%;

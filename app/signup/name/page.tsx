@@ -85,7 +85,7 @@ export default function Name() {
                 const data = (await response.json()) as APIErrorResponse;
                 throw new Error(data.error ?? "Failed to update name");
             }
-            router.push("/signup/finish");
+            router.push("/signup/role");
         } catch (err: unknown) {
             console.error("Error updating name:", err);
             setError("An unknown error occurred");

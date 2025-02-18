@@ -4,6 +4,16 @@ import { getServerSession } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import prisma from "@/lib/prisma";
 
+
+interface TypedUser {
+    id: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    finishedOnboarding?: boolean;
+}
+
+
 export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
@@ -32,13 +42,7 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.id = user.id;
-                const typedUser = user as {
-                    id: string;
-                    email?: string;
-                    firstName?: string;
-                    lastName?: string;
-                    finishedOnboarding?: boolean;
-                };
+                const typedUser = user as TypedUser
                 token.firstName = typedUser.firstName;
                 token.lastName = typedUser.lastName;
                 token.firstTimeUser = !typedUser.finishedOnboarding;

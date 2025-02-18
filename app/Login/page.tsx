@@ -7,7 +7,7 @@ export default function Login() {
     return (
         <div className="flex w-full flex-col lg:flex-row">
             {/* Left-side (Logo Section) */}
-            <section className="h-[50vh] lg:h-screen w-full lg:w-1/2 card bg-base-300 rounded-box grid flex-grow place-items-center bg-custom-blue-background">
+            <section className="h-[50vh] lg:h-screen w-full lg:w-1/2 card bg-base-300 rounded-box grid flex-grow place-items-center bg-custom-background">
                 <div className="flex flex-col justify-center items-center">
                     <Image
                         src="/cube.svg"

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 
 interface APIResponse {
     error?: string;
@@ -13,6 +14,10 @@ export default function Name() {
     const { update } = useSession();
     const [_error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    const handleBack = () => {
+        router.push("/signup/role");
+    };
 
     const handleGetStarted = async (): Promise<void> => {
         setError(null);
@@ -43,6 +48,13 @@ export default function Name() {
 
     return (
         <main className="min-h-screen bg-gray-50">
+            <button
+                onClick={handleBack}
+                className="absolute top-8 left-8 flex items-center gap-2  outline outline-1 text-white bg-custom-background hover:bg-white hover:text-[#0029BD] outline-[#0029BD] transition-all p-2 rounded-lg px-4"
+            >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="text-lg">Back</span>
+            </button>
             {/* Centered section with text and buttons */}
             <section className="flex justify-center pt-24">
                 <div className="flex flex-col space-y-8 content-center justify-center gap-1">
@@ -54,7 +66,7 @@ export default function Name() {
                     {/* Desktop/tablet button */}
                     <button
                         onClick={() => void handleGetStarted()}
-                        className="hidden md:block lg:block outline outline-1 px-10 py-2 rounded-lg text-lg text-white bg-custom-blue-background outline-[#0029BD] hover:bg-white hover:text-[#0029BD] transition-all w-[204px] mx-auto"
+                        className="hidden md:block lg:block outline outline-1 px-10 py-2 rounded-lg text-lg text-white  bg-custom-background outline-[#0029BD] hover:bg-white hover:text-[#0029BD] transition-all w-[204px] mx-auto"
                     >
                         {loading ? "..." : "Get Started"}
                     </button>
@@ -62,7 +74,7 @@ export default function Name() {
                     <div className="block md:hidden lg:hidden text-center mt-8">
                         <button
                             onClick={() => void handleGetStarted()}
-                            className="px-10 py-2 rounded-lg text-lg bg-custom-blue-background text-white hover:bg-white hover:text-[#0029BD] outline outline-1 outline-[#0029BD] transition-all w-[204px]"
+                            className="px-10 py-2 rounded-lg text-lg bg-custom-background text-white hover:bg-white hover:text-[#0029BD] outline outline-1 outline-[#0029BD] transition-all w-[204px]"
                         >
                             Get Started
                         </button>

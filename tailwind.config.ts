@@ -13,8 +13,7 @@ export default {
             colors: {
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
-                "custom-blue-background": "hsl(var(--primary-background-dark-blue))",
-                "custom-blue-button": "hsl(var(--google-button-background-color))",
+                "custom-background": "hsl(var(--primary))",
                 card: {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
