@@ -1,3 +1,4 @@
+import { Role } from "@prisma/client";
 import React from "react";
 
 export type Props = {
@@ -7,8 +8,9 @@ export type Props = {
     timeStart: string;
     timeEnd: string;
     code: string;
+    role: Role;
 };
-export default function CourseCard({ color, days, title, timeStart, timeEnd, code }: Props) {
+export default function CourseCard({ color, days, title, timeStart, timeEnd, code, role }: Props) {
     return (
         <>
             {/* Mobile View */}
@@ -34,15 +36,20 @@ export default function CourseCard({ color, days, title, timeStart, timeEnd, cod
                         Time: {timeStart} - {timeEnd}
                     </p>
                     <p className="text-lg text-left leading-tight">{title}</p>
-                    <p className="text-sm">
-                        Code:{" "}
-                        <em>
-                            {(+code).toLocaleString("en-US", {
-                                minimumIntegerDigits: 6,
-                                useGrouping: false,
-                            })}
-                        </em>
-                    </p>
+                    <span className="inline-flex gap-4">
+                        <p className="text-sm">
+                            Code:{" "}
+                            <em>
+                                {(+code).toLocaleString("en-US", {
+                                    minimumIntegerDigits: 6,
+                                    useGrouping: false,
+                                })}
+                            </em>
+                        </p>
+                        <p className="text-sm capitalize">
+                            Role: <em>{role.toLocaleLowerCase()}</em>
+                        </p>
+                    </span>
                 </div>
                 <p className="px-6 py-3 text-xs text-left text-[#434343]">{days.join(", ")}</p>
             </button>

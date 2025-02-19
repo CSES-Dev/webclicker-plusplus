@@ -25,6 +25,7 @@ export default function Page() {
             if (!code) {
                 setError("Invalid code");
             } else {
+                console.log(code)
                 const courseInfo = await getCourseWithCode(code);
                 if (!courseInfo) {
                     setError("Invalid code");
@@ -35,7 +36,7 @@ export default function Page() {
                 else setCourse(courseInfo.title);
             }
         } catch (err) {
-            console.log("Error adding user to the course", err);
+            console.error("Error adding user to the course", err);
             setError("Something went wrong");
         }
     };
@@ -77,7 +78,7 @@ export default function Page() {
                         You have been <br /> successfully added to:
                     </h1>
                     <h1 className="text-3xl pb-16">{course}</h1>
-                    <Link href="/">
+                    <Link href="/dashboard">
                         <button className="py-2 w-72 px-6 bg-[#18328D] text-white border border-[#18328D] rounded-lg text-center mx-auto block">
                             Continue
                         </button>

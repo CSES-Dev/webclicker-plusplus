@@ -15,7 +15,7 @@ interface CourseWithSchedule extends Course {
 
 export default function Page() {
     const session = useSession();
-    const [courses, setCourses] = useState<CourseWithSchedule[]>();
+    const [courses, setCourses] = useState<(CourseWithSchedule & { role: Role })[]>();
     const [role, setRole] = useState<Role>("STUDENT");
 
     const user = session?.data?.user ?? { id: "", firstName: "" };
@@ -24,7 +24,6 @@ export default function Page() {
         const getCourses = async () => {
             try {
                 const courseInfo = await getUserCourses(user.id);
-                console.log(courseInfo);
                 setCourses(courseInfo);
             } catch (err) {
                 console.log("Error fetching courses", err);
@@ -57,6 +56,7 @@ export default function Page() {
                                 timeStart={course.schedules?.[0]?.startTime ?? ""}
                                 timeEnd={course.schedules?.[0]?.endTime ?? ""}
                                 code={course.code ?? ""}
+                                role={course.role ?? "STUDENT"}
                             />
                         );
                     })}
