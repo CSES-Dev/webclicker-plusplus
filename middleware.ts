@@ -9,7 +9,7 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/Login", req.url));
     }
 
-    if(token && path === "/Login"){
+    if (token && path === "/Login") {
         return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 

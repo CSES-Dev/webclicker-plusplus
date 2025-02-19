@@ -34,15 +34,10 @@ export default function RootLayout({
             <body
                 className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="light"
-                    disableTransitionOnChange
-                >
+                <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
                     <Providers>
-                        {/* Global loading spinner - placed here to be available across all routes */}
-                        <GlobalLoadingSpinner />
                         <AuthGuard>
+                            <GlobalLoadingSpinner />
                             <main>{children}</main>
                         </AuthGuard>
                     </Providers>
