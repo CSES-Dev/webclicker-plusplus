@@ -1,40 +1,12 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
-import Login from "@/app/Login/page";
-import { useToast } from "@/hooks/use-toast";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-    const { data: session, status } = useSession();
-    const router = useRouter();
-    const pathname = usePathname();
-    const { toast } = useToast();
+    const { status } = useSession();
 
-    useEffect(() => {
-        if (status === "loading") return;
-
-        if (!session && pathname !== "/login") {
-            toast({
-                variant: "destructive",
-                title: "Authentication required",
-                description: "Please sign in to continue. Redirecting you to login page...",
-            });
-            // Add a small delay before redirecting to ensure the alert is visible
-            const timeout = setTimeout(() => {
-                router.push("/login");
-            }, 2000);
-            return () => {
-                clearTimeout(timeout);
-            };
-        }
-    }, [session, status, router]);
-
-    // Show alert if there's no session
-    if (!session) {
-        return <Login />;
-    }
+    if (status === "loading") return <GlobalLoadingSpinner />;
 
     // If we have a session, render the children
     return <>{children}</>;

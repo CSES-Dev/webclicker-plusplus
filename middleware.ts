@@ -6,10 +6,14 @@ export async function middleware(req: NextRequest) {
     const token = await getToken({ req });
     const path = req.nextUrl.pathname;
     if (!token) {
-        return NextResponse.redirect(new URL("/Login", req.url));
+        if (path === "/login") {
+            // Prevent infinite redirect to login
+            return NextResponse.next();
+        }
+        return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    if (token && path === "/Login") {
+    if (token && path === "/login") {
         return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
@@ -27,5 +31,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/signup/name", "/signup/finish", "/Login"],
+    matcher: ["/dashboard/:path*", "/signup/name", "/signup/finish", "/login"],
 };
