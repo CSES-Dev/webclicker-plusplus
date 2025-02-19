@@ -1,12 +1,15 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
 
 export default function Page() {
+    const session = useSession();
     const { register, handleSubmit, watch } = useForm<{
         code: string;
     }>();
@@ -14,6 +17,8 @@ export default function Page() {
     const code = watch("code");
     const [course, setCourse] = useState<string>();
     const [error, setError] = useState<string>();
+
+    const user = session?.data?.user ?? { id: "", firstName: "" };
 
     const onFormSubmit = async () => {
         try {
@@ -25,7 +30,7 @@ export default function Page() {
                     setError("Invalid code");
                     return;
                 }
-                const res = await addUserToCourse(courseInfo.id, "1");
+                const res = await addUserToCourse(courseInfo.id, user.id);
                 if (res?.error) setError(res.error);
                 else setCourse(courseInfo.title);
             }

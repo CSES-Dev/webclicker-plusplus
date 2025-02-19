@@ -24,13 +24,20 @@ export async function addUserToCourse(courseId: number, userId: string, role: Ro
 }
 
 export async function getUserCourses(userId: string) {
-    const userCourses = await prisma.userCourse.findMany({
+    const courses = await prisma.course.findMany({
         where: {
-            userId,
+            users: {
+                some: {
+                    userId: userId,
+                },
+            },
+        },
+        include: {
+            schedules: true,
         },
     });
-    const courses = await Promise.all(
-        userCourses.map(async (course) => await getCourseWithId(course.courseId)),
-    );
+    // const courses = await Promise.all(
+    // userCourses.map(async (course) => await getCourseWithId(course.courseId)),
+    // );
     return courses;
 }

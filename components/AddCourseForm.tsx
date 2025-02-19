@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { colorOptions, daysOptions } from "@/lib/constants";
 
 import { addCourse } from "@/services/course";
+import { useSession } from "next-auth/react";
 
 const schema = zod
     .object({
@@ -30,12 +31,16 @@ const schema = zod
 
 export const AddCourseForm = () => {
     const router = useRouter();
+    const session = useSession();
     const { toast } = useToast();
+
+    const user = session?.data?.user ?? { id: "", firstName: "" };
 
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const form = useForm<zod.infer<typeof schema>>({
+        mode: "onChange",
         resolver: zodResolver(schema),
         defaultValues: {
             color: colorOptions[0],
@@ -49,7 +54,7 @@ export const AddCourseForm = () => {
     const handleSubmit = async (values: zod.infer<typeof schema>) => {
         const { title, color, days, endTime, startTime } = values;
         setLoading(true);
-        addCourse(title, days, color, startTime, endTime)
+        addCourse(title, days, color, startTime, endTime, user.id)
             .then((result) => {
                 setLoading(false);
                 if ("error" in result) {
@@ -101,12 +106,9 @@ export const AddCourseForm = () => {
                 <SheetTitle className="text-4xl mb-8 font-normal">Add a class</SheetTitle>
                 <Form {...form}>
                     <form
-                        onSubmit={() => {
-                            form.handleSubmit(handleSubmit, (err) => {
-                                console.log(err);
-                            });
-                            return;
-                        }}
+                        onSubmit={form.handleSubmit(handleSubmit, (err) => {
+                            console.log(err);
+                        })}
                         className="flex-1 flex flex-col justify-between"
                     >
                         <div className="flex flex-col gap-8">
@@ -238,7 +240,7 @@ export const AddCourseForm = () => {
                         <SheetFooter className="flex justify-end">
                             <Button
                                 variant="primary"
-                                disabled={loading}
+                                disabled={!form.formState.isValid || loading}
                                 size="primary"
                                 type="submit"
                                 className="mt-4"

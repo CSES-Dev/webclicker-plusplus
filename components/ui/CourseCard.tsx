@@ -6,8 +6,9 @@ export type Props = {
     title: string;
     timeStart: string;
     timeEnd: string;
+    code: string;
 };
-export default function CourseCard({ color, days, title, timeStart, timeEnd }: Props) {
+export default function CourseCard({ color, days, title, timeStart, timeEnd, code }: Props) {
     return (
         <>
             {/* Mobile View */}
@@ -33,8 +34,17 @@ export default function CourseCard({ color, days, title, timeStart, timeEnd }: P
                         Time: {timeStart} - {timeEnd}
                     </p>
                     <p className="text-lg text-left leading-tight">{title}</p>
+                    <p className="text-sm">
+                        Code:{" "}
+                        <em>
+                            {(+code).toLocaleString("en-US", {
+                                minimumIntegerDigits: 6,
+                                useGrouping: false,
+                            })}
+                        </em>
+                    </p>
                 </div>
-                <p className="px-6 py-4 text-xs text-left text-[#434343]">{days.join(", ")}</p>
+                <p className="px-6 py-3 text-xs text-left text-[#434343]">{days.join(", ")}</p>
             </button>
         </>
     );

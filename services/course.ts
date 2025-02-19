@@ -49,6 +49,7 @@ export async function addCourse(
     color: string,
     startTime: string,
     endTime: string,
+    userId: string,
 ): Promise<AddCourseResult> {
     // Check if a course with the same code already exists
     let i = 0;
@@ -89,7 +90,7 @@ export async function addCourse(
         include: { schedules: true, users: true },
     });
 
-    const response = await addUserToCourse(newCourse.id, "1", "LECTURER");
+    const response = await addUserToCourse(newCourse.id, userId, "LECTURER");
     if (response?.error) {
         console.log("User course link failed. Deleting course to rollback");
         await prisma.course.delete({ where: { id: newCourse.id } });

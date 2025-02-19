@@ -1,48 +1,40 @@
 "use client";
 
-import { Role } from "@prisma/client";
+import { Course, Role, Schedule } from "@prisma/client";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import CourseCard from "../../components/ui/CourseCard";
+import CourseCard from "@/components/ui/CourseCard";
 import { AddCourseForm } from "@/components/AddCourseForm";
 import { getUser } from "@/services/user";
 import { getUserCourses } from "@/services/userCourse";
+import { dayLabels, daysOptions } from "@/lib/constants";
+import { useSession } from "next-auth/react";
+import { Session } from "next-auth";
+
+interface CourseWithSchedule extends Course {
+    schedules: Schedule[];
+}
 
 export default function Page() {
-    const [courses, setCourses] = useState<
-        {
-            color: string | undefined;
-            title: string | undefined;
-            days: string[] | undefined;
-            startTime: string | undefined;
-            endTime: string | undefined;
-        }[]
-    >();
-    const [name, setName] = useState<string>();
+    const session = useSession();
+    const [courses, setCourses] = useState<CourseWithSchedule[]>();
     const [role, setRole] = useState<Role>("STUDENT");
 
+    const user = session?.data?.user ?? { id: "", firstName: "" };
+
     useEffect(() => {
-        const getUsername = async () => {
-            try {
-                const id = "1";
-                const user = await getUser({ id });
-                setName(user?.firstName);
-            } catch (err) {
-                console.log("Error fetching user", err);
-            }
-        };
         const getCourses = async () => {
             try {
-                const courseInfo = await getUserCourses("1");
+                const courseInfo = await getUserCourses(user.id);
+                console.log(courseInfo);
                 setCourses(courseInfo);
             } catch (err) {
                 console.log("Error fetching courses", err);
             }
         };
         if (window !== undefined) {
-            setRole((localStorage?.getItem("role") ?? "STUDENT") as Role);
+            setRole((localStorage?.getItem("userRole") ?? "STUDENT") as Role);
         }
-        void getUsername();
         void getCourses();
     }, []);
 
@@ -50,7 +42,7 @@ export default function Page() {
         <div className="w-full flex flex-col justify-center items-center pt-10">
             <div className="max-w-[90%]">
                 <div className="hidden md:block justify-between pb-8">
-                    <h1 className="text-5xl">Welcome Back, {name}!</h1>
+                    <h1 className="text-5xl">Welcome Back, {user.firstName}!</h1>
                 </div>
                 <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     {courses?.map((course, idx) => {
@@ -58,10 +50,15 @@ export default function Page() {
                             <CourseCard
                                 key={idx}
                                 color={course.color ?? ""}
-                                days={course.days ?? []}
+                                days={
+                                    course.schedules?.[0]?.dayOfWeek.map(
+                                        (item) => dayLabels[item as (typeof daysOptions)[number]],
+                                    ) ?? []
+                                }
                                 title={course.title ?? "Unknown"}
-                                timeStart={course.startTime ?? ""}
-                                timeEnd={course.endTime ?? ""}
+                                timeStart={course.schedules?.[0]?.startTime ?? ""}
+                                timeEnd={course.schedules?.[0]?.endTime ?? ""}
+                                code={course.code ?? ""}
                             />
                         );
                     })}
