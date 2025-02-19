@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
 import localFont from "next/font/local";
+
 import AuthGuard from "./auth";
-import { Providers } from "./providers";
-import { ThemeProvider } from "@/components/theme-provider";
-import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import "./globals.css";
+import { Providers } from "./providers";
+
+import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
@@ -37,7 +38,6 @@ export default function RootLayout({
                 <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
                     <Providers>
                         <AuthGuard>
-                            <GlobalLoadingSpinner />
                             <main>{children}</main>
                         </AuthGuard>
                     </Providers>

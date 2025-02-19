@@ -1,6 +1,5 @@
 "use server";
 import { Role } from "@prisma/client";
-import { getCourseWithId } from "./course";
 import prisma from "@/lib/prisma";
 
 export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
@@ -28,7 +27,7 @@ export async function getUserCourses(userId: string) {
         where: {
             users: {
                 some: {
-                    userId: userId,
+                    userId,
                 },
             },
         },

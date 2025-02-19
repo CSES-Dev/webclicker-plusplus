@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -77,7 +77,7 @@ export default function Page() {
                         You have been <br /> successfully added to:
                     </h1>
                     <h1 className="text-3xl pb-16">{course}</h1>
-                    <Link href="/course-list">
+                    <Link href="/">
                         <button className="py-2 w-72 px-6 bg-[#18328D] text-white border border-[#18328D] rounded-lg text-center mx-auto block">
                             Continue
                         </button>
