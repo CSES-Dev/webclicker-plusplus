@@ -72,10 +72,3 @@ body {
         @apply bg-background text-foreground;
     }
 }
-
-button {
-    z-index: 9999 !important;
-    pointer-events: auto !important;
-    position: relative !important;
-    cursor: pointer !important;
-}
