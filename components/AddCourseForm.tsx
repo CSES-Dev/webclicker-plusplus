@@ -1,17 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import zod from "zod";
 
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
-import { Input } from "./ui/input";
-import { Sheet, SheetContent, SheetFooter, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { colorOptions, daysOptions } from "@/lib/constants";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
+import { Input } from "./ui/input";
+import { Sheet, SheetContent, SheetFooter, SheetTitle, SheetTrigger } from "./ui/sheet";
 
 import { addCourse } from "@/services/course";
 
@@ -30,12 +31,16 @@ const schema = zod
 
 export const AddCourseForm = () => {
     const router = useRouter();
+    const session = useSession();
     const { toast } = useToast();
+
+    const user = session?.data?.user ?? { id: "", firstName: "" };
 
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const form = useForm<zod.infer<typeof schema>>({
+        mode: "onChange",
         resolver: zodResolver(schema),
         defaultValues: {
             color: colorOptions[0],
@@ -46,10 +51,10 @@ export const AddCourseForm = () => {
         },
     });
 
-    const handleSubmit = async (values: zod.infer<typeof schema>) => {
+    const handleSubmit = (values: zod.infer<typeof schema>) => {
         const { title, color, days, endTime, startTime } = values;
         setLoading(true);
-        addCourse(title, days, color, startTime, endTime)
+        addCourse(title, days, color, startTime, endTime, user.id)
             .then((result) => {
                 setLoading(false);
                 if ("error" in result) {
@@ -78,18 +83,9 @@ export const AddCourseForm = () => {
             }}
         >
             <SheetTrigger asChild>
-                {/* <> */}
-                {/* <button className="block md:hidden flex-col w-80 h-40 bg-[#F3F3F3] border border-black rounded-xl shadow-lg">
-                        <div className="bg-[#D9D9D9] mt-4 h-4 w-full"></div>
-                        <div className="min-h-[80%] py-3 px-6 flex flex-col gap-2 items-center justify-center">
-                            <p className="text-lg text-center">Add Class +</p>
-                        </div>
-                    </button> */}
-
-                {/* desktop view */}
                 <button className="flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg">
                     <div className="bg-primary min-h-[40%] max-h-[40%] w-full rounded-t-md"></div>
-                    <div className="h-[60%] max-h-[60%] bg-gray-50 w-full flex items-center justify-center">
+                    <div className="h-[60%] max-h-[60%] bg-gray-50 w-full flex items-center justify-center rounded-b-md">
                         <p className="text-lg text-center font-medium text-primary">
                             Add a Class +
                         </p>
@@ -100,15 +96,9 @@ export const AddCourseForm = () => {
             <SheetContent className="w-[480px] max-w-full p-8 flex flex-col">
                 <SheetTitle className="text-4xl mb-8 font-normal">Add a class</SheetTitle>
                 <Form {...form}>
-                    <form
-                        onSubmit={() => {
-                            form.handleSubmit(handleSubmit, (err) => {
-                                console.log(err);
-                            });
-                            return;
-                        }}
-                        className="flex-1 flex flex-col justify-between"
-                    >
+                    <form className="flex-1 flex flex-col justify-between">
+                        {/* Avoid form onSubmit due to default form Action behaviour in NextJS.
+                        TODO: Use server actions instead */}
                         <div className="flex flex-col gap-8">
                             <FormField
                                 control={form.control}
@@ -238,9 +228,14 @@ export const AddCourseForm = () => {
                         <SheetFooter className="flex justify-end">
                             <Button
                                 variant="primary"
-                                disabled={loading}
+                                disabled={!form.formState.isValid || loading}
                                 size="primary"
-                                type="submit"
+                                type="button"
+                                onClick={() =>
+                                    void form.handleSubmit(handleSubmit, (err) => {
+                                        console.error(err);
+                                    })()
+                                }
                                 className="mt-4"
                             >
                                 Add Class

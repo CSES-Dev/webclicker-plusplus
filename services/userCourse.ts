@@ -1,6 +1,5 @@
 "use server";
 import { Role } from "@prisma/client";
-import { getCourseWithId } from "./course";
 import prisma from "@/lib/prisma";
 
 export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
@@ -24,13 +23,26 @@ export async function addUserToCourse(courseId: number, userId: string, role: Ro
 }
 
 export async function getUserCourses(userId: string) {
-    const userCourses = await prisma.userCourse.findMany({
+    const courses = await prisma.userCourse.findMany({
         where: {
-            userId,
+            user: {
+                id: userId,
+            },
+        },
+        include: {
+            course: {
+                include: {
+                    schedules: true,
+                },
+            },
         },
     });
-    const courses = await Promise.all(
-        userCourses.map(async (course) => await getCourseWithId(course.courseId)),
-    );
-    return courses;
+
+    // const courses = await Promise.all(
+    // userCourses.map(async (course) => await getCourseWithId(course.courseId)),
+    // );
+    return courses.map(({ course, role }) => ({
+        ...course,
+        role,
+    }));
 }
