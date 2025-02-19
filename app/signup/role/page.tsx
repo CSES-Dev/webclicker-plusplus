@@ -47,25 +47,25 @@ export default function Name() {
                     {/* Role selection buttons */}
                     <button
                         onClick={() => {
-                            handleRoleSelect("student");
+                            handleRoleSelect("STUDENT");
                         }}
                         className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white transition-all focus:bg-[#0029BD] focus:text-white"
                     >
-                        Student
+                        STUDENT
                     </button>
                     <button
                         onClick={() => {
-                            handleRoleSelect("lecturer");
+                            handleRoleSelect("LECTURER");
                         }}
                         className="outline outline-1 px-10 py-2 rounded-lg text-lg text-[#0029BD] outline-[#0029BD] hover:bg-[#0029BD] hover:text-white  focus:bg-[#0029BD] focus:text-white transition-all"
                     >
-                        Lecturer
+                        LECTURER
                     </button>
                     <div className="block md:hidden lg:hidden text-center mt-8">
                         {/* Button for mobile (below inputs) */}
                         <button
                             onClick={handleContinue}
-                            className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all"
+                            className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white  hover:bg-white hover:text-[#0029BD] outline outline-1  transition-all"
                         >
                             Continue
                         </button>
@@ -84,7 +84,7 @@ export default function Name() {
                 />
                 <button
                     onClick={handleContinue}
-                    className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all"
+                    className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white  hover:bg-white hover:text-[#0029BD] outline outline-1 transition-all"
                 >
                     Continue
                 </button>

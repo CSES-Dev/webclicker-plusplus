@@ -137,7 +137,7 @@ export default function Name() {
                         <button
                             onClick={handleContinueClick}
                             disabled={loading}
-                            className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all"
+                            className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white  hover:bg-white hover:text-[#0029BD] outline outline-1 transition-all"
                         >
                             Continue
                         </button>
@@ -157,7 +157,7 @@ export default function Name() {
                 <button
                     onClick={handleContinueClick}
                     disabled={loading}
-                    className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-[#18328D] transition-all"
+                    className="px-10 py-2 rounded-lg text-lg bg-[#18328D] text-white hover:bg-white hover:text-[#0029BD] outline outline-1  transition-all"
                 >
                     Continue
                 </button>

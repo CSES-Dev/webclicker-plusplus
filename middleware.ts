@@ -6,7 +6,11 @@ export async function middleware(req: NextRequest) {
     const token = await getToken({ req });
     const path = req.nextUrl.pathname;
     if (!token) {
-        return NextResponse.redirect(new URL("/login", req.url));
+        return NextResponse.redirect(new URL("/Login", req.url));
+    }
+
+    if(token && path === "/Login"){
+        return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
     // If onboarding is not finished and user is trying to access dashboard, redirect to onboarding
@@ -23,5 +27,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/signup/name", "/signup/finish"],
+    matcher: ["/dashboard/:path*", "/signup/name", "/signup/finish", "/Login"],
 };

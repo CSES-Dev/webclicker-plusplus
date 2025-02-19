@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
-// import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface APIResponse {
     error?: string;
@@ -13,7 +13,7 @@ interface APIResponse {
 export default function Name() {
     const router = useRouter();
     const { update } = useSession();
-    const [_error, setError] = useState<string | null>(null);
+    const { toast } = useToast();
     const [loading, setLoading] = useState(false);
 
     const handleBack = () => {
@@ -21,26 +21,23 @@ export default function Name() {
     };
 
     const handleGetStarted = async (): Promise<void> => {
-        setError(null);
         setLoading(true);
         try {
-            // 1. Make the POST request to your new route
             const response = await fetch("/api/updateFinishedOnboarding", {
                 method: "PUT",
             });
-
-            // 2. Check if the request was successful
             if (!response.ok) {
-                // Extract the error message from the response, if any
                 const data = (await response.json()) as APIResponse;
                 throw new Error(data.error ?? "Failed to update onboarding status");
             }
             await update();
-            // 3. On success, navigate to the dashboard
             router.push("/dashboard");
         } catch (error: unknown) {
             console.error("Error updating user:", error);
-            setError("An unexpected error occured");
+            toast({
+                variant: "destructive",
+                description: error instanceof Error ? error.message : "An unexpected error occured",
+            });
         } finally {
             setLoading(false);
         }

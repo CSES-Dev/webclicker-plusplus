@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import AuthGuard from "./auth";
 import { Providers } from "./providers";
 import { ThemeProvider } from "@/components/theme-provider";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -30,20 +31,17 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            {/* <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <Providers>
-                    <AuthGuard>{children}</AuthGuard>
-                </Providers> */}
             <body
                 className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
             >
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="light"
-                    // enableSystem
                     disableTransitionOnChange
                 >
                     <Providers>
+                        {/* Global loading spinner - placed here to be available across all routes */}
+                        <GlobalLoadingSpinner />
                         <AuthGuard>
                             <main>{children}</main>
                         </AuthGuard>
