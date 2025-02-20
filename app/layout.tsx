@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppSidebar } from "@/components/ui/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/ui/app-sidebar"; // Use the new sidebar
 
 import "./globals.css";
 import "@/styles/calendar.css";
@@ -43,9 +43,7 @@ export default function RootLayout({
                             <AppSidebar />
 
                             {/* Main Content - Ensure it takes the remaining space */}
-                            <main className="flex-1 overflow-auto p-8 bg-white">
-                                {children}
-                            </main>
+                            <main className="flex-1 overflow-auto p-8 bg-white">{children}</main>
                         </div>
                     </SidebarProvider>
                 </ThemeProvider>

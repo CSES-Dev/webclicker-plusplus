@@ -1,10 +1,16 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 
 export function AppSidebar() {
     const pathname = usePathname();
@@ -20,7 +26,9 @@ export function AppSidebar() {
         <Sidebar className="w-64 bg-blue-900 text-white h-screen flex flex-col justify-center items-center py-10">
             <SidebarContent className="flex flex-col items-center w-full">
                 {/* Logo (Replaces Text) */}
-                <div className="flex items-center justify-center mb-12"> {/* Increased margin */}
+                <div className="flex items-center justify-center mb-12">
+                    {" "}
+                    {/* Increased margin */}
                     <Image
                         src="/logo.svg"
                         alt="WebClicker++ Logo"
@@ -39,10 +47,14 @@ export function AppSidebar() {
                                 isActive={pathname === link.href}
                                 className={cn(
                                     "text-2xl px-6 y-3 w-56 text-center flex justify-center items-center rounded-lg hover:bg-blue-700 transition",
-                                    pathname === link.href ? "bg-blue-800 font-bold" : "font-normal"
+                                    pathname === link.href
+                                        ? "bg-blue-800 font-bold"
+                                        : "font-normal",
                                 )}
                             >
-                                <Link href={link.href} className="w-full text-center">{link.name}</Link>
+                                <Link href={link.href} className="w-full text-center">
+                                    {link.name}
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     ))}

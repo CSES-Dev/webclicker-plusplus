@@ -21,8 +21,7 @@ const chartConfig = {
 
 //<BarGraph amount={100}/>
 //Singular bar line chart
-export function BarChartSingle({ amount }: { amount: number }) { 
-
+export function BarChartSingle({ amount }: { amount: number }) {
     //amount should be from [0,100]
     const barLeftOver = 100 - amount;
     const chartData = [{ data: amount, dataLeft: barLeftOver }];
