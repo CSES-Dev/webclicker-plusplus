@@ -7,8 +7,6 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 import { ThemeProvider } from "@/components/theme-provider";
-import { AppSidebar } from "@/components/ui/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import "@/styles/calendar.css";
 
