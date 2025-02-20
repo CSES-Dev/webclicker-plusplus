@@ -4,6 +4,7 @@ build/
 dist/
 out/
 public/
+components/ui/
 prisma/generated/schemas/
 next.config.js
 vite.config.ts

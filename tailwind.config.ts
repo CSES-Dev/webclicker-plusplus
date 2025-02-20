@@ -13,6 +13,7 @@ export default {
             colors: {
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
+                "custom-background": "hsl(var(--primary))",
                 card: {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
@@ -51,16 +52,11 @@ export default {
                     "4": "hsl(var(--chart-4))",
                     "5": "hsl(var(--chart-5))",
                 },
-                sidebar: {
-                    DEFAULT: "hsl(var(--sidebar-background))",
-                    foreground: "hsl(var(--sidebar-foreground))",
-                    primary: "hsl(var(--sidebar-primary))",
-                    "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-                    accent: "hsl(var(--sidebar-accent))",
-                    "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-                    border: "hsl(var(--sidebar-border))",
-                    ring: "hsl(var(--sidebar-ring))",
-                },
+                course_pink: "#ED9D9D",
+                course_orange: "#F3AB7E",
+                course_yellow: "#EEF583",
+                course_green: "#94ED79",
+                course_purple: "#8E87F2",
             },
             borderRadius: {
                 lg: "var(--radius)",

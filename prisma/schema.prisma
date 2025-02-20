@@ -12,14 +12,45 @@ datasource db {
 }
 
 model User {
-  id        Int          @id @default(autoincrement())
-  email     String       @unique
+  id        String       @id @default(cuid())
+  email     String?       @unique
   firstName String
   lastName  String?
-  createdAt DateTime     @default(now())
+  emailVerified DateTime?
+  finishedOnboarding Boolean @default(false)
+  createdAt DateTime @default(now())
   updatedAt DateTime     @updatedAt
   courses   UserCourse[]
   responses Response[]
+  accounts Account[]
+  sessions Session[]
+
+}
+
+model Account {
+  id                 String   @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+  user               User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model Course {
@@ -31,17 +62,27 @@ model Course {
   updatedAt DateTime        @updatedAt
   users     UserCourse[]
   sessions  CourseSession[]
+  schedules Schedule[]
 }
 
 model UserCourse {
   user     User     @relation(fields: [userId], references: [id])
-  userId   Int
+  userId   String
   course   Course   @relation(fields: [courseId], references: [id])
   courseId Int
   role     Role     @default(STUDENT)
   linkedAt DateTime @default(now())
 
   @@id([userId, courseId])
+}
+
+model Schedule {
+  id         Int       @id @default(autoincrement())
+  course     Course    @relation(fields: [courseId], references: [id])
+  courseId   Int
+  dayOfWeek  String[]
+  startTime  String
+  endTime    String
 }
 
 model CourseSession {
@@ -74,7 +115,7 @@ model Option {
 
 model Response {
   user       User     @relation(fields: [userId], references: [id])
-  userId     Int
+  userId     String
   question   Question @relation(fields: [questionId], references: [id])
   questionId Int
   option     Option   @relation(fields: [optionId], references: [id])

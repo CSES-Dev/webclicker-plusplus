@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
+import { Figtree } from "next/font/google";
 import localFont from "next/font/local";
+
+import AuthGuard from "./auth";
+import "./globals.css";
+import { Providers } from "./providers";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-
-import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 import "@/styles/calendar.css";
 
 const geistSans = localFont({
@@ -18,6 +22,7 @@ const geistMono = localFont({
     variable: "--font-geist-mono",
     weight: "100 900",
 });
+const figtree = Figtree({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "WebClicker++",
@@ -30,22 +35,16 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100`}>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    <SidebarProvider>
-                        <div className="flex h-screen w-screen">
-                            {/* Sidebar */}
-                            <AppSidebar />
-
-                            {/* Main Content - Ensure it takes the remaining space */}
-                            <main className="flex-1 overflow-auto p-8 bg-white">{children}</main>
-                        </div>
-                    </SidebarProvider>
+            <body
+                className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
+                <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+                    <Providers>
+                        <AuthGuard>
+                            <main>{children}</main>
+                        </AuthGuard>
+                    </Providers>
+                    <Toaster />
                 </ThemeProvider>
             </body>
         </html>
