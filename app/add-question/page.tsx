@@ -16,12 +16,31 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useFieldArray, useForm } from "react-hook-form";
 
+type QuestionData = {
+    question: string;
+    selectedQuestionType: string;
+    date: Date;
+    correctAnswers: string[];
+    answerChoices: string[];
+};
 export default function page() {
+    const { register, handleSubmit, watch, getValues, setValue, control } = useForm<QuestionData>({
+        defaultValues: { correctAnswers: [" "], answerChoices: [" "] },
+    });
+    const {
+        fields: fieldsCorrectAnswers,
+        append: appendCorrectAnswer,
+        remove: removeCorrectAnswer,
+    } = useFieldArray<any>({ control, name: "correctAnswers" });
+    const {
+        fields: fieldsAnswerChoices,
+        append: appendAnswerChoice,
+        remove: removeAnswerChoice,
+    } = useFieldArray<any>({ control, name: "answerChoices" });
+
     const [selectedQuestionType, setSelectedQuestionType] = useState<String>();
-    const [date, setDate] = useState<Date>();
-    const [correctAnswers, setCorrectAnswers] = useState<String[]>([""]);
-    const [answerChoices, setAnswerChoices] = useState<String[]>([""]);
 
     return (
         <Drawer>
@@ -41,6 +60,7 @@ export default function page() {
                                     <input
                                         type="text"
                                         className="h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none"
+                                        {...register("question")}
                                     />
                                 </div>
 
@@ -51,11 +71,13 @@ export default function page() {
                                             <button
                                                 key={questionType}
                                                 onClick={() => {
-                                                    setSelectedQuestionType(questionType);
+                                                    setValue("selectedQuestionType", questionType);
                                                     if (questionType != "Select All")
-                                                        setCorrectAnswers([correctAnswers[0]]);
+                                                        setValue("correctAnswers", [
+                                                            getValues("correctAnswers")[0],
+                                                        ]);
                                                 }}
-                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${selectedQuestionType == questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
+                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${getValues("selectedQuestionType") == questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
                                             >
                                                 {questionType}
                                             </button>
@@ -68,14 +90,17 @@ export default function page() {
                                     <label>Assign Date:</label>
                                     <Popover>
                                         <PopoverTrigger className="h-11 w-80 bg-[#F2F5FF] hover:bg-[#F2F5FF] text-black border border-slate-300 flex justify-between items-center font-normal shadow-none rounded-lg">
-                                            <p className="ml-3">{date && format(date, "PPP")}</p>
+                                            <p className="ml-3">
+                                                {getValues("date") &&
+                                                    format(getValues("date"), "PPP")}
+                                            </p>
                                             <CalendarIcon className="mx-3 h-4 w-4 float-end" />
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={date}
-                                                onSelect={setDate}
+                                                selected={getValues("date")}
+                                                {...register("date")}
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -83,25 +108,18 @@ export default function page() {
 
                                 <div className="flex flex-col gap-2">
                                     <label>Correct Answer:</label>
-                                    {correctAnswers.map((value, index) => (
+                                    {fieldsCorrectAnswers.map((field, index) => (
                                         <div
-                                            key={index}
-                                            className="h-11 w-80 bg-[#F2F5FF] border border-slate-300 rounded-lg"
+                                            key={field.id}
+                                            className="flex flex-row justify-center items-center gap-2"
                                         >
-                                            <input
-                                                type="text"
-                                                className="w-72 h-full px-5 bg-[#F2F5FF] text-black rounded-lg focus:outline-none"
+                                            <textarea
+                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index == 0 && "mr-4"}`}
                                             />
                                             {index > 0 && (
                                                 <button
-                                                    key={index}
-                                                    onClick={() =>
-                                                        setCorrectAnswers(
-                                                            correctAnswers.filter(
-                                                                (ans, i) => index != i,
-                                                            ),
-                                                        )
-                                                    }
+                                                    key={field.id}
+                                                    onClick={() => removeCorrectAnswer(index)}
                                                 >
                                                     x
                                                 </button>
@@ -110,9 +128,7 @@ export default function page() {
                                     ))}
                                     {selectedQuestionType == "Select All" && (
                                         <button
-                                            onClick={() =>
-                                                setCorrectAnswers([...correctAnswers, ""])
-                                            }
+                                            onClick={() => appendCorrectAnswer(" ")}
                                             className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
                                         >
                                             Add Answer +
@@ -122,25 +138,18 @@ export default function page() {
 
                                 <div className="flex flex-col gap-2">
                                     <label>Answer Choices:</label>
-                                    {answerChoices.map((value, index) => (
+                                    {fieldsAnswerChoices.map((field, index) => (
                                         <div
-                                            key={index}
-                                            className="h-11 w-80 bg-[#F2F5FF] border border-slate-300 rounded-lg"
+                                            key={field.id}
+                                            className="flex flex-row justify-center items-center gap-2"
                                         >
-                                            <input
-                                                type="text"
-                                                className="w-72 h-full px-5 bg-[#F2F5FF] text-black rounded-lg focus:outline-none"
+                                            <textarea
+                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index == 0 && "mr-4"}`}
                                             />
                                             {index > 0 && (
                                                 <button
-                                                    key={index}
-                                                    onClick={() =>
-                                                        setAnswerChoices(
-                                                            answerChoices.filter(
-                                                                (ans, i) => index != i,
-                                                            ),
-                                                        )
-                                                    }
+                                                    key={field.id}
+                                                    onClick={() => removeAnswerChoice(index)}
                                                 >
                                                     x
                                                 </button>
@@ -149,7 +158,7 @@ export default function page() {
                                     ))}
 
                                     <button
-                                        onClick={() => setAnswerChoices([...answerChoices, ""])}
+                                        onClick={() => appendAnswerChoice(" ")}
                                         className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
                                     >
                                         Add Option +
