@@ -13,6 +13,7 @@ export default {
             colors: {
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
+                "custom-background": "hsl(var(--primary))",
                 card: {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
@@ -56,7 +57,6 @@ export default {
                 course_yellow: "#EEF583",
                 course_green: "#94ED79",
                 course_purple: "#8E87F2",
-
             },
             borderRadius: {
                 lg: "var(--radius)",

@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { Figtree } from "next/font/google";
 import localFont from "next/font/local";
 
-import { ThemeProvider } from "@/components/theme-provider";
-
+import AuthGuard from "./auth";
 import "./globals.css";
+import { Providers } from "./providers";
+
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -15,6 +19,7 @@ const geistMono = localFont({
     variable: "--font-geist-mono",
     weight: "100 900",
 });
+const figtree = Figtree({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "WebClicker++",
@@ -27,14 +32,16 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en" suppressHydrationWarning>
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <ThemeProvider
-                    attribute="class"
-                    defaultTheme="system"
-                    enableSystem
-                    disableTransitionOnChange
-                >
-                    {children}
+            <body
+                className={`${figtree.className} ${geistSans.variable} ${geistMono.variable} antialiased`}
+            >
+                <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
+                    <Providers>
+                        <AuthGuard>
+                            <main>{children}</main>
+                        </AuthGuard>
+                    </Providers>
+                    <Toaster />
                 </ThemeProvider>
             </body>
         </html>

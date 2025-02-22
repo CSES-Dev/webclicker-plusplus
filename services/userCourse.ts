@@ -1,33 +1,48 @@
 "use server";
-import { getCourseWithId } from "./course";
+import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-export async function addUserToCourse(courseId: number, userId: number ){
+export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({
         where: {
             userId,
             courseId,
-        }
-    })
-    if (!existingUser){
+        },
+    });
+    if (!existingUser) {
         await prisma.userCourse.create({
             data: {
                 userId,
                 courseId,
-            }
-        })
-    }
-    else{
-        return {error: "User is already enrolled in this course"}
+                role,
+            },
+        });
+    } else {
+        return { error: "User is already enrolled in this course" };
     }
 }
 
-export async function getUserCourses(userId: number){
-    const userCourses = await prisma.userCourse.findMany({
+export async function getUserCourses(userId: string) {
+    const courses = await prisma.userCourse.findMany({
         where: {
-            userId
-        }
-    })
-    const courses = await Promise.all(userCourses.map(async (course) => await getCourseWithId(course.courseId)));
-    return courses;
+            user: {
+                id: userId,
+            },
+        },
+        include: {
+            course: {
+                include: {
+                    schedules: true,
+                },
+            },
+        },
+    });
+
+    // const courses = await Promise.all(
+    // userCourses.map(async (course) => await getCourseWithId(course.courseId)),
+    // );
+    return courses.map(({ course, role }) => ({
+        ...course,
+        role,
+    }));
 }
