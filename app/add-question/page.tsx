@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@/components/ui/drawer";
+    Sheet,
+    SheetClose,
+    SheetContent,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 import { questionTypes } from "@/lib/constants";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
@@ -39,21 +39,20 @@ export default function page() {
         append: appendAnswerChoice,
         remove: removeAnswerChoice,
     } = useFieldArray<any>({ control, name: "answerChoices" });
-
-    const [selectedQuestionType, setSelectedQuestionType] = useState<String>();
+    const currentQuestionType = watch("selectedQuestionType");
 
     return (
-        <Drawer>
-            <DrawerTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
+        <Sheet>
+            <SheetTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
                 Add Question
-            </DrawerTrigger>
-            <DrawerContent className="h-full top-0 right-0 left-auto w-[70%] mt-0 bottom-auto fixed rounded-none">
+            </SheetTrigger>
+            <SheetContent className="h-full top-0 right-0 left-auto w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <ScrollArea className="h-full flex flex-col">
-                    <DrawerHeader className="pt-10 px-16">
-                        <DrawerTitle className="text-3xl mb-5 font-normal">
+                    <SheetHeader className="pt-10 px-16">
+                        <SheetTitle className="text-3xl mb-5 font-normal">
                             Add a Question:
-                        </DrawerTitle>
-                        <div className="flex flex-row justify-between">
+                        </SheetTitle>
+                        <div className="flex flex-row justify-between gap-6">
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-2">
                                     <label>Name of Question:</label>
@@ -77,7 +76,7 @@ export default function page() {
                                                             getValues("correctAnswers")[0],
                                                         ]);
                                                 }}
-                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${getValues("selectedQuestionType") == questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
+                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${currentQuestionType == questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
                                             >
                                                 {questionType}
                                             </button>
@@ -126,7 +125,7 @@ export default function page() {
                                             )}
                                         </div>
                                     ))}
-                                    {selectedQuestionType == "Select All" && (
+                                    {currentQuestionType == "Select All" && (
                                         <button
                                             onClick={() => appendCorrectAnswer(" ")}
                                             className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
@@ -166,14 +165,14 @@ export default function page() {
                                 </div>
                             </div>
                         </div>
-                    </DrawerHeader>
-                    <DrawerFooter className="flex items-end px-16">
-                        <DrawerClose className="w-40 h-12 bg-[hsl(var(--primary))] text-white rounded-lg">
+                    </SheetHeader>
+                    <SheetFooter className="flex items-end px-16">
+                        <SheetClose className="w-40 h-12 bg-[hsl(var(--primary))] text-white rounded-lg">
                             Save Question
-                        </DrawerClose>
-                    </DrawerFooter>
+                        </SheetClose>
+                    </SheetFooter>
                 </ScrollArea>
-            </DrawerContent>
-        </Drawer>
+            </SheetContent>
+        </Sheet>
     );
 }
