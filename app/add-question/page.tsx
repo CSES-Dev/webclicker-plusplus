@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
     Sheet,
     SheetClose,
@@ -14,21 +14,37 @@ import { questionTypes } from "@/lib/constants";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFieldArray, useForm } from "react-hook-form";
 
-type QuestionData = {
-    question: string;
-    selectedQuestionType: string;
-    date: Date;
-    correctAnswers: string[];
-    answerChoices: string[];
-};
+import { zodResolver } from "@hookform/resolvers/zod";
+import zod from "zod";
+
+const schema = zod.object({
+    question: zod.string().min(1),
+    selectedQuestionType: zod.enum(questionTypes),
+    date: zod.date(),
+    correctAnswers: zod
+        .array(zod.string().min(1))
+        .min(1, "Input at least one correct answer")
+        .refine((val) => {
+            val.every((v) => v != " ");
+        }),
+    answerChoices: zod.array(zod.string().min(1)).min(1, "Input at least one answer choice"),
+});
+
+const submit = () => {};
+
 export default function page() {
-    const { register, handleSubmit, watch, getValues, setValue, control } = useForm<QuestionData>({
-        defaultValues: { correctAnswers: [" "], answerChoices: [" "] },
-    });
+    const { register, handleSubmit, watch, getValues, setValue, reset, formState, control } =
+        useForm<zod.infer<typeof schema>>({
+            resolver: zodResolver(schema),
+            defaultValues: {
+                correctAnswers: [" "],
+                answerChoices: [" "],
+            },
+        });
     const {
         fields: fieldsCorrectAnswers,
         append: appendCorrectAnswer,
@@ -40,9 +56,10 @@ export default function page() {
         remove: removeAnswerChoice,
     } = useFieldArray<any>({ control, name: "answerChoices" });
     const currentQuestionType = watch("selectedQuestionType");
+    const currentDate = watch("date");
 
     return (
-        <Sheet>
+        <Sheet onOpenChange={() => reset()}>
             <SheetTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
                 Add Question
             </SheetTrigger>
@@ -90,16 +107,17 @@ export default function page() {
                                     <Popover>
                                         <PopoverTrigger className="h-11 w-80 bg-[#F2F5FF] hover:bg-[#F2F5FF] text-black border border-slate-300 flex justify-between items-center font-normal shadow-none rounded-lg">
                                             <p className="ml-3">
-                                                {getValues("date") &&
-                                                    format(getValues("date"), "PPP")}
+                                                {currentDate && format(currentDate, "PPP")}
                                             </p>
                                             <CalendarIcon className="mx-3 h-4 w-4 float-end" />
                                         </PopoverTrigger>
                                         <PopoverContent className="w-auto p-0">
                                             <Calendar
                                                 mode="single"
-                                                selected={getValues("date")}
-                                                {...register("date")}
+                                                selected={currentDate}
+                                                onSelect={(date) => {
+                                                    if (date) setValue("date", date);
+                                                }}
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -167,7 +185,15 @@ export default function page() {
                         </div>
                     </SheetHeader>
                     <SheetFooter className="flex items-end px-16">
-                        <SheetClose className="w-40 h-12 bg-[hsl(var(--primary))] text-white rounded-lg">
+                        <SheetClose
+                            onClick={() =>
+                                void handleSubmit(submit, (err) => {
+                                    console.error(err);
+                                })()
+                            }
+                            disabled={formState.isValid}
+                            className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
+                        >
                             Save Question
                         </SheetClose>
                     </SheetFooter>
