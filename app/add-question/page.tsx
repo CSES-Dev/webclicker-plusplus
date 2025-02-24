@@ -21,28 +21,25 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import zod from "zod";
 
+import { createCourseSession, findCourseSession } from "@/services/courseSession";
+import { useToast } from "@/hooks/use-toast";
+import { addOption, addQuestion } from "@/services/question";
+
 const schema = zod.object({
     question: zod.string().min(1),
     selectedQuestionType: zod.enum(questionTypes),
     date: zod.date(),
-    correctAnswers: zod
-        .array(zod.string().min(1))
-        .min(1, "Input at least one correct answer")
-        .refine((val) => {
-            val.every((v) => v != " ");
-        }),
+    correctAnswers: zod.array(zod.string().min(1)).min(1, "Input at least one correct answer"),
     answerChoices: zod.array(zod.string().min(1)).min(1, "Input at least one answer choice"),
 });
-
-const submit = () => {};
 
 export default function page() {
     const { register, handleSubmit, watch, getValues, setValue, reset, formState, control } =
         useForm<zod.infer<typeof schema>>({
             resolver: zodResolver(schema),
             defaultValues: {
-                correctAnswers: [" "],
-                answerChoices: [" "],
+                correctAnswers: [""],
+                answerChoices: [""],
             },
         });
     const {
@@ -55,8 +52,77 @@ export default function page() {
         append: appendAnswerChoice,
         remove: removeAnswerChoice,
     } = useFieldArray<any>({ control, name: "answerChoices" });
+
+    const { toast } = useToast();
+
     const currentQuestionType = watch("selectedQuestionType");
     const currentDate = watch("date");
+
+    const submit = (values: zod.infer<typeof schema>) => {
+        const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
+        const courseId = 19; //get courseId based on course page
+        var courseSessionId: number;
+        var questionId: number;
+        async function getCourseSessionInfo() {
+            await findCourseSession(courseId, date)
+                .then((res) => {
+                    if (res && "error" in res)
+                        return toast({ variant: "destructive", description: res?.error ?? "" });
+                    else if (res) courseSessionId = res.id;
+                })
+                .catch((err: unknown) => {
+                    console.error(err);
+                    return toast({ variant: "destructive", description: "Unknown error occurred" });
+                });
+            if (!courseSessionId) {
+                await createCourseSession(courseId, date)
+                    .then((res) => {
+                        if ("error" in res)
+                            return toast({ variant: "destructive", description: res?.error ?? "" });
+                        else if (res) courseSessionId = res.id;
+                    })
+                    .catch((err: unknown) => {
+                        console.error(err);
+                        return toast({
+                            variant: "destructive",
+                            description: "Unknown error occurred",
+                        });
+                    });
+            }
+        }
+        async function createQuestion() {
+            if (!courseSessionId)
+                return toast({
+                    variant: "destructive",
+                    description: "Could not add question to session",
+                });
+            await addQuestion(courseSessionId, question, selectedQuestionType)
+                .then((res) => {
+                    if ("error" in res)
+                        return toast({ variant: "destructive", description: res?.error ?? "" });
+                    else questionId = res.id;
+                })
+                .catch((err: unknown) => {
+                    console.error(err);
+                    return toast({ variant: "destructive", description: "Unknown error occurred" });
+                });
+            if (questionId)
+                await Promise.all(
+                    answerChoices.map((option) => {
+                        addOption(questionId, option, correctAnswers.includes(option)).catch(
+                            (err: unknown) => {
+                                console.error(err);
+                                return toast({
+                                    variant: "destructive",
+                                    description: "Unknown error occurred",
+                                });
+                            },
+                        );
+                    }),
+                );
+        }
+        getCourseSessionInfo().then(() => createQuestion());
+    };
 
     return (
         <Sheet onOpenChange={() => reset()}>
@@ -132,6 +198,7 @@ export default function page() {
                                         >
                                             <textarea
                                                 className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index == 0 && "mr-4"}`}
+                                                {...register(`correctAnswers.${index}`)}
                                             />
                                             {index > 0 && (
                                                 <button
@@ -145,7 +212,7 @@ export default function page() {
                                     ))}
                                     {currentQuestionType == "Select All" && (
                                         <button
-                                            onClick={() => appendCorrectAnswer(" ")}
+                                            onClick={() => appendCorrectAnswer("")}
                                             className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
                                         >
                                             Add Answer +
@@ -162,6 +229,7 @@ export default function page() {
                                         >
                                             <textarea
                                                 className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index == 0 && "mr-4"}`}
+                                                {...register(`answerChoices.${index}`)}
                                             />
                                             {index > 0 && (
                                                 <button
@@ -175,7 +243,7 @@ export default function page() {
                                     ))}
 
                                     <button
-                                        onClick={() => appendAnswerChoice(" ")}
+                                        onClick={() => appendAnswerChoice("")}
                                         className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
                                     >
                                         Add Option +
@@ -191,7 +259,7 @@ export default function page() {
                                     console.error(err);
                                 })()
                             }
-                            disabled={formState.isValid}
+                            disabled={!formState.isValid}
                             className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
                         >
                             Save Question
