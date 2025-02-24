@@ -1,6 +1,14 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 import React from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import zod from "zod";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Sheet,
     SheetClose,
@@ -10,19 +18,10 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { format, set } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFieldArray, useForm } from "react-hook-form";
-
-import { zodResolver } from "@hookform/resolvers/zod";
-import zod from "zod";
 
 import { createCourseSession, findCourseSession } from "@/services/courseSession";
-import { useToast } from "@/hooks/use-toast";
 import { addOption, addQuestion } from "@/services/question";
 
 const schema = zod.object({
@@ -33,7 +32,7 @@ const schema = zod.object({
     answerChoices: zod.array(zod.string().min(1)).min(1, "Input at least one answer choice"),
 });
 
-export default function page() {
+export default function Page() {
     const { register, handleSubmit, watch, getValues, setValue, reset, formState, control } =
         useForm<zod.infer<typeof schema>>({
             resolver: zodResolver(schema),
@@ -61,8 +60,8 @@ export default function page() {
     const submit = (values: zod.infer<typeof schema>) => {
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
         const courseId = 19; //get courseId based on course page
-        var courseSessionId: number;
-        var questionId: number;
+        let courseSessionId: number;
+        let questionId: number;
         async function getCourseSessionInfo() {
             await findCourseSession(courseId, date)
                 .then((res) => {
@@ -108,24 +107,40 @@ export default function page() {
                 });
             if (questionId)
                 await Promise.all(
-                    answerChoices.map((option) => {
-                        addOption(questionId, option, correctAnswers.includes(option)).catch(
-                            (err: unknown) => {
-                                console.error(err);
-                                return toast({
-                                    variant: "destructive",
-                                    description: "Unknown error occurred",
-                                });
-                            },
-                        );
+                    answerChoices.map(async (option) => {
+                        try {
+                            return await addOption(
+                                questionId,
+                                option,
+                                correctAnswers.includes(option),
+                            );
+                        } catch (err) {
+                            console.error(err);
+                            return toast({
+                                variant: "destructive",
+                                description: "Unknown error occurred",
+                            });
+                        }
                     }),
                 );
         }
-        getCourseSessionInfo().then(() => createQuestion());
+        getCourseSessionInfo()
+            .then(() => createQuestion())
+            .catch((err: unknown) => {
+                console.error(err);
+                return toast({
+                    variant: "destructive",
+                    description: "Unknown error occurred",
+                });
+            });
     };
 
     return (
-        <Sheet onOpenChange={() => reset()}>
+        <Sheet
+            onOpenChange={() => {
+                reset();
+            }}
+        >
             <SheetTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
                 Add Question
             </SheetTrigger>
@@ -154,12 +169,12 @@ export default function page() {
                                                 key={questionType}
                                                 onClick={() => {
                                                     setValue("selectedQuestionType", questionType);
-                                                    if (questionType != "Select All")
+                                                    if (questionType !== "Select All")
                                                         setValue("correctAnswers", [
                                                             getValues("correctAnswers")[0],
                                                         ]);
                                                 }}
-                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${currentQuestionType == questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
+                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${currentQuestionType === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
                                             >
                                                 {questionType}
                                             </button>
@@ -197,22 +212,26 @@ export default function page() {
                                             className="flex flex-row justify-center items-center gap-2"
                                         >
                                             <textarea
-                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index == 0 && "mr-4"}`}
+                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
                                                 {...register(`correctAnswers.${index}`)}
                                             />
                                             {index > 0 && (
                                                 <button
                                                     key={field.id}
-                                                    onClick={() => removeCorrectAnswer(index)}
+                                                    onClick={() => {
+                                                        removeCorrectAnswer(index);
+                                                    }}
                                                 >
                                                     x
                                                 </button>
                                             )}
                                         </div>
                                     ))}
-                                    {currentQuestionType == "Select All" && (
+                                    {currentQuestionType === "Select All" && (
                                         <button
-                                            onClick={() => appendCorrectAnswer("")}
+                                            onClick={() => {
+                                                appendCorrectAnswer(" ");
+                                            }}
                                             className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
                                         >
                                             Add Answer +
@@ -228,13 +247,15 @@ export default function page() {
                                             className="flex flex-row justify-center items-center gap-2"
                                         >
                                             <textarea
-                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index == 0 && "mr-4"}`}
+                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
                                                 {...register(`answerChoices.${index}`)}
                                             />
                                             {index > 0 && (
                                                 <button
                                                     key={field.id}
-                                                    onClick={() => removeAnswerChoice(index)}
+                                                    onClick={() => {
+                                                        removeAnswerChoice(index);
+                                                    }}
                                                 >
                                                     x
                                                 </button>
@@ -243,7 +264,9 @@ export default function page() {
                                     ))}
 
                                     <button
-                                        onClick={() => appendAnswerChoice("")}
+                                        onClick={() => {
+                                            appendAnswerChoice(" ");
+                                        }}
                                         className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
                                     >
                                         Add Option +
