@@ -1,18 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import zod from "zod";
 
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { colorOptions, daysOptions } from "@/lib/constants";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetFooter, SheetTitle, SheetTrigger } from "./ui/sheet";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { colorOptions, daysOptions } from "@/lib/constants";
 
 import { addCourse } from "@/services/course";
 
