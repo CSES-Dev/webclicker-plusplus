@@ -144,24 +144,24 @@ export default function Page() {
             <SheetTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
                 Add Question
             </SheetTrigger>
-            <SheetContent className="h-full top-0 right-0 left-auto w-[70%] mt-0 bottom-auto fixed rounded-none">
+            <SheetContent className="h-full top-0 right-0 left-auto w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <ScrollArea className="h-full flex flex-col">
-                    <SheetHeader className="pt-10 px-16">
+                    <SheetHeader className="pt-10 px-3 md:px-16">
                         <SheetTitle className="text-3xl mb-5 font-normal">
                             Add a Question:
                         </SheetTitle>
-                        <div className="flex flex-row justify-between gap-6">
+                        <div className="flex flex-row flex-wrap justify-between gap-6">
                             <div className="flex flex-col gap-6">
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2 items-start">
                                     <label>Name of Question:</label>
                                     <input
                                         type="text"
-                                        className="h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none"
+                                        className="h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none"
                                         {...register("question")}
                                     />
                                 </div>
 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2 items-start">
                                     <label>Question Type:</label>
                                     <div className="flex flex-row gap-3">
                                         {questionTypes.map((questionType) => (
@@ -174,7 +174,7 @@ export default function Page() {
                                                             getValues("correctAnswers")[0],
                                                         ]);
                                                 }}
-                                                className={`h-11 w-40 border border-slate-300 rounded-lg ${currentQuestionType === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
+                                                className={`h-11 w-32 md:w-40 border border-slate-300 rounded-lg ${currentQuestionType === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
                                             >
                                                 {questionType}
                                             </button>
@@ -183,10 +183,10 @@ export default function Page() {
                                 </div>
                             </div>
                             <div className="flex flex-col gap-6">
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2 items-start">
                                     <label>Assign Date:</label>
                                     <Popover>
-                                        <PopoverTrigger className="h-11 w-80 bg-[#F2F5FF] hover:bg-[#F2F5FF] text-black border border-slate-300 flex justify-between items-center font-normal shadow-none rounded-lg">
+                                        <PopoverTrigger className="h-11 w-64 md:w-80 bg-[#F2F5FF] hover:bg-[#F2F5FF] text-black border border-slate-300 flex justify-between items-center font-normal shadow-none rounded-lg">
                                             <p className="ml-3">
                                                 {currentDate && format(currentDate, "PPP")}
                                             </p>
@@ -204,7 +204,7 @@ export default function Page() {
                                     </Popover>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2 items-start">
                                     <label>Correct Answer:</label>
                                     {fieldsCorrectAnswers.map((field, index) => (
                                         <div
@@ -212,7 +212,7 @@ export default function Page() {
                                             className="flex flex-row justify-center items-center gap-2"
                                         >
                                             <textarea
-                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
+                                                className={`h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
                                                 {...register(`correctAnswers.${index}`)}
                                             />
                                             {index > 0 && (
@@ -239,7 +239,7 @@ export default function Page() {
                                     )}
                                 </div>
 
-                                <div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2 items-start">
                                     <label>Answer Choices:</label>
                                     {fieldsAnswerChoices.map((field, index) => (
                                         <div
@@ -247,7 +247,7 @@ export default function Page() {
                                             className="flex flex-row justify-center items-center gap-2"
                                         >
                                             <textarea
-                                                className={`h-11 w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
+                                                className={`h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
                                                 {...register(`answerChoices.${index}`)}
                                             />
                                             {index > 0 && (
@@ -272,22 +272,23 @@ export default function Page() {
                                         Add Option +
                                     </button>
                                 </div>
+                                <div className="flex justify-end items-end pr-5">
+                                    <SheetClose
+                                        onClick={() =>
+                                            void handleSubmit(submit, (err) => {
+                                                console.error(err);
+                                            })()
+                                        }
+                                        disabled={!formState.isValid}
+                                        className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
+                                    >
+                                        Save Question
+                                    </SheetClose>
+                                </div>
                             </div>
                         </div>
                     </SheetHeader>
-                    <SheetFooter className="flex items-end px-16">
-                        <SheetClose
-                            onClick={() =>
-                                void handleSubmit(submit, (err) => {
-                                    console.error(err);
-                                })()
-                            }
-                            disabled={!formState.isValid}
-                            className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
-                        >
-                            Save Question
-                        </SheetClose>
-                    </SheetFooter>
+                    <SheetFooter className="flex items-end px-16"></SheetFooter>
                 </ScrollArea>
             </SheetContent>
         </Sheet>
