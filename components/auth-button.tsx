@@ -16,16 +16,16 @@ export default function AuthButton() {
     return (
         <button
             onClick={() => void handleSignIn()}
-            className="flex items-center  bg-custom-background dark:bg-gray-900 border border-gray-300 rounded-lg shadow-md px-9 py-3 text-sm font-medium text-white dark:text-white hover:bg-slate-400 focus:outline-none active:bg-slate-500"
+            className="bg-[#092C4C] text-white w-[329px] h-[67px] px-[55px] py-[17px] rounded-[10px] flex items-center justify-center text-lg font-medium"
         >
             <Image
                 src="/googlebutton.svg"
                 alt="Google Logo"
-                width={20}
-                height={20}
-                className="w-5 h-5"
+                width={24}
+                height={24}
+                className="mr-3"
             />
-            <span className="ml-3 text-white">Sign in with Google</span>
+            Sign in with Google
         </button>
     );
 }

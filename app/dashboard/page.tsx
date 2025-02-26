@@ -39,7 +39,9 @@ export default function Page() {
         <div className="w-full flex flex-col justify-center items-center pt-10">
             <div className="max-w-[90%]">
                 <div className="hidden md:block justify-between pb-8">
-                    <h1 className="text-5xl">Welcome Back, {user.firstName}!</h1>
+                    <h1 className="text-[40px] leading-[48px] font-normal text-[#434343]">
+                        Welcome Back, {user.firstName}!
+                    </h1>
                 </div>
                 <div className="grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 py-8">
                     {courses?.map((course, idx) => {
@@ -69,22 +71,20 @@ export default function Page() {
                         <>
                             <Link
                                 href="/join-course"
-                                className="block md:hidden flex-col w-80 h-40 bg-[#F3F3F3] border border-black rounded-xl shadow-lg"
+                                className="flex flex-col w-[476px] h-[345px] rounded-lg shadow-lg border border-gray-300"
                             >
-                                <div className="bg-[#D9D9D9] mt-4 h-4 w-full"></div>
-                                <div className="min-h-[80%] py-3 px-6 flex flex-col gap-2 items-center justify-center">
-                                    <p className="text-lg text-center">Add Class +</p>
+                                <div className="bg-primary h-[40%] w-full rounded-t-lg"></div>
+                                <div className="h-[60%] w-full bg-gray-50 flex items-center justify-center">
+                                    <p className="text-lg font-medium text-primary">Add Class +</p>
                                 </div>
                             </Link>
                             <Link
                                 href="/join-course"
-                                className="hidden md:block flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg"
+                                className="hidden md:flex flex-col w-[476px] h-[345px] rounded-lg shadow-lg border border-gray-300"
                             >
-                                <div className="bg-primary min-h-[40%] max-h-[40%] w-full rounded-t-md"></div>
-                                <div className="h-[60%] max-h-[60%] bg-gray-50 w-full flex items-center justify-center">
-                                    <p className="text-lg text-center font-medium text-primary">
-                                        Add a Class +
-                                    </p>
+                                <div className="bg-primary h-[40%] w-full rounded-t-lg"></div>
+                                <div className="h-[60%] w-full bg-gray-50 flex items-center justify-center">
+                                    <p className="text-lg font-medium text-primary">Add a Class +</p>
                                 </div>
                             </Link>
                         </>
