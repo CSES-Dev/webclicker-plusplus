@@ -8,6 +8,7 @@ import { Providers } from "./providers";
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import "@/styles/calendar.css";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
