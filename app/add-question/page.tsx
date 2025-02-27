@@ -2,10 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import React from "react";
+import { CalendarIcon, X } from "lucide-react";
+import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { z } from "zod";
+import { boolean, z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -59,6 +59,7 @@ export default function Page() {
     });
 
     const { toast } = useToast();
+    const [isOpen, setIsOpen] = useState<boolean>();
 
     const currentQuestionType = watch("selectedQuestionType");
     const currentDate = watch("date");
@@ -143,14 +144,25 @@ export default function Page() {
 
     return (
         <Sheet
+            open={isOpen}
             onOpenChange={() => {
                 reset();
             }}
         >
-            <SheetTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
+            <SheetTrigger
+                onClick={() => setIsOpen(true)}
+                className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg"
+            >
                 Add Question
             </SheetTrigger>
             <SheetContent className="h-full top-0 right-0 left-auto w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
+                <SheetClose
+                    onClick={() => setIsOpen(false)}
+                    className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
+                >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Close</span>
+                </SheetClose>
                 <ScrollArea className="h-full flex flex-col">
                     <SheetHeader className="pt-10 px-3 md:px-16">
                         <SheetTitle className="text-3xl mb-5 font-normal">
@@ -280,11 +292,12 @@ export default function Page() {
                                 </div>
                                 <div className="flex justify-end items-end pr-5">
                                     <SheetClose
-                                        onClick={() =>
+                                        onClick={() => {
                                             void handleSubmit(submit, (err) => {
                                                 console.error(err);
-                                            })()
-                                        }
+                                            })();
+                                            setIsOpen(false);
+                                        }}
                                         disabled={!formState.isValid}
                                         className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
                                     >
