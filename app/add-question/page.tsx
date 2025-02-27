@@ -143,12 +143,7 @@ export default function Page() {
     };
 
     return (
-        <Sheet
-            open={isOpen}
-            onOpenChange={() => {
-                reset();
-            }}
-        >
+        <Sheet open={isOpen}>
             <SheetTrigger
                 onClick={() => setIsOpen(true)}
                 className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg"
@@ -157,7 +152,10 @@ export default function Page() {
             </SheetTrigger>
             <SheetContent className="h-full top-0 right-0 left-auto w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <SheetClose
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                        setIsOpen(false);
+                        reset();
+                    }}
                     className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
                 >
                     <X className="h-4 w-4" />
@@ -257,6 +255,7 @@ export default function Page() {
                                                 console.error(err);
                                             })();
                                             setIsOpen(false);
+                                            reset();
                                         }}
                                         disabled={!formState.isValid}
                                         className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
