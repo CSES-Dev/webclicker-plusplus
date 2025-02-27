@@ -12,7 +12,7 @@ export function ListInput({ id, index, removeItem, ...rest }: ListInputProps) {
     return (
         <div key={index} className="flex flex-row justify-center items-center gap-2">
             <textarea
-                className={`h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
+                className={`h-11 w-64 md:w-80 px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
                 {...rest}
             />
             {index > 0 && (

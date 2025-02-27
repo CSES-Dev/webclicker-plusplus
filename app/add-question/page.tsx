@@ -22,7 +22,6 @@ import { questionTypes } from "@/lib/constants";
 import { createCourseSession, findCourseSession } from "@/services/courseSession";
 import { addOption, addQuestion } from "@/services/question";
 import { ListInput, AddInput } from "@/components/ui/ListInput";
-import { ADDRCONFIG } from "dns";
 
 const schema = z.object({
     question: z.string().min(1),
@@ -172,7 +171,7 @@ export default function Page() {
                                     <label>Name of Question:</label>
                                     <input
                                         type="text"
-                                        className="h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none"
+                                        className="h-11 w-64 md:w-80 px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none"
                                         {...register("question")}
                                     />
                                 </div>
@@ -190,7 +189,7 @@ export default function Page() {
                                                             getValues("correctAnswers")[0],
                                                         ]);
                                                 }}
-                                                className={`h-11 w-32 md:w-40 border border-slate-300 rounded-lg ${currentQuestionType === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[#F2F5FF] text-black"}`}
+                                                className={`h-11 w-32 md:w-40 border border-slate-300 rounded-lg ${currentQuestionType === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[hsl(var(--secondary))] text-black"}`}
                                             >
                                                 {questionType}
                                             </button>
