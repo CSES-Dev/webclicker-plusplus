@@ -5,6 +5,8 @@ import { X } from "lucide-react";
 import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { AddInput, ListInput } from "@/components/ui/ListInput";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Sheet,
@@ -15,29 +17,46 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
-import { DatePicker } from "@/components/ui/DatePicker";
 import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
-
 import { createCourseSession, findCourseSession } from "@/services/courseSession";
 import { addOption, addQuestion } from "@/services/question";
-import { ListInput, AddInput } from "@/components/ui/ListInput";
 
 const schema = z.object({
     question: z.string().min(1),
     selectedQuestionType: z.enum(questionTypes),
     date: z.date(),
-    correctAnswers: z.array(z.string().min(1)).min(1, "Input at least one correct answer"),
-    answerChoices: z.array(z.string().min(1)).min(1, "Input at least one answer choice"),
+    correctAnswers: z
+        .array(
+            z
+                .string()
+                .min(1)
+                .refine((val) => val.trim() !== "", {
+                    message: "Answer must not only have spaces",
+                }),
+        )
+        .min(1, "Input at least one correct answer"),
+    answerChoices: z
+        .array(
+            z
+                .string()
+                .min(1)
+                .refine((val) => val.trim() !== "", {
+                    message: "Option must not only have spaces",
+                }),
+        )
+        .min(1, "Input at least one answer choice"),
 });
 
 export default function Page() {
     const { register, handleSubmit, watch, getValues, setValue, reset, formState, control } =
         useForm<z.infer<typeof schema>>({
+            mode: "onChange",
             resolver: zodResolver(schema),
             defaultValues: {
-                correctAnswers: [""],
-                answerChoices: [""],
+                question: "",
+                correctAnswers: [" "],
+                answerChoices: [" "],
             },
         });
     const {
@@ -131,7 +150,14 @@ export default function Page() {
                 );
         }
         getCourseSessionInfo()
-            .then(() => createQuestion())
+            .then(() =>
+                createQuestion().then(() => {
+                    reset();
+                    return toast({
+                        description: "Question added successfully",
+                    });
+                }),
+            )
             .catch((err: unknown) => {
                 console.error(err);
                 return toast({
@@ -144,7 +170,9 @@ export default function Page() {
     return (
         <Sheet open={isOpen}>
             <SheetTrigger
-                onClick={() => setIsOpen(true)}
+                onClick={() => {
+                    setIsOpen(true);
+                }}
                 className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg"
             >
                 Add Question
@@ -152,8 +180,8 @@ export default function Page() {
             <SheetContent className="h-full top-0 right-0 left-auto w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <SheetClose
                     onClick={() => {
-                        setIsOpen(false);
                         reset();
+                        setIsOpen(false);
                     }}
                     className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary"
                 >
@@ -225,7 +253,9 @@ export default function Page() {
                                     ))}
                                     {currentQuestionType === "Select All" && (
                                         <AddInput
-                                            onAdd={() => appendCorrectAnswer(" ")}
+                                            onAdd={() => {
+                                                appendCorrectAnswer(" ");
+                                            }}
                                             text="Add Answer +"
                                         />
                                     )}
@@ -243,7 +273,9 @@ export default function Page() {
                                         />
                                     ))}
                                     <AddInput
-                                        onAdd={() => appendAnswerChoice(" ")}
+                                        onAdd={() => {
+                                            appendAnswerChoice(" ");
+                                        }}
                                         text="Add Option +"
                                     />
                                 </div>
@@ -254,7 +286,6 @@ export default function Page() {
                                                 console.error(err);
                                             })();
                                             setIsOpen(false);
-                                            reset();
                                         }}
                                         disabled={!formState.isValid}
                                         className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
