@@ -223,7 +223,11 @@ export default function Page() {
                                 </div>
 
                                 <div className="flex flex-col gap-2 items-start">
-                                    <label>Correct Answer:</label>
+                                    <label>
+                                        {currentQuestionType === "Select All"
+                                            ? "Correct Answers:"
+                                            : "Correct Answer:"}
+                                    </label>
                                     {fieldsCorrectAnswers.map((field, index) => (
                                         <div
                                             key={field.id}
@@ -234,14 +238,13 @@ export default function Page() {
                                                 {...register(`correctAnswers.${index}`)}
                                             />
                                             {index > 0 && (
-                                                <button
+                                                <X
                                                     key={field.id}
                                                     onClick={() => {
                                                         removeCorrectAnswer(index);
                                                     }}
-                                                >
-                                                    x
-                                                </button>
+                                                    className="text-red-700 h-4 w-4 cursor-pointer"
+                                                />
                                             )}
                                         </div>
                                     ))}
@@ -269,14 +272,13 @@ export default function Page() {
                                                 {...register(`answerChoices.${index}`)}
                                             />
                                             {index > 0 && (
-                                                <button
+                                                <X
                                                     key={field.id}
                                                     onClick={() => {
                                                         removeAnswerChoice(index);
                                                     }}
-                                                >
-                                                    x
-                                                </button>
+                                                    className="text-red-700 h-4 w-4 cursor-pointer"
+                                                />
                                             )}
                                         </div>
                                     ))}
