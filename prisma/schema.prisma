@@ -12,35 +12,34 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  email     String?       @unique
-  firstName String
-  lastName  String?
-  emailVerified DateTime?
-  finishedOnboarding Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime     @updatedAt
-  courses   UserCourse[]
-  responses Response[]
-  accounts Account[]
-  sessions Session[]
-
+  id                 String       @id @default(cuid())
+  email              String?      @unique
+  firstName          String
+  lastName           String?
+  updatedAt          DateTime     @updatedAt
+  emailVerified      DateTime?
+  createdAt          DateTime     @default(now())
+  finishedOnboarding Boolean      @default(false)
+  accounts           Account[]
+  responses          Response[]
+  sessions           Session[]
+  courses            UserCourse[]
 }
 
 model Account {
-  id                 String   @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  user               User     @relation(fields: [userId], references: [id])
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
 }
@@ -60,67 +59,67 @@ model Course {
   color     String
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
-  users     UserCourse[]
   sessions  CourseSession[]
   schedules Schedule[]
+  users     UserCourse[]
 }
 
 model UserCourse {
-  user     User     @relation(fields: [userId], references: [id])
   userId   String
-  course   Course   @relation(fields: [courseId], references: [id])
   courseId Int
   role     Role     @default(STUDENT)
   linkedAt DateTime @default(now())
+  course   Course   @relation(fields: [courseId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
 
   @@id([userId, courseId])
 }
 
 model Schedule {
-  id         Int       @id @default(autoincrement())
-  course     Course    @relation(fields: [courseId], references: [id])
-  courseId   Int
-  dayOfWeek  String[]
-  startTime  String
-  endTime    String
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  dayOfWeek String[]
+  startTime String
+  endTime   String
+  course    Course   @relation(fields: [courseId], references: [id])
 }
 
 model CourseSession {
   id        Int        @id @default(autoincrement())
-  course    Course     @relation(fields: [courseId], references: [id])
   courseId  Int
   startTime DateTime   @default(now())
   endTime   DateTime?
+  course    Course     @relation(fields: [courseId], references: [id])
   questions Question[]
 }
 
 model Question {
   id        Int           @id @default(autoincrement())
-  session   CourseSession @relation(fields: [sessionId], references: [id])
   sessionId Int
   text      String        @db.VarChar(1024)
   type      QuestionType  @default(MCQ)
   options   Option[]
+  session   CourseSession @relation(fields: [sessionId], references: [id])
   responses Response[]
 }
 
 model Option {
   id         Int        @id @default(autoincrement())
-  question   Question   @relation(fields: [questionId], references: [id])
   questionId Int
   text       String     @db.VarChar(1024)
   isCorrect  Boolean
+  question   Question   @relation(fields: [questionId], references: [id])
   responses  Response[]
 }
 
 model Response {
-  user       User     @relation(fields: [userId], references: [id])
   userId     String
-  question   Question @relation(fields: [questionId], references: [id])
   questionId Int
-  option     Option   @relation(fields: [optionId], references: [id])
   optionId   Int
   answeredAt DateTime @default(now())
+  option     Option   @relation(fields: [optionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@id([userId, questionId, optionId])
 }
