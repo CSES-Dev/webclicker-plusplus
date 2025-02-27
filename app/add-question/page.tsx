@@ -1,13 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { CalendarIcon, X } from "lucide-react";
+import { X } from "lucide-react";
 import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { boolean, z } from "zod";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { z } from "zod";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Sheet,
@@ -18,6 +15,7 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import { DatePicker } from "@/components/ui/DatePicker";
 import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
 
@@ -203,23 +201,12 @@ export default function Page() {
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-2 items-start">
                                     <label>Assign Date:</label>
-                                    <Popover>
-                                        <PopoverTrigger className="h-11 w-64 md:w-80 bg-[#F2F5FF] hover:bg-[#F2F5FF] text-black border border-slate-300 flex justify-between items-center font-normal shadow-none rounded-lg">
-                                            <p className="ml-3">
-                                                {currentDate && format(currentDate, "PPP")}
-                                            </p>
-                                            <CalendarIcon className="mx-3 h-4 w-4 float-end" />
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-auto p-0">
-                                            <Calendar
-                                                mode="single"
-                                                selected={currentDate}
-                                                onSelect={(date) => {
-                                                    if (date) setValue("date", date);
-                                                }}
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
+                                    <DatePicker
+                                        currentDate={currentDate}
+                                        onSelect={(date: Date) => {
+                                            setValue("date", date);
+                                        }}
+                                    />
                                 </div>
 
                                 <div className="flex flex-col gap-2 items-start">
