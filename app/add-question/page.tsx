@@ -21,6 +21,7 @@ import { questionTypes } from "@/lib/constants";
 
 import { createCourseSession, findCourseSession } from "@/services/courseSession";
 import { addOption, addQuestion } from "@/services/question";
+import { ListInput } from "@/components/ui/ListInput";
 
 const schema = z.object({
     question: z.string().min(1),
@@ -216,24 +217,13 @@ export default function Page() {
                                             : "Correct Answer:"}
                                     </label>
                                     {fieldsCorrectAnswers.map((field, index) => (
-                                        <div
+                                        <ListInput
                                             key={field.id}
-                                            className="flex flex-row justify-center items-center gap-2"
-                                        >
-                                            <textarea
-                                                className={`h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
-                                                {...register(`correctAnswers.${index}`)}
-                                            />
-                                            {index > 0 && (
-                                                <X
-                                                    key={field.id}
-                                                    onClick={() => {
-                                                        removeCorrectAnswer(index);
-                                                    }}
-                                                    className="text-red-700 h-4 w-4 cursor-pointer"
-                                                />
-                                            )}
-                                        </div>
+                                            id={field.id}
+                                            index={index}
+                                            removeItem={removeCorrectAnswer}
+                                            {...register(`correctAnswers.${index}`)}
+                                        />
                                     ))}
                                     {currentQuestionType === "Select All" && (
                                         <button
@@ -250,24 +240,13 @@ export default function Page() {
                                 <div className="flex flex-col gap-2 items-start">
                                     <label>Answer Choices:</label>
                                     {fieldsAnswerChoices.map((field, index) => (
-                                        <div
+                                        <ListInput
                                             key={field.id}
-                                            className="flex flex-row justify-center items-center gap-2"
-                                        >
-                                            <textarea
-                                                className={`h-11 w-64 md:w-80 px-5 bg-[#F2F5FF] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
-                                                {...register(`answerChoices.${index}`)}
-                                            />
-                                            {index > 0 && (
-                                                <X
-                                                    key={field.id}
-                                                    onClick={() => {
-                                                        removeAnswerChoice(index);
-                                                    }}
-                                                    className="text-red-700 h-4 w-4 cursor-pointer"
-                                                />
-                                            )}
-                                        </div>
+                                            id={field.id}
+                                            index={index}
+                                            removeItem={removeAnswerChoice}
+                                            {...register(`answerChoices.${index}`)}
+                                        />
                                     ))}
 
                                     <button
