@@ -21,7 +21,8 @@ import { questionTypes } from "@/lib/constants";
 
 import { createCourseSession, findCourseSession } from "@/services/courseSession";
 import { addOption, addQuestion } from "@/services/question";
-import { ListInput } from "@/components/ui/ListInput";
+import { ListInput, AddInput } from "@/components/ui/ListInput";
+import { ADDRCONFIG } from "dns";
 
 const schema = z.object({
     question: z.string().min(1),
@@ -226,14 +227,10 @@ export default function Page() {
                                         />
                                     ))}
                                     {currentQuestionType === "Select All" && (
-                                        <button
-                                            onClick={() => {
-                                                appendCorrectAnswer(" ");
-                                            }}
-                                            className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
-                                        >
-                                            Add Answer +
-                                        </button>
+                                        <AddInput
+                                            onAdd={() => appendCorrectAnswer(" ")}
+                                            text="Add Answer +"
+                                        />
                                     )}
                                 </div>
 
@@ -248,15 +245,10 @@ export default function Page() {
                                             {...register(`answerChoices.${index}`)}
                                         />
                                     ))}
-
-                                    <button
-                                        onClick={() => {
-                                            appendAnswerChoice(" ");
-                                        }}
-                                        className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
-                                    >
-                                        Add Option +
-                                    </button>
+                                    <AddInput
+                                        onAdd={() => appendAnswerChoice(" ")}
+                                        text="Add Option +"
+                                    />
                                 </div>
                                 <div className="flex justify-end items-end pr-5">
                                     <SheetClose

@@ -1,14 +1,14 @@
 import React from "react";
 import { X } from "lucide-react";
 
-interface Props {
+interface ListInputProps {
     id: string;
     index: number;
     removeItem: (index: number) => void;
     [key: string]: any;
 }
 
-export function ListInput({ id, index, removeItem, ...rest }: Props) {
+export function ListInput({ id, index, removeItem, ...rest }: ListInputProps) {
     return (
         <div key={index} className="flex flex-row justify-center items-center gap-2">
             <textarea
@@ -23,5 +23,21 @@ export function ListInput({ id, index, removeItem, ...rest }: Props) {
                 />
             )}
         </div>
+    );
+}
+
+interface AddInputProps {
+    onAdd: () => void;
+    text: string;
+}
+
+export function AddInput({ onAdd, text }: AddInputProps) {
+    return (
+        <button
+            onClick={onAdd}
+            className="h-9 w-36 mt-2 bg-black text-white border border-slate-300 rounded-lg"
+        >
+            {text}
+        </button>
     );
 }
