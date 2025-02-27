@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import zod from "zod";
+import { z } from "zod";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -24,17 +24,17 @@ import { questionTypes } from "@/lib/constants";
 import { createCourseSession, findCourseSession } from "@/services/courseSession";
 import { addOption, addQuestion } from "@/services/question";
 
-const schema = zod.object({
-    question: zod.string().min(1),
-    selectedQuestionType: zod.enum(questionTypes),
-    date: zod.date(),
-    correctAnswers: zod.array(zod.string().min(1)).min(1, "Input at least one correct answer"),
-    answerChoices: zod.array(zod.string().min(1)).min(1, "Input at least one answer choice"),
+const schema = z.object({
+    question: z.string().min(1),
+    selectedQuestionType: z.enum(questionTypes),
+    date: z.date(),
+    correctAnswers: z.array(z.string().min(1)).min(1, "Input at least one correct answer"),
+    answerChoices: z.array(z.string().min(1)).min(1, "Input at least one answer choice"),
 });
 
 export default function Page() {
     const { register, handleSubmit, watch, getValues, setValue, reset, formState, control } =
-        useForm<zod.infer<typeof schema>>({
+        useForm<z.infer<typeof schema>>({
             resolver: zodResolver(schema),
             defaultValues: {
                 correctAnswers: [""],
@@ -45,19 +45,25 @@ export default function Page() {
         fields: fieldsCorrectAnswers,
         append: appendCorrectAnswer,
         remove: removeCorrectAnswer,
-    } = useFieldArray<any>({ control, name: "correctAnswers" });
+    } = useFieldArray<any>({
+        control,
+        name: "correctAnswers",
+    });
     const {
         fields: fieldsAnswerChoices,
         append: appendAnswerChoice,
         remove: removeAnswerChoice,
-    } = useFieldArray<any>({ control, name: "answerChoices" });
+    } = useFieldArray<any>({
+        control,
+        name: "answerChoices",
+    });
 
     const { toast } = useToast();
 
     const currentQuestionType = watch("selectedQuestionType");
     const currentDate = watch("date");
 
-    const submit = (values: zod.infer<typeof schema>) => {
+    const submit = (values: z.infer<typeof schema>) => {
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
         const courseId = 19; //get courseId based on course page
         let courseSessionId: number;
