@@ -14,34 +14,28 @@ export async function GET(request: Request) {
         // 2. Get the sessionId from the URL params
         const { searchParams } = new URL(request.url);
         const sessionId = searchParams.get("sessionId");
-        
+
         if (!sessionId) {
-            return NextResponse.json(
-                { error: "Session ID is required" }, 
-                { status: 400 }
-            );
+            return NextResponse.json({ error: "Session ID is required" }, { status: 400 });
         }
 
         // 3. Fetch questions with their options for this session
         const questions = await prisma.question.findMany({
             where: {
-                sessionId: parseInt(sessionId)
+                sessionId: parseInt(sessionId),
             },
             include: {
-                options: true
+                options: true,
             },
             orderBy: {
-                id: 'asc'
-            }
+                id: "asc",
+            },
         });
 
         // 4. Return the questions
         return NextResponse.json(questions, { status: 200 });
     } catch (error) {
         console.error("Error fetching questions:", error);
-        return NextResponse.json(
-            { error: "Internal Server Error" }, 
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

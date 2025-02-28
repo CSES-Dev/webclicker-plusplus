@@ -24,7 +24,7 @@ export default function Page() {
             if (!code) {
                 setError("Invalid code");
             } else {
-                console.log(code)
+                console.log(code);
                 const courseInfo = await getCourseWithCode(code);
                 if (!courseInfo) {
                     setError("Invalid code");
