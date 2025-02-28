@@ -53,7 +53,7 @@ const AnswerOptions: React.FC<AnswerOptionsProps> = ({
                             <div
                                 key={option.id}
                                 className={`w-full max-w-[300px] rounded-lg overflow-hidden cursor-pointer ${
-                                    isSelected ? ' bg-custom-background text-white' : 'bg-gray-50 hover:bg-gray-100'
+                                    isSelected ? ' bg-custom-background text-white' : 'bg-[hsl(var(--secondary))]'
                                 }`}
                                 onClick={() => handleMCQSelection(option.id)}
                             >
@@ -79,23 +79,21 @@ const AnswerOptions: React.FC<AnswerOptionsProps> = ({
                     return (
                         <div
                             key={option.id}
-                            className={`w-full max-w-[300px] rounded-lg overflow-hidden cursor-pointer ${
-                                isSelected ? 'bg-blue-100' : 'bg-gray-50 hover:bg-gray-100'
-                            }`}
+                            className={"w-full max-w-[300px] rounded-lg overflow-hidden cursor-pointer bg-[hsl(var(--secondary))]"}
                             onClick={() => handleMSQSelection(option.id)}
                         >
-                            <div className="py-2 px-3 flex items-center">
-                                <div className={`min-w-7 w-7 h-7 flex items-center justify-center rounded-md ${
+                            <div className="py-2 px-3.5 flex items-center">
+                                <div className={`w-[16px] h-[16px] flex items-center justify-center rounded-md ${
                                     isSelected 
-                                        ? 'bg-blue-600 border-blue-600' 
+                                        ? 'bg-custom-background border-custom-background' 
                                         : 'bg-white border border-gray-300'
                                 }`}>
                                     {isSelected && (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                                             <polyline points="20 6 9 17 4 12"></polyline>
                                         </svg>
                                     )}
-                                </div>
+                                </div> 
                                 <div className="flex-grow text-center px-3">
                                     <span className="text-base">{option.text}</span>
                                 </div>

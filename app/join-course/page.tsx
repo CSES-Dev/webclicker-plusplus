@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
 

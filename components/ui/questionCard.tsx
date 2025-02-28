@@ -9,7 +9,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
   return (
     <div className="w-full flex justify-center">
       <div className="border rounded-lg overflow-hidden w-full max-w-[330px]">
-        <div className="bg-gray-100 py-3 px-4 border-b">
+        <div className="bg-[hsl(var(--secondary))] py-3 px-4 border-b">
           <h3 className="text-[20px] font-medium text-center">Question:</h3>
         </div>
         <div className="bg-white py-6 px-4">

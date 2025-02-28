@@ -7,86 +7,106 @@ import AnswerOptions from "@/components/ui/answerOptions";
 import Header from "@/components/ui/header";
 import BackButton from "@/components/ui/backButton";
 
-interface Option {
-    id: number;
-    questionId: number;
-    text: string;
-    isCorrect: boolean;
-}
+import { Question as PrismaQuestion, Option as PrismaOption } from '@prisma/client';
 
-interface Question {
-    id: number;
-    sessionId: number;
-    text: string;
-    type: "MCQ" | "MSQ"; 
-    options: Option[];
-    topic: string;    
-}
-
-// This would eventually come from an API call
-const mockQuestions: Question[] = [
-    // {
-    //   id: 4,
-    //   sessionId: 1,
-    //   text: "Which of the following are JavaScript frameworks or libraries? (Select all that apply)",
-    //   type: "MSQ",
-    //   topic: "Web Development",
-    //   options: [
-    //     { id: 13, questionId: 4, text: "React", isCorrect: true },
-    //     { id: 14, questionId: 4, text: "Angular", isCorrect: true },
-    //     { id: 15, questionId: 4, text: "Vue", isCorrect: true },
-    //     { id: 16, questionId: 4, text: "Python", isCorrect: false }
-    //   ]
-    // },
-
-    {
-      id: 3,
-      sessionId: 2,
-      text: "Which of the following are JavaScript frameworks or libraries? (Select all that apply)",
-      type: "MCQ",
-      topic: "Web Dev",
-      options: [
-        { id: 13, questionId: 4, text: "React", isCorrect: true },
-        { id: 14, questionId: 4, text: "Angular", isCorrect: true },
-        { id: 15, questionId: 4, text: "Vue", isCorrect: true },
-        { id: 16, questionId: 4, text: "Python", isCorrect: false }
-      ]
-    }
-];
+type QuestionWithOptions = PrismaQuestion & {
+  options: PrismaOption[]
+};
 
 export default function LivePoll() {
   // Extract the course-session-id from the URL
   const params = useParams();
   const courseSessionId = params['course-session-id'];
 
+  const [questions, setQuestions] = useState<QuestionWithOptions[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
   // State for the current question index
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  // const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const currentQuestionIndex = 1
   
   // Unified state for selected values (either single number or array of numbers)
   const [selectedValues, setSelectedValues] = useState<number | number[] | null>(null);
 
-  // Get the current question
-  const currentQuestion = mockQuestions[currentQuestionIndex];
-
-  const questionCount = `${currentQuestionIndex + 1}/${mockQuestions.length}`;
-  const progressPercent = ((currentQuestionIndex + 1) / mockQuestions.length) * 100;
-
-
   
-  // Calculate progress
-  const progress = ((currentQuestionIndex + 1) / mockQuestions.length) * 100;
+  useEffect(() => {
+    const fetchQuestions = async () =>{
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/fetchCourseSessionQuestions?sessionId=${courseSessionId}`);
+        if(!response.ok){
+          throw new Error('Failed to fetch questions');
+        }
+        const data = await response.json();
+        setQuestions(data);
+
+        // look at later 
+        if (data.length > 0){
+          setSelectedValues(data[0].type === "MCQ" ? null : []);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message: 'An error occurred');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (courseSessionId) {
+      fetchQuestions();
+    }
+  }, [courseSessionId])
   
-  // Handle answer selection (works for both MCQ and MSQ)
-  const handleSelectionChange = (value: number | number[]) => {
+
+    // Handle loading state
+    if (loading) {
+      return <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-custom-background border-opacity-50 rounded-full animate-spin mx-auto mb-4"></div>
+          <p>Loading questions...</p>
+        </div>
+      </div>;
+    }
+  
+    if (error || questions.length === 0) {
+      return <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center p-6">
+          <p className="text-red-500 mb-4">{error || 'No questions found for this session'}</p>
+          <BackButton href="/dashboard" />
+        </div>
+      </div>;
+    }
+
+  // // Get the current question
+  const currentQuestion = questions[currentQuestionIndex];
+  const questionCount = `${currentQuestionIndex + 1}/${questions.length}`;
+  const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+    // Handle answer selection (works for both MCQ and MSQ)
+    const handleSelectionChange = async (value: number | number[]) => {
       setSelectedValues(value);
-      // In a real app, you'd send this selection to the backend
-  };
-  
-  // Handle going to the next question
-  const handleNextQuestion = () => {
-      if (currentQuestionIndex < mockQuestions.length - 1) {
-          setCurrentQuestionIndex(prev => prev + 1);
-          setSelectedValues(null);
+      const optionIds = Array.isArray(value) ? value : [value];
+      if (optionIds.length > 0){
+        try {
+          setSubmitting(true); 
+          const response = await fetch('/api/submitStudentResponse', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              questionId: currentQuestion.id,
+              optionIds
+            })
+          })
+          if (!response.ok){
+            console.error('Failed to save answer');
+          }
+        } catch (error) {
+          console.error('Error saving answer:', error)
+        } finally {
+          setSubmitting(false)
+        }
       }
   };
     return (
@@ -115,13 +135,12 @@ export default function LivePoll() {
               ></div>
             </div>
             
-            {/* Topics */}
-            <div className="flex justify-end items-center mb-4">
+            {/* <div className="flex justify-end items-center mb-4">
               <span className="mr-2 text-[16px] font-medium">Topics:</span>
               <span className="px-4 py-1 bg-green-300 rounded-full text-[12px] text-center">
-                {currentQuestion.topic}
+                EX. STRING
               </span>
-            </div>
+            </div> */}
           </div>
           
           {/* Question Card - simplified */}
@@ -136,17 +155,16 @@ export default function LivePoll() {
             selectedValues={selectedValues}
             onSelectionChange={handleSelectionChange}
           />
+
+          {/* Submission Status */}
+          {submitting && (
+            <p className="mt-4 text-blue-500 text-[14px]">Saving your answer...</p>
+          )}
           
-          {/* Footer Message */}
-          {currentQuestionIndex === mockQuestions.length - 1 ? (
-            <p className="mt-6 text-[14px] text-gray-500 text-center">
-              This is the last question.
-            </p>
-          ) : (
+          {/* Footer Message */} 
             <p className="mt-6 text-[14px] text-gray-500 text-center">
               Instructor will start the next question shortly...
             </p>
-          )}
         </div>
       </div>
     );
