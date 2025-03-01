@@ -1,16 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { MessageSquare } from "lucide-react";
+import { PictureInPicture2 } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "./dialog";
+import { Question } from "@prisma/client";
+import { useToast } from "@/hooks/use-toast";
+import { findQuestionsByCourseSession } from "@/services/question";
+import { questionTypeMap } from "@/lib/constants";
 
-interface Question {
+interface QuestionMock {
     id: number;
     type: string;
     text: string;
 }
 
-const mockData: Record<string, Question[]> = {
+const mockData: Record<string, QuestionMock[]> = {
     [dayjs().format("YYYY-MM-DD")]: [
         { id: 1, type: "Multiple Choice", text: "What is cognitive load?" },
         {
@@ -19,13 +31,39 @@ const mockData: Record<string, Question[]> = {
             text: "Explain the concept of attention spanaaaaa. Explain the concept of attention span. Explain the concept of attention span.Explain the concept of attention span.Explain the concept of attention span.Explain the concept of attention span.",
         },
         { id: 3, type: "Short Answer", text: "Explain the concept of attention span." },
-        { id: 4, type: "Short Answer", text: "Explain the concept of attention span." },
+        // { id: 4, type: "Short Answer", text: "Explain the concept of attention span." },
+        // { id: 5, type: "Short Answer", text: "Explain the concept of attention span." },
+        // { id: 6, type: "Short Answer", text: "Explain the concept of attention span." },
+        // { id: 7, type: "Short Answer", text: "Explain the concept of attention span." },
     ],
 };
 
-const SlidingCalendar: React.FC = () => {
+interface Props {
+    courseId: number;
+}
+
+function SlidingCalendar({ courseId }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
     const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+    const [questions, setQuestions] = useState<Question[] | null>();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            const date = selectedDate?.toDate();
+            if (date) {
+                await findQuestionsByCourseSession(courseId, date).then((res) => {
+                    if (res && "error" in res)
+                        return toast({ variant: "destructive", description: res?.error ?? "" });
+                    else {
+                        setQuestions(res);
+                        console.log(res);
+                    }
+                });
+            }
+        };
+        fetchQuestions();
+    }, [selectedDate]);
 
     const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
@@ -67,9 +105,9 @@ const SlidingCalendar: React.FC = () => {
                 initial={{ opacity: 0, x: 50 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
-                className="flex flex-col space-y-4 w-full max-w-screen-xl p-4 bg-white rounded-[20px] border border-[#A5A5A5]"
+                className="flex flex-col space-y-4 w-full max-w-screen-xl p-4 bg-white rounded-[20px] border border-[#A5A5A5] h-[460px] max-h-[460px]"
             >
-                <div className="flex flex-wrap justify-center sm:justify-between gap-3">
+                <div className="flex justify-center sm:justify-between gap-3 pb-4">
                     {dates.map((date, index) => {
                         const formattedDay = date.format("ddd");
                         const formattedMonthDay = date.format("DD");
@@ -106,29 +144,50 @@ const SlidingCalendar: React.FC = () => {
                         );
                     })}
                 </div>
-                {questionsForDay.length > 0 && (
-                    <div className="mt-4 max-h-[250px] overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
-                        {questionsForDay.map((question) => (
+                {questions && questions.length > 0 ? (
+                    <div className="mt-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 w-full justify-items-center">
+                        {questions.map((question) => (
                             <div
                                 key={question.id}
-                                className="relative w-full h-[173px] p-4 bg-[#F2F5FF] border border-[#A5A5A5] rounded-xl cursor-pointer flex justify-between items-start"
+                                className="relative w-[95%] h-[200px] p-4 m-4 bg-white border border-[#D9D9D9] rounded-xl shadow-lg shadow-slate-400 cursor-pointer flex justify-between items-start"
                             >
                                 <div className="w-full">
                                     <h2 className="text-[15px] font-normal text-[#18328D]">
-                                        {question.type}
+                                        {questionTypeMap[question.type]}
                                     </h2>
                                     <p className="text-base font-normal text-black mt-2 line-clamp-3 overflow-hidden text-ellipsis">
                                         {question.text}
                                     </p>
                                 </div>
-                                <MessageSquare className="text-[#18328D] w-6 h-6 absolute top-2 right-2" />
+                                <Dialog>
+                                    <DialogTrigger>
+                                        <PictureInPicture2 className="text-[#18328D] w-6 h-6 absolute top-2 right-2" />
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Multiple Choice</DialogTitle>
+                                            <DialogDescription>
+                                                This action cannot be undone. This will permanently
+                                                delete your account and remove your data from our
+                                                servers.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col justify-center items-center w-full h-full gap-6">
+                        <p className="text-gray-400 text-2xl font-normal">
+                            No Questions Assigned on this Day
+                        </p>
+                        <p className="text-[#18328D] text-2xl font-normal">Add Question?</p>
                     </div>
                 )}
             </motion.div>
         </div>
     );
-};
+}
 
 export default SlidingCalendar;
