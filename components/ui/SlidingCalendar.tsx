@@ -163,13 +163,35 @@ function SlidingCalendar({ courseId }: Props) {
                                     <DialogTrigger>
                                         <PictureInPicture2 className="text-[#18328D] w-6 h-6 absolute top-2 right-2" />
                                     </DialogTrigger>
-                                    <DialogContent>
+                                    <DialogContent className="w-[75vh] max-w-[75v] h-[75vh] max-h-[75vh]">
                                         <DialogHeader>
-                                            <DialogTitle>Multiple Choice</DialogTitle>
-                                            <DialogDescription>
-                                                This action cannot be undone. This will permanently
-                                                delete your account and remove your data from our
-                                                servers.
+                                            <DialogTitle className="flex flex-col">
+                                                <h1 className="text-xl text-[#18328D] font-base">
+                                                    Multiple Choice
+                                                </h1>
+                                                <p className="text-4xl text-[#434343] font-base">
+                                                    What is a string?
+                                                </p>
+                                            </DialogTitle>
+                                            {/* <hr className="border-t border-[#D9D9D9]"> */}
+                                            <DialogDescription className="flex flex-col items-center space-y-4">
+                                                <h1 className="text-center text-xl font-semibold">
+                                                    Answer Choices:
+                                                </h1>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
+                                                        Option 1
+                                                    </button>
+                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
+                                                        Option 2
+                                                    </button>
+                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
+                                                        Option 3
+                                                    </button>
+                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
+                                                        Option 4
+                                                    </button>
+                                                </div>
                                             </DialogDescription>
                                         </DialogHeader>
                                     </DialogContent>
