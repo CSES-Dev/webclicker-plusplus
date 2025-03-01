@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
 
 export default function Page() {
+    const session = useSession();
     const { register, handleSubmit, watch } = useForm<{
         code: string;
     }>();
@@ -15,22 +18,25 @@ export default function Page() {
     const [course, setCourse] = useState<string>();
     const [error, setError] = useState<string>();
 
+    const user = session?.data?.user ?? { id: "", firstName: "" };
+
     const onFormSubmit = async () => {
         try {
             if (!code) {
                 setError("Invalid code");
             } else {
+                console.log(code)
                 const courseInfo = await getCourseWithCode(code);
                 if (!courseInfo) {
                     setError("Invalid code");
                     return;
                 }
-                const res = await addUserToCourse(courseInfo.id, "1");
+                const res = await addUserToCourse(courseInfo.id, user.id);
                 if (res?.error) setError(res.error);
                 else setCourse(courseInfo.title);
             }
         } catch (err) {
-            console.log("Error adding user to the course", err);
+            console.error("Error adding user to the course", err);
             setError("Something went wrong");
         }
     };
@@ -72,7 +78,7 @@ export default function Page() {
                         You have been <br /> successfully added to:
                     </h1>
                     <h1 className="text-3xl pb-16">{course}</h1>
-                    <Link href="/course-list">
+                    <Link href="/dashboard">
                         <button className="py-2 w-72 px-6 bg-[#18328D] text-white border border-[#18328D] rounded-lg text-center mx-auto block">
                             Continue
                         </button>

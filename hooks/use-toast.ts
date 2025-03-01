@@ -1,7 +1,3 @@
-/* eslint-disable no-use-before-define */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-shadow */
-
 "use client";
 
 // Inspired by react-hot-toast library
