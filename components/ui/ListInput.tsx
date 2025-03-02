@@ -4,16 +4,18 @@ import { X } from "lucide-react";
 interface ListInputProps {
     id: string;
     index: number;
+    value: string;
     removeItem: (index: number) => void;
-    [key: string]: any;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
-export function ListInput({ id, index, removeItem, ...rest }: ListInputProps) {
+export function ListInput({ id, index, value, removeItem, onChange }: ListInputProps) {
     return (
         <div key={index} className="flex flex-row justify-center items-center gap-2">
             <textarea
+                value={value}
                 className={`h-11 w-64 md:w-80 px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
-                {...rest}
+                onChange={onChange}
             />
             {index > 0 && (
                 <X
