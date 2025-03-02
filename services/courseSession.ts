@@ -4,12 +4,15 @@ import prisma from "@/lib/prisma";
 
 type GetOrCreateCourseSessionResult = CourseSession | { error: string };
 
-export async function getOrCreateCourseSession(courseId: number, start: Date) : Promise<GetOrCreateCourseSessionResult>{
+export async function getOrCreateCourseSession(
+    courseId: number,
+    start: Date,
+): Promise<GetOrCreateCourseSessionResult> {
     try {
-        const courseSession =  await prisma.courseSession.findFirst({
+        const courseSession = await prisma.courseSession.findFirst({
             where: { courseId, startTime: start },
         });
-        if(courseSession) return courseSession;
+        if (courseSession) return courseSession;
 
         return await prisma.courseSession.create({
             data: {

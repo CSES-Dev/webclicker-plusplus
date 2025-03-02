@@ -30,22 +30,26 @@ const schema = z.object({
     date: z.date(),
     correctAnswers: z
         .array(
-            z
-                .string()
-                .min(1)
-                .refine((val) => val.trim() !== "", {
-                    message: "Answer must not only have spaces",
-                }),
+            z.object({
+                answer: z
+                    .string()
+                    .min(1)
+                    .refine((val) => val.trim() !== "", {
+                        message: "Answer must not only have spaces",
+                    }),
+            }),
         )
         .min(1, "Input at least one correct answer"),
     answerChoices: z
         .array(
-            z
-                .string()
-                .min(1)
-                .refine((val) => val.trim() !== "", {
-                    message: "Option must not only have spaces",
-                }),
+            z.object({
+                choice: z
+                    .string()
+                    .min(1)
+                    .refine((val) => val.trim() !== "", {
+                        message: "Option must not only have spaces",
+                    }),
+            }),
         )
         .min(1, "Input at least one answer choice"),
 });
@@ -56,15 +60,15 @@ export default function Page() {
         resolver: zodResolver(schema),
         defaultValues: {
             question: "",
-            correctAnswers: [" "],
-            answerChoices: [" "],
+            correctAnswers: [{ answer: " " }],
+            answerChoices: [{ choice: " " }],
         },
     });
     const {
         fields: fieldsCorrectAnswers,
         append: appendCorrectAnswer,
         remove: removeCorrectAnswer,
-    } = useFieldArray<any>({
+    } = useFieldArray<z.infer<typeof schema>>({
         control: form.control,
         name: "correctAnswers",
     });
@@ -72,7 +76,7 @@ export default function Page() {
         fields: fieldsAnswerChoices,
         append: appendAnswerChoice,
         remove: removeAnswerChoice,
-    } = useFieldArray<any>({
+    } = useFieldArray<z.infer<typeof schema>>({
         control: form.control,
         name: "answerChoices",
     });
@@ -90,6 +94,7 @@ export default function Page() {
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
         const courseId = 19; //get courseId based on course page
         let courseSessionId: number;
+
         async function getCourseSessionInfo() {
             await getOrCreateCourseSession(courseId, date)
                 .then((res) => {
@@ -115,8 +120,8 @@ export default function Page() {
                 courseSessionId,
                 question,
                 selectedQuestionType,
-                answerChoices,
-                correctAnswers,
+                answerChoices.map((choiceObject) => choiceObject.choice),
+                correctAnswers.map((answerObject) => answerObject.answer),
             )
                 .then((res) => {
                     if ("error" in res)
@@ -261,7 +266,9 @@ export default function Page() {
                                                                 key={correctAnswer.id}
                                                                 id={correctAnswer.id}
                                                                 index={index}
-                                                                value={field.value[index] || ""}
+                                                                value={
+                                                                    field.value[index].answer || ""
+                                                                }
                                                                 removeItem={removeCorrectAnswer}
                                                                 onChange={(
                                                                     e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -269,7 +276,7 @@ export default function Page() {
                                                                     const newValue = [
                                                                         ...field.value,
                                                                     ];
-                                                                    newValue[index] =
+                                                                    newValue[index].answer =
                                                                         e.target.value;
                                                                     field.onChange(newValue);
                                                                 }}
@@ -281,7 +288,9 @@ export default function Page() {
                                                         "Select All" && (
                                                         <AddInput
                                                             onAdd={() => {
-                                                                appendCorrectAnswer(" ");
+                                                                appendCorrectAnswer({
+                                                                    answer: " ",
+                                                                });
                                                             }}
                                                             text="Add Answer +"
                                                         />
@@ -304,7 +313,9 @@ export default function Page() {
                                                                 key={answerChoice.id}
                                                                 id={answerChoice.id}
                                                                 index={index}
-                                                                value={field.value[index] || ""}
+                                                                value={
+                                                                    field.value[index].choice || ""
+                                                                }
                                                                 removeItem={removeAnswerChoice}
                                                                 onChange={(
                                                                     e: React.ChangeEvent<HTMLTextAreaElement>,
@@ -312,7 +323,7 @@ export default function Page() {
                                                                     const newValue = [
                                                                         ...field.value,
                                                                     ];
-                                                                    newValue[index] =
+                                                                    newValue[index].choice =
                                                                         e.target.value;
                                                                     field.onChange(newValue);
                                                                 }}
@@ -322,7 +333,7 @@ export default function Page() {
                                                     <FormMessage />
                                                     <AddInput
                                                         onAdd={() => {
-                                                            appendAnswerChoice(" ");
+                                                            appendAnswerChoice({ choice: " " });
                                                         }}
                                                         text="Add Option +"
                                                     />

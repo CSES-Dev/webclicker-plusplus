@@ -8,7 +8,7 @@ export async function addQuestionWithOptions(
     text: string,
     type: (typeof questionTypes)[number],
     answerChoices: string[],
-    correctAnswers: string[]
+    correctAnswers: string[],
 ) {
     const prismaQuestionTypes = {
         "Multiple Choice": QuestionType.MCQ,
@@ -22,11 +22,13 @@ export async function addQuestionWithOptions(
                 text,
                 type: prismaQuestionTypes[type],
                 options: {
-                    create: answerChoices.map((option) => {return {
-                        text: option,
-                        isCorrect: correctAnswers.includes(option)
-                    }})
-                }
+                    create: answerChoices.map((option) => {
+                        return {
+                            text: option,
+                            isCorrect: correctAnswers.includes(option),
+                        };
+                    }),
+                },
             },
         });
     } catch (err) {
