@@ -7,6 +7,8 @@ import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { AddInput, ListInput } from "@/components/ui/ListInput";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Sheet,
@@ -19,10 +21,8 @@ import {
 } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
-import { createCourseSession, findCourseSession } from "@/services/courseSession";
-import { addOption, addQuestion } from "@/services/question";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { getOrCreateCourseSession } from "@/services/courseSession";
+import { addQuestionWithOptions } from "@/services/question";
 
 const schema = z.object({
     question: z.string().min(1),
@@ -90,33 +90,20 @@ export default function Page() {
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
         const courseId = 19; //get courseId based on course page
         let courseSessionId: number;
-        let questionId: number;
         async function getCourseSessionInfo() {
-            await findCourseSession(courseId, date)
+            await getOrCreateCourseSession(courseId, date)
                 .then((res) => {
                     if (res && "error" in res)
                         return toast({ variant: "destructive", description: res?.error ?? "" });
-                    else if (res) courseSessionId = res.id;
+                    else if (res) courseSessionId = res?.id;
                 })
                 .catch((err: unknown) => {
                     console.error(err);
-                    return toast({ variant: "destructive", description: "Unknown error occurred" });
-                });
-            if (!courseSessionId) {
-                await createCourseSession(courseId, date)
-                    .then((res) => {
-                        if ("error" in res)
-                            return toast({ variant: "destructive", description: res?.error ?? "" });
-                        else if (res) courseSessionId = res.id;
-                    })
-                    .catch((err: unknown) => {
-                        console.error(err);
-                        return toast({
-                            variant: "destructive",
-                            description: "Unknown error occurred",
-                        });
+                    return toast({
+                        variant: "destructive",
+                        description: "Unknown error occurred",
                     });
-            }
+                });
         }
         async function createQuestion() {
             if (!courseSessionId)
@@ -124,34 +111,21 @@ export default function Page() {
                     variant: "destructive",
                     description: "Could not add question to session",
                 });
-            await addQuestion(courseSessionId, question, selectedQuestionType)
+            await addQuestionWithOptions(
+                courseSessionId,
+                question,
+                selectedQuestionType,
+                answerChoices,
+                correctAnswers,
+            )
                 .then((res) => {
                     if ("error" in res)
                         return toast({ variant: "destructive", description: res?.error ?? "" });
-                    else questionId = res.id;
                 })
                 .catch((err: unknown) => {
                     console.error(err);
                     return toast({ variant: "destructive", description: "Unknown error occurred" });
                 });
-            if (questionId)
-                await Promise.all(
-                    answerChoices.map(async (option) => {
-                        try {
-                            return await addOption(
-                                questionId,
-                                option,
-                                correctAnswers.includes(option),
-                            );
-                        } catch (err) {
-                            console.error(err);
-                            return toast({
-                                variant: "destructive",
-                                description: "Unknown error occurred",
-                            });
-                        }
-                    }),
-                );
         }
         getCourseSessionInfo()
             .then(() =>
@@ -292,7 +266,9 @@ export default function Page() {
                                                                 onChange={(
                                                                     e: React.ChangeEvent<HTMLTextAreaElement>,
                                                                 ) => {
-                                                                    let newValue = [...field.value];
+                                                                    const newValue = [
+                                                                        ...field.value,
+                                                                    ];
                                                                     newValue[index] =
                                                                         e.target.value;
                                                                     field.onChange(newValue);
@@ -333,7 +309,9 @@ export default function Page() {
                                                                 onChange={(
                                                                     e: React.ChangeEvent<HTMLTextAreaElement>,
                                                                 ) => {
-                                                                    let newValue = [...field.value];
+                                                                    const newValue = [
+                                                                        ...field.value,
+                                                                    ];
                                                                     newValue[index] =
                                                                         e.target.value;
                                                                     field.onChange(newValue);

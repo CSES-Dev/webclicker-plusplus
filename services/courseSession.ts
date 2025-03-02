@@ -2,26 +2,15 @@
 import { CourseSession } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-type FindCourseSessionResult = CourseSession | { error: string } | null;
+type GetOrCreateCourseSessionResult = CourseSession | { error: string };
 
-export async function findCourseSession(
-    courseId: number,
-    start: Date,
-): Promise<FindCourseSessionResult> {
+export async function getOrCreateCourseSession(courseId: number, start: Date) : Promise<GetOrCreateCourseSessionResult>{
     try {
-        return await prisma.courseSession.findFirst({
+        const courseSession =  await prisma.courseSession.findFirst({
             where: { courseId, startTime: start },
         });
-    } catch (err) {
-        console.error(err);
-        return { error: "Error finding course session." };
-    }
-}
+        if(courseSession) return courseSession;
 
-export async function createCourseSession(courseId: number, start: Date) {
-    try {
-        if (await findCourseSession(courseId, start))
-            return { error: "Course session already exists." };
         return await prisma.courseSession.create({
             data: {
                 courseId,
@@ -30,6 +19,6 @@ export async function createCourseSession(courseId: number, start: Date) {
         });
     } catch (err) {
         console.error(err);
-        return { error: "Error creating course session." };
+        return { error: "Error finding or creating course session." };
     }
 }

@@ -3,10 +3,12 @@ import { QuestionType } from "@prisma/client";
 import { questionTypes } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 
-export async function addQuestion(
+export async function addQuestionWithOptions(
     sessionId: number,
     text: string,
     type: (typeof questionTypes)[number],
+    answerChoices: string[],
+    correctAnswers: string[]
 ) {
     const prismaQuestionTypes = {
         "Multiple Choice": QuestionType.MCQ,
@@ -19,25 +21,16 @@ export async function addQuestion(
                 sessionId,
                 text,
                 type: prismaQuestionTypes[type],
+                options: {
+                    create: answerChoices.map((option) => {return {
+                        text: option,
+                        isCorrect: correctAnswers.includes(option)
+                    }})
+                }
             },
         });
     } catch (err) {
         console.error(err);
-        return { error: "Error creating course session." };
-    }
-}
-
-export async function addOption(questionId: number, text: string, isCorrect: boolean) {
-    try {
-        return await prisma.option.create({
-            data: {
-                questionId,
-                text,
-                isCorrect,
-            },
-        });
-    } catch (err) {
-        console.error(err);
-        return { error: "Error creating course session." };
+        return { error: "Error creating question." };
     }
 }
