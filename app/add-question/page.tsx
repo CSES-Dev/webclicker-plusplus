@@ -60,6 +60,7 @@ export default function Page() {
         resolver: zodResolver(schema),
         defaultValues: {
             question: "",
+            selectedQuestionType: "Multiple Choice",
             correctAnswers: [{ answer: " " }],
             answerChoices: [{ choice: " " }],
         },
@@ -160,7 +161,7 @@ export default function Page() {
             >
                 Add Question
             </SheetTrigger>
-            <SheetContent className="h-full top-0 right-0 left-auto w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
+            <SheetContent className="h-full top-0 right-0 left-auto sm:w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <SheetClose
                     onClick={() => {
                         form.reset();
@@ -172,23 +173,25 @@ export default function Page() {
                     <span className="sr-only">Close</span>
                 </SheetClose>
                 <ScrollArea className="h-full flex flex-col">
-                    <SheetHeader className="pt-10 px-3 md:px-16">
-                        <SheetTitle className="text-3xl mb-5 font-normal">
+                    <SheetHeader className="pt-10 px-3 sm:px-8 md:px-16 mx-auto">
+                        <SheetTitle className="w-full text-3xl mb-5 font-normal">
                             Add a Question:
                         </SheetTitle>
                         <FormProvider {...form}>
-                            <div className="flex flex-row flex-wrap justify-between gap-6">
-                                <div className="flex flex-col gap-6">
+                            <div className="flex flex-col lg:flex-row sm:gap-8 sm:justify-between">
+                                <div className="flex flex-col gap-6 w-full lg:w-1/2">
                                     <FormField
                                         control={form.control}
                                         name={"question"}
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col gap-1">
-                                                <FormLabel>Name of Question:</FormLabel>
+                                                <FormLabel className="text-left">
+                                                    Name of Question:
+                                                </FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
-                                                        className="h-11 w-64 md:w-80 px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none"
+                                                        className="h-11 w-full px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none"
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -200,9 +203,11 @@ export default function Page() {
                                         control={form.control}
                                         name={"selectedQuestionType"}
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Question Type:</FormLabel>
-                                                <div className="flex flex-row gap-3">
+                                            <FormItem className="flex flex-col justify-center items-start">
+                                                <FormLabel className="text-left">
+                                                    Question Type:
+                                                </FormLabel>
+                                                <div className="flex flex-row flex-wrap gap-2">
                                                     {questionTypes.map((questionType) => (
                                                         <button
                                                             key={questionType}
@@ -219,7 +224,7 @@ export default function Page() {
                                                                     );
                                                                 else return;
                                                             }}
-                                                            className={`h-11 w-32 md:w-40 border border-slate-300 rounded-lg ${field.value === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[hsl(var(--secondary))] text-black"}`}
+                                                            className={`h-11 w-36 border border-slate-300 rounded-lg ${field.value === questionType ? "bg-[hsl(var(--primary))] text-white" : "bg-[hsl(var(--secondary))] text-black"}`}
                                                         >
                                                             {questionType}
                                                         </button>
@@ -230,13 +235,13 @@ export default function Page() {
                                         )}
                                     />
                                 </div>
-                                <div className="flex flex-col gap-6">
+                                <div className="flex flex-col gap-6 w-full lg:w-1/2 mt-5 md:mt-0">
                                     <FormField
                                         control={form.control}
                                         name={"date"}
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Date:</FormLabel>
+                                            <FormItem className="flex flex-col gap-1 justify-center items-start">
+                                                <FormLabel className="text-left">Date:</FormLabel>
                                                 <DatePicker
                                                     currentDate={field.value}
                                                     onSelect={(date: Date) => {
@@ -252,14 +257,14 @@ export default function Page() {
                                         control={form.control}
                                         name={"correctAnswers"}
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>
+                                            <FormItem className="flex flex-col justify-center items-start">
+                                                <FormLabel className="text-left">
                                                     {form.getValues("selectedQuestionType") ===
                                                     "Select All"
                                                         ? "Correct Answers:"
                                                         : "Correct Answer:"}
                                                 </FormLabel>
-                                                <div className="flex flex-col gap-2 items-start">
+                                                <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsCorrectAnswers.map(
                                                         (correctAnswer, index) => (
                                                             <ListInput
@@ -267,7 +272,7 @@ export default function Page() {
                                                                 id={correctAnswer.id}
                                                                 index={index}
                                                                 value={
-                                                                    field.value[index].answer || ""
+                                                                    field.value[index]?.answer || ""
                                                                 }
                                                                 removeItem={removeCorrectAnswer}
                                                                 onChange={(
@@ -304,9 +309,11 @@ export default function Page() {
                                         control={form.control}
                                         name={"answerChoices"}
                                         render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Answer Choices:</FormLabel>
-                                                <div className="flex flex-col gap-2 items-start">
+                                            <FormItem className="flex flex-col justify-center items-start">
+                                                <FormLabel className="text-left">
+                                                    Answer Choices:
+                                                </FormLabel>
+                                                <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsAnswerChoices.map(
                                                         (answerChoice, index) => (
                                                             <ListInput
@@ -314,7 +321,7 @@ export default function Page() {
                                                                 id={answerChoice.id}
                                                                 index={index}
                                                                 value={
-                                                                    field.value[index].choice || ""
+                                                                    field.value[index]?.choice || ""
                                                                 }
                                                                 removeItem={removeAnswerChoice}
                                                                 onChange={(
@@ -345,7 +352,7 @@ export default function Page() {
                             </div>
                         </FormProvider>
                     </SheetHeader>
-                    <SheetFooter className="flex justify-items-end px-16">
+                    <SheetFooter className="flex justify-items-end px-16 py-4">
                         <SheetClose
                             onClick={() => {
                                 void form.handleSubmit(submit, (err) => {

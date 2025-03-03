@@ -11,10 +11,10 @@ interface ListInputProps {
 
 export function ListInput({ id, index, value, removeItem, onChange }: ListInputProps) {
     return (
-        <div key={index} className="flex flex-row justify-center items-center gap-2">
+        <div key={index} className="w-full flex flex-row justify-center items-center gap-2">
             <textarea
                 value={value}
-                className={`h-11 w-64 md:w-80 px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 resize-none ${index === 0 ? "mr-4" : "mr-0"}`}
+                className={`h-11 w-full px-5 bg-[hsl(var(--secondary))] text-black border border-slate-300 rounded-lg focus:outline-none pt-3 `}
                 onChange={onChange}
             />
             {index > 0 && (
