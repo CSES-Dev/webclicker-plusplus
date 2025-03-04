@@ -83,7 +83,8 @@ export default function Page() {
     });
 
     const { toast } = useToast();
-    const [isOpen, setIsOpen] = useState<boolean>();
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const currentQuestionType = form.watch("selectedQuestionType");
     useEffect(() => {
@@ -92,6 +93,8 @@ export default function Page() {
     }, [currentQuestionType]);
 
     const submit = (values: z.infer<typeof schema>) => {
+        if (Object.keys(form.formState.isValid)?.length) return;
+
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
         const courseId = 19; //get courseId based on course page
         let courseSessionId: number;
@@ -133,9 +136,12 @@ export default function Page() {
                     return toast({ variant: "destructive", description: "Unknown error occurred" });
                 });
         }
+        setLoading(false);
         getCourseSessionInfo()
             .then(() =>
                 createQuestion().then(() => {
+                    setIsOpen(false);
+                    setLoading(false)
                     form.reset();
                     return toast({
                         description: "Question added successfully",
@@ -143,6 +149,7 @@ export default function Page() {
                 }),
             )
             .catch((err: unknown) => {
+                setLoading(false);
                 console.error(err);
                 return toast({
                     variant: "destructive",
@@ -288,7 +295,6 @@ export default function Page() {
                                                             />
                                                         ),
                                                     )}
-                                                    <FormMessage />
                                                     {form.getValues("selectedQuestionType") ===
                                                         "Select All" && (
                                                         <AddInput
@@ -337,7 +343,6 @@ export default function Page() {
                                                             />
                                                         ),
                                                     )}
-                                                    <FormMessage />
                                                     <AddInput
                                                         onAdd={() => {
                                                             appendAnswerChoice({ choice: " " });
@@ -358,9 +363,8 @@ export default function Page() {
                                 void form.handleSubmit(submit, (err) => {
                                     console.error(err);
                                 })();
-                                setIsOpen(false);
                             }}
-                            disabled={!form.formState.isValid}
+                            disabled={loading}
                             className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
                         >
                             Save Question
