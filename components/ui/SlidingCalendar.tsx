@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { PictureInPicture2 } from "lucide-react";
+import { PictureInPicture2, Pencil } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import {
     Dialog,
@@ -16,36 +16,19 @@ import { useToast } from "@/hooks/use-toast";
 import { findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
 
-interface QuestionMock {
-    id: number;
-    type: string;
-    text: string;
-}
-
-const mockData: Record<string, QuestionMock[]> = {
-    [dayjs().format("YYYY-MM-DD")]: [
-        { id: 1, type: "Multiple Choice", text: "What is cognitive load?" },
-        {
-            id: 2,
-            type: "Short Answer",
-            text: "Explain the concept of attention spanaaaaa. Explain the concept of attention span. Explain the concept of attention span.Explain the concept of attention span.Explain the concept of attention span.Explain the concept of attention span.",
-        },
-        { id: 3, type: "Short Answer", text: "Explain the concept of attention span." },
-        // { id: 4, type: "Short Answer", text: "Explain the concept of attention span." },
-        // { id: 5, type: "Short Answer", text: "Explain the concept of attention span." },
-        // { id: 6, type: "Short Answer", text: "Explain the concept of attention span." },
-        // { id: 7, type: "Short Answer", text: "Explain the concept of attention span." },
-    ],
-};
-
 interface Props {
     courseId: number;
 }
 
 function SlidingCalendar({ courseId }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
-    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-    const [questions, setQuestions] = useState<Question[] | null>();
+    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+    const [questions, setQuestions] = useState<
+        (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[] | null
+    >(null);
+    const [selectedQuestion, setSelectedQuestion] = useState<
+        (Question & { options: { id: number; text: string; isCorrect: boolean }[] }) | null
+    >(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -57,13 +40,18 @@ function SlidingCalendar({ courseId }: Props) {
                         return toast({ variant: "destructive", description: res?.error ?? "" });
                     else {
                         setQuestions(res);
-                        console.log(res);
                     }
                 });
             }
         };
         fetchQuestions();
     }, [selectedDate]);
+
+    useEffect(() => {
+        const currentDate = dayjs();
+        setSelectedDate(currentDate);
+        handleDayClick(currentDate);
+    }, []);
 
     const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
@@ -74,8 +62,11 @@ function SlidingCalendar({ courseId }: Props) {
         setSelectedDate(date);
     };
 
-    const formattedSelectedDate = selectedDate?.format("YYYY-MM-DD");
-    const questionsForDay = formattedSelectedDate ? mockData[formattedSelectedDate] || [] : [];
+    const handleQuestionClick = (
+        question: Question & { options: { id: number; text: string; isCorrect: boolean }[] },
+    ) => {
+        setSelectedQuestion(question);
+    };
 
     return (
         <div className="flex flex-col items-center space-y-4 w-full">
@@ -113,9 +104,9 @@ function SlidingCalendar({ courseId }: Props) {
                         const formattedMonthDay = date.format("DD");
 
                         return (
-                            <div
+                            <button
                                 key={index}
-                                className={`w-[50px] h-[50px] sm:w-[68px] sm:h-[68px] rounded-full text-center cursor-pointer flex flex-col items-center justify-center transition-all ${
+                                className={`w-[50px] sm:w-[68px] aspect-square rounded-md sm:rounded-full text-center flex flex-col items-center justify-center transition-all ${
                                     selectedDate?.isSame(date, "day")
                                         ? "bg-[#18328D] text-white"
                                         : "bg-white text-black"
@@ -123,7 +114,7 @@ function SlidingCalendar({ courseId }: Props) {
                                 onClick={() => handleDayClick(date)}
                             >
                                 <span
-                                    className={`text-sm sm:text-lg font-normal ${
+                                    className={`text-xs sm:text-lg font-normal ${
                                         selectedDate?.isSame(date, "day")
                                             ? "text-white"
                                             : "text-black"
@@ -132,7 +123,7 @@ function SlidingCalendar({ courseId }: Props) {
                                     {formattedDay}
                                 </span>
                                 <span
-                                    className={`text-lg sm:text-2xl font-normal ${
+                                    className={`text-sm sm:text-2xl font-normal ${
                                         selectedDate?.isSame(date, "day")
                                             ? "text-white"
                                             : "text-black"
@@ -140,7 +131,7 @@ function SlidingCalendar({ courseId }: Props) {
                                 >
                                     {formattedMonthDay}
                                 </span>
-                            </div>
+                            </button>
                         );
                     })}
                 </div>
@@ -150,6 +141,7 @@ function SlidingCalendar({ courseId }: Props) {
                             <div
                                 key={question.id}
                                 className="relative w-[95%] h-[200px] p-4 m-4 bg-white border border-[#D9D9D9] rounded-xl shadow-lg shadow-slate-400 cursor-pointer flex justify-between items-start"
+                                onClick={() => handleQuestionClick(question)}
                             >
                                 <div className="w-full">
                                     <h2 className="text-[15px] font-normal text-[#18328D]">
@@ -161,37 +153,51 @@ function SlidingCalendar({ courseId }: Props) {
                                 </div>
                                 <Dialog>
                                     <DialogTrigger>
-                                        <PictureInPicture2 className="text-[#18328D] w-6 h-6 absolute top-2 right-2" />
+                                        <PictureInPicture2/>
                                     </DialogTrigger>
-                                    <DialogContent className="w-[75vh] max-w-[75v] h-[75vh] max-h-[75vh]">
+                                    <DialogContent className="max-w-[90vw] h-[90vh]">
                                         <DialogHeader>
-                                            <DialogTitle className="flex flex-col">
-                                                <h1 className="text-xl text-[#18328D] font-base">
-                                                    Multiple Choice
-                                                </h1>
-                                                <p className="text-4xl text-[#434343] font-base">
-                                                    What is a string?
+                                            <DialogTitle className="flex flex-col gap-6">
+                                                <p className="text-xl text-[#18328D] font-normal">
+                                                    {selectedQuestion
+                                                        ? questionTypeMap[selectedQuestion.type]
+                                                        : "Unknown Question Type"}
+                                                </p>{" "}
+                                                <p className="text-4xl text-[#434343] font-normal">
+                                                    {selectedQuestion?.text}
                                                 </p>
+                                                <hr className="border-t border-[#D9D9D9] w-full"></hr>
                                             </DialogTitle>
-                                            {/* <hr className="border-t border-[#D9D9D9]"> */}
-                                            <DialogDescription className="flex flex-col items-center space-y-4">
-                                                <h1 className="text-center text-xl font-semibold">
-                                                    Answer Choices:
-                                                </h1>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
-                                                        Option 1
+                                            <DialogDescription className="flex flex-col items-center h-full">
+                                                <section className="flex flex-col items-center space-y-12 flex-grow">
+                                                    <h1 className="text-center text-2xl text-black font-normal mt-10">
+                                                        Answer Choices:
+                                                    </h1>
+                                                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-x-32 sm:gap-y-20">
+                                                        {selectedQuestion?.options?.map(
+                                                            (option) => (
+                                                                <button
+                                                                    key={option.id}
+                                                                    className={`w-[184px] text-black text-xl font-normal p-4 rounded-[20px] border border-[#D9D9D9] ${
+                                                                        option.isCorrect
+                                                                            ? "bg-[#479B78]"
+                                                                            : "bg-white"
+                                                                    }`}
+                                                                >
+                                                                    {option.text}
+                                                                </button>
+                                                            ),
+                                                        )}
+                                                    </section>
+                                                </section>
+                                                <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
+                                                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
+                                                        Edit Question <Pencil/>
                                                     </button>
-                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
-                                                        Option 2
+                                                    <button className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
+                                                        Done
                                                     </button>
-                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
-                                                        Option 3
-                                                    </button>
-                                                    <button className="bg-[#18328D] text-white p-4 rounded-lg">
-                                                        Option 4
-                                                    </button>
-                                                </div>
+                                                </section>
                                             </DialogDescription>
                                         </DialogHeader>
                                     </DialogContent>
