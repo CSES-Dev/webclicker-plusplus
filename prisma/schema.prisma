@@ -12,35 +12,34 @@ datasource db {
 }
 
 model User {
-  id        String       @id @default(cuid())
-  email     String?       @unique
-  firstName String
-  lastName  String?
-  emailVerified DateTime?
-  finishedOnboarding Boolean @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime     @updatedAt
-  courses   UserCourse[]
-  responses Response[]
-  accounts Account[]
-  sessions Session[]
-
+  id                 String       @id @default(cuid())
+  email              String?      @unique
+  firstName          String
+  lastName           String?
+  emailVerified      DateTime?
+  finishedOnboarding Boolean      @default(false)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  courses            UserCourse[]
+  responses          Response[]
+  accounts           Account[]
+  sessions           Session[]
 }
 
 model Account {
-  id                 String   @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-  user               User     @relation(fields: [userId], references: [id])
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id])
 
   @@unique([provider, providerAccountId])
 }
@@ -77,12 +76,12 @@ model UserCourse {
 }
 
 model Schedule {
-  id         Int       @id @default(autoincrement())
-  course     Course    @relation(fields: [courseId], references: [id])
-  courseId   Int
-  dayOfWeek  String[]
-  startTime  String
-  endTime    String
+  id        Int      @id @default(autoincrement())
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  Int
+  dayOfWeek String[]
+  startTime String
+  endTime   String
 }
 
 model CourseSession {
@@ -102,6 +101,7 @@ model Question {
   type      QuestionType  @default(MCQ)
   options   Option[]
   responses Response[]
+  position  Int
 }
 
 model Option {
