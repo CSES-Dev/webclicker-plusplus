@@ -25,7 +25,7 @@ import { getOrCreateCourseSession } from "@/services/courseSession";
 import { addQuestionWithOptions } from "@/services/question";
 
 const schema = z.object({
-    question: z.string().min(1),
+    question: z.string().min(1, { message: "Question must have at least one character" }),
     selectedQuestionType: z.enum(questionTypes),
     date: z.date(),
     correctAnswers: z
@@ -33,25 +33,25 @@ const schema = z.object({
             z.object({
                 answer: z
                     .string()
-                    .min(1)
+                    .min(1, { message: "Correct answers must have at least one character" })
                     .refine((val) => val.trim() !== "", {
                         message: "Answer must not only have spaces",
                     }),
             }),
         )
-        .min(1, "Input at least one correct answer"),
+        .min(1, "Add at least one correct answer"),
     answerChoices: z
         .array(
             z.object({
                 choice: z
                     .string()
-                    .min(1)
+                    .min(1, { message: "Answer choices must have at least one character" })
                     .refine((val) => val.trim() !== "", {
                         message: "Option must not only have spaces",
                     }),
             }),
         )
-        .min(1, "Input at least one answer choice"),
+        .min(1, "Add at least one answer choice"),
 });
 
 export default function Page() {
@@ -331,7 +331,7 @@ export default function Page() {
                                                                         ...field.value,
                                                                     ];
                                                                     newValue[index].choice =
-                                                                        e.target.value;
+                                                                        e.target.value || "";
                                                                     field.onChange(newValue);
                                                                 }}
                                                             />
