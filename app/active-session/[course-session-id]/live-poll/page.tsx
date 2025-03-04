@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import Header from "@/components/ui/header";
-import { Progress } from "@/components/ui/progress";
 import QuestionCard from "@/components/ui/questionCard";
 
 type QuestionWithOptions = PrismaQuestion & {
@@ -24,7 +23,7 @@ export default function LivePoll() {
 
     // State for the current question index
     // const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const currentQuestionIndex = 1;
+    const currentQuestionIndex = 0;
 
     // Unified state for selected values (either single number or array of numbers)
     const [selectedValues, setSelectedValues] = useState<number | number[] | null>(null);
@@ -90,28 +89,33 @@ export default function LivePoll() {
     // Handle answer selection (works for both MCQ and MSQ)
     const handleSelectionChange = async (value: number | number[]) => {
         setSelectedValues(value);
-        const optionIds = Array.isArray(value) ? value : [value];
-        if (optionIds.length > 0) {
-            try {
-                setSubmitting(true);
-                const response = await fetch("/api/submitStudentResponse", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        questionId: currentQuestion.id,
-                        optionIds,
-                    }),
-                });
-                if (!response.ok) {
-                    console.error("Failed to save answer");
-                }
-            } catch (error) {
-                console.error("Error saving answer:", error);
-            } finally {
-                setSubmitting(false);
+        
+    };
+    const handleSubmit = async () => {
+        if (!selectedValues || (Array.isArray(selectedValues) && selectedValues.length ===0 )){
+            return;
+        }
+        const optionIds = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
+        
+        try {
+            setSubmitting(true);
+            const response = await fetch("/api/submitStudentResponse", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    questionId: currentQuestion.id,
+                    optionIds,
+                }),
+            });
+            if (!response.ok) {
+                console.error("Failed to save answer");
             }
+        } catch (error) {
+            console.error("Error saving answer:", error);
+        } finally {
+            setSubmitting(false);
         }
     };
     return (
@@ -160,6 +164,14 @@ export default function LivePoll() {
                     selectedValues={selectedValues}
                     onSelectionChange={handleSelectionChange}
                 />
+                {/* Submit Button */}
+                <button
+                    onClick={handleSubmit}
+                    disabled={!selectedValues || (Array.isArray(selectedValues) && selectedValues.length === 0) || submitting}
+                    className="mt-6 px-6 py-2 bg-custom-background text-white rounded-md hover:bg-opacity-90 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                >
+                    {submitting ? "Submitting..." : "Submit Answer"}
+                </button>                
 
                 {/* Submission Status */}
                 {submitting && (
