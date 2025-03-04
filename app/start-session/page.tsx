@@ -30,8 +30,8 @@ const chartConfig = {
 
 export default function StartSession() {
     const [date] = useState("June 16th 2024");
-    const [questionType, setQuestionType] = useState("");
-    const [question, setQuestion] = useState("");
+    const [questionType, setQuestionType] = useState("Multiple Choice");
+    const [question, setQuestion] = useState("Who is your favorite pokemon?");
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const totalQuestions = 3;
 
