@@ -25,7 +25,7 @@ export async function getQuestionsForSession(sessionId: number) {
         include: {
             questions: {
                 include: { options: true, responses: true },
-                orderBy: { id: "asc" },
+                orderBy: { position: "asc" },
             },
         },
     });
@@ -34,27 +34,39 @@ export async function getQuestionsForSession(sessionId: number) {
 }
 
 export async function createWildcardQuestion(
-    sessionId: number,
-    position: number,
-    questionType: QuestionType,
+  sessionId: number,
+  position: number,
+  questionType: QuestionType
 ) {
-    return prisma.question.create({
-        data: {
-            sessionId,
-            position,
-            text: "Refer to the board",
-            type: questionType,
-            options: {
-                create: [
-                    { text: "A", isCorrect: true },
-                    { text: "B", isCorrect: true },
-                    { text: "C", isCorrect: true },
-                    { text: "D", isCorrect: true },
-                ],
-            },
-        },
-        include: {
-            options: true,
-        },
+  return await prisma.$transaction(async (tx) => {
+    await tx.question.updateMany({
+      where: {
+        sessionId,
+        position: { gte: position },
+      },
+      data: {
+        position: { increment: 1 },
+      },
     });
+
+    const newQuestion = await tx.question.create({
+      data: {
+        session: { connect: { id: sessionId } },
+        text: "Refer to the board",
+        type: questionType,
+        position: position,
+        options: {
+          create: [
+            { text: "A", isCorrect: true },
+            { text: "B", isCorrect: true },
+            { text: "C", isCorrect: true },
+            { text: "D", isCorrect: true },
+          ],
+        },
+      },
+      include: { options: true },
+    });
+
+    return newQuestion;
+  });
 }

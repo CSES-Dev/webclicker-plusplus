@@ -35,16 +35,12 @@ export default function StartSession() {
     const [date] = useState(new Date()); // TODO wondering what time zone this is using
 
     // active question we are currently at. Gathered from db in case of refresh
-    //const [activeQuestionId, setActiveQuestionId] = useState(null); // TODO need to update this here and in db whenever next question and wild card is added
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
 
     //questions array containing questions for session gathered from db
     const [questions, setQuestions] = useState<Question[]>([]);
 
-    // const [questions, setQuestions] = useState([]);  // TODO need to update here and in db  whenever wilcard is added
-
     // total size of questioons array
-    // const [totalQuestions, setTotalQuestions] = useState(null); // TODO need to update here  whenever wilcard is added
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
 
     // CourseSessionId
@@ -53,52 +49,42 @@ export default function StartSession() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
     // Example session id for demonstration purposes. should be linked up later
-    const courseId = 45;
-
-    // Fetch some info
+    const courseId = 19;
+    
     useEffect(() => {
         async function fetchCourseSession() {
-            // Fetch CourseSession based on courseId and date
             const courseSession = await getCourseSessionByDate(courseId, date);
             console.log(courseSession);
 
             if (courseSession) {
                 console.log("date =", date.toISOString().split("T")[0]);
-
-                // Set CourseSessionId variable
                 setCourseSessionId(courseSession.id);
-                console.log("courseSessionID (before state update) =", courseSession.id);
-
-                // Set activeQuestionId variable
-                setActiveQuestionId(courseSession.activeQuestionId);
-                console.log(
-                    "activeQuestionId (before state update) =",
-                    courseSession.activeQuestionId,
-                );
-
-                // Fill questions array variable
+                console.log("courseSessionID =", courseSession.id);
+                
                 const sessionQuestions = await getQuestionsForSession(courseSession.id);
                 setQuestions(sessionQuestions);
-                console.log("questions (before state update) =", sessionQuestions);
-
-                // Set totalQuestions variable
+                console.log("questions =", sessionQuestions);
+                
                 setTotalQuestions(sessionQuestions.length);
-                console.log("totalQuestions (before state update) =", sessionQuestions.length);
+                console.log("totalQuestions =", sessionQuestions.length);
+                
+                if (courseSession.activeQuestionId) {
+                    setActiveQuestionId(courseSession.activeQuestionId);
+                } else if (sessionQuestions.length > 0) {
+                setActiveQuestionId(sessionQuestions[0].id);
+                }
             }
         }
         fetchCourseSession();
     }, [courseId, date]); // TODO whenever these change it reruns the effect but not sure if necessary yet
 
     const handleNextQuestion = () => {
-        // Find the current question based on activeQuestionId
-
-        const currentQuestionIndex = questions.findIndex((q) => q.id === activeQuestionId);
-        // currentQuestionIndex = questions.findIndex(q => q.id === activeQuestionId);
+        const index = questions.findIndex((q) => q.id === activeQuestionId);
 
         // Check if the current question index is valid and less than totalQuestions - 1
-        if (currentQuestionIndex !== -1 && currentQuestionIndex < totalQuestions - 1) {
+        if (index !== -1 && index < totalQuestions - 1) {
             // Get the next question's Id
-            const nextQuestionID = questions[currentQuestionIndex + 1].id;
+            const nextQuestionID = questions[index + 1].id;
             // Set the activeQuestionId to the next question's ID
             setActiveQuestionId(nextQuestionID);
             console.log("activeQuestionId (after state update) =", nextQuestionID);
@@ -110,12 +96,13 @@ export default function StartSession() {
         const courseSession = await getCourseSessionByDate(courseId, date);
         if (!courseSession) {
             console.error("No course session found for this course and date");
-            return; // or handle the error as needed
+            return; 
         }
         setCourseSessionId(courseSession.id);
+        const index = questions.findIndex(q => q.id === activeQuestionId);
+        const position = index !== -1 ? index + 1 : questions.length + 1;
 
         try {
-            const position = currentQuestionIndex + 1;
             const res = await fetch(`/api/session/${courseSession.id}/wildcard`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
