@@ -14,7 +14,7 @@ type QuestionWithOptions = PrismaQuestion & {
 export default function LivePoll() {
     // Extract the course-session-id from the URL
     const params = useParams();
-    const courseSessionId = params["course-session-id"];
+    const courseSessionId = params["course-session-id"] as string;
 
     const [questions, setQuestions] = useState<QuestionWithOptions[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,12 +33,12 @@ export default function LivePoll() {
             try {
                 setLoading(true);
                 const response = await fetch(
-                    `/api/fetchCourseSessionQuestions?sessionId=${courseSessionId}`,
+                    `/api/fetchCourseSessionQuestions?sessionId=${courseSessionId ?? ""}`,
                 );
                 if (!response.ok) {
                     throw new Error("Failed to fetch questions");
                 }
-                const data = await response.json();
+                const data = (await response.json()) as QuestionWithOptions[];
                 setQuestions(data);
 
                 // look at later
@@ -53,7 +53,7 @@ export default function LivePoll() {
             }
         };
         if (courseSessionId) {
-            fetchQuestions();
+            void fetchQuestions();
         }
     }, [courseSessionId]);
 
@@ -69,12 +69,12 @@ export default function LivePoll() {
         );
     }
 
-    if (error || questions.length === 0) {
+    if (error ?? questions.length === 0) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
                 <div className="text-center p-6">
                     <p className="text-red-500 mb-4">
-                        {error || "No questions found for this session"}
+                        {error ?? "No questions found for this session"}
                     </p>
                     <BackButton href="/dashboard" />
                 </div>
@@ -84,19 +84,18 @@ export default function LivePoll() {
 
     // // Get the current question
     const currentQuestion = questions[currentQuestionIndex];
-    const questionCount = `${currentQuestionIndex + 1}/${questions.length}`;
+    const questionCount = `${String(currentQuestionIndex + 1)}/${String(questions.length)}`;
     const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
     // Handle answer selection (works for both MCQ and MSQ)
-    const handleSelectionChange = async (value: number | number[]) => {
+    const handleSelectionChange = (value: number | number[]) => {
         setSelectedValues(value);
-        
     };
     const handleSubmit = async () => {
-        if (!selectedValues || (Array.isArray(selectedValues) && selectedValues.length ===0 )){
+        if (!selectedValues || (Array.isArray(selectedValues) && selectedValues.length === 0)) {
             return;
         }
         const optionIds = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
-        
+
         try {
             setSubmitting(true);
             const response = await fetch("/api/submitStudentResponse", {
@@ -112,8 +111,8 @@ export default function LivePoll() {
             if (!response.ok) {
                 console.error("Failed to save answer");
             }
-        } catch (error) {
-            console.error("Error saving answer:", error);
+        } catch (submitError) {
+            console.error("Error saving answer:", submitError);
         } finally {
             setSubmitting(false);
         }
@@ -140,7 +139,7 @@ export default function LivePoll() {
                     <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
                         <div
                             className="h-full  bg-custom-background rounded-full"
-                            style={{ width: `${progressPercent}%` }}
+                            style={{ width: `${String(progressPercent)}%` }}
                         ></div>
                     </div>
 
@@ -166,12 +165,18 @@ export default function LivePoll() {
                 />
                 {/* Submit Button */}
                 <button
-                    onClick={handleSubmit}
-                    disabled={!selectedValues || (Array.isArray(selectedValues) && selectedValues.length === 0) || submitting}
+                    onClick={() => {
+                        void handleSubmit();
+                    }}
+                    disabled={
+                        !selectedValues ||
+                        (Array.isArray(selectedValues) && selectedValues.length === 0) ||
+                        submitting
+                    }
                     className="mt-6 px-6 py-2 bg-custom-background text-white rounded-md hover:bg-opacity-90 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                     {submitting ? "Submitting..." : "Submit Answer"}
-                </button>                
+                </button>
 
                 {/* Submission Status */}
                 {submitting && (

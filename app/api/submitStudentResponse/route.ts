@@ -3,13 +3,18 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+interface RequestBody {
+    questionId: number;
+    optionIds: number[];
+}
+
 export async function POST(request: Request) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
-        const body = await request.json();
+        const body = (await request.json()) as RequestBody;
         const { questionId, optionIds } = body;
 
         if (!questionId || !optionIds?.length) {
@@ -19,23 +24,23 @@ export async function POST(request: Request) {
             );
         }
         const userId = session.user.id;
-        const responses = [];
+        // const responses = [];
         await prisma.response.deleteMany({
             where: {
                 userId,
                 questionId,
             },
         });
-        for (const optionId of optionIds) {
-            const response = await prisma.response.create({
-                data: {
-                    userId,
-                    questionId,
-                    optionId,
-                },
-            });
-            responses.push(response);
-        }
+
+        // Create all responses in a single operation instead of in a loop
+        const responses = await prisma.response.createMany({
+            data: optionIds.map((optionId) => ({
+                userId,
+                questionId,
+                optionId,
+            })),
+            skipDuplicates: true,
+        });
 
         return NextResponse.json(
             {
