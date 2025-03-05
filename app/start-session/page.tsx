@@ -1,5 +1,6 @@
 "use client";
 import { QuestionType } from "@prisma/client";
+import type { Question } from "@prisma/client";
 import React, { useEffect, useState } from "react";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
@@ -31,19 +32,23 @@ const chartConfig: ChartConfig = {
 };
 
 export default function StartSession() {
-    const [date] = useState(new Date()); // TODO wondering what time zone this is using    
+    const [date] = useState(new Date()); // TODO wondering what time zone this is using
 
     // active question we are currently at. Gathered from db in case of refresh
-    const [activeQuestionId, setActiveQuestionId] = useState(null); // TODO need to update this here and in db whenever next question and wild card is added 
+    //const [activeQuestionId, setActiveQuestionId] = useState(null); // TODO need to update this here and in db whenever next question and wild card is added
+    const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
 
     //questions array containing questions for session gathered from db
-    const [questions, setQuestions] = useState([]);  // TODO need to update here and in db  whenever wilcard is added
+    const [questions, setQuestions] = useState<Question[]>([]);
 
-    // total size of questioons array 
-    const [totalQuestions, setTotalQuestions] = useState(null); // TODO need to update here  whenever wilcard is added
+    // const [questions, setQuestions] = useState([]);  // TODO need to update here and in db  whenever wilcard is added
+
+    // total size of questioons array
+    // const [totalQuestions, setTotalQuestions] = useState(null); // TODO need to update here  whenever wilcard is added
+    const [totalQuestions, setTotalQuestions] = useState<number>(0);
 
     // CourseSessionId
-    const [courseSessionId, setCourseSessionId] = useState(null);
+    const [_, setCourseSessionId] = useState<number | null>(null);
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
@@ -55,22 +60,27 @@ export default function StartSession() {
         async function fetchCourseSession() {
             // Fetch CourseSession based on courseId and date
             const courseSession = await getCourseSessionByDate(courseId, date);
+            console.log(courseSession);
+
             if (courseSession) {
-                console.log("date =", date.toISOString().split('T')[0]);
-    
+                console.log("date =", date.toISOString().split("T")[0]);
+
                 // Set CourseSessionId variable
                 setCourseSessionId(courseSession.id);
                 console.log("courseSessionID (before state update) =", courseSession.id);
-    
+
                 // Set activeQuestionId variable
                 setActiveQuestionId(courseSession.activeQuestionId);
-                console.log("activeQuestionId (before state update) =", courseSession.activeQuestionId);
-    
+                console.log(
+                    "activeQuestionId (before state update) =",
+                    courseSession.activeQuestionId,
+                );
+
                 // Fill questions array variable
                 const sessionQuestions = await getQuestionsForSession(courseSession.id);
                 setQuestions(sessionQuestions);
                 console.log("questions (before state update) =", sessionQuestions);
-    
+
                 // Set totalQuestions variable
                 setTotalQuestions(sessionQuestions.length);
                 console.log("totalQuestions (before state update) =", sessionQuestions.length);
@@ -79,13 +89,12 @@ export default function StartSession() {
         fetchCourseSession();
     }, [courseId, date]); // TODO whenever these change it reruns the effect but not sure if necessary yet
 
-
     const handleNextQuestion = () => {
         // Find the current question based on activeQuestionId
 
-        const currentQuestionIndex = questions.findIndex(q => q.id === activeQuestionId);
+        const currentQuestionIndex = questions.findIndex((q) => q.id === activeQuestionId);
         // currentQuestionIndex = questions.findIndex(q => q.id === activeQuestionId);
-    
+
         // Check if the current question index is valid and less than totalQuestions - 1
         if (currentQuestionIndex !== -1 && currentQuestionIndex < totalQuestions - 1) {
             // Get the next question's Id
@@ -98,9 +107,16 @@ export default function StartSession() {
 
     // TODO handler to add a wildcard question.
     const handleAddWildcard = async (selectedType: QuestionType) => {
+        const courseSession = await getCourseSessionByDate(courseId, date);
+        if (!courseSession) {
+            console.error("No course session found for this course and date");
+            return; // or handle the error as needed
+        }
+        setCourseSessionId(courseSession.id);
+
         try {
             const position = currentQuestionIndex + 1;
-            const res = await fetch(`/api/session/${sessionId}/wildcard`, {
+            const res = await fetch(`/api/session/${courseSession.id}/wildcard`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ position, questionType: selectedType }),
@@ -116,7 +132,7 @@ export default function StartSession() {
     };
 
     // TODO updates when clicking wildcard
-    const activeQuestion = questions.find(q => q.id === activeQuestionId);
+    const activeQuestion = questions.find((q) => q.id === activeQuestionId);
 
     return (
         <div className="flex flex-col items-center p-4">
@@ -135,7 +151,9 @@ export default function StartSession() {
                         <Badge className="bg-[#EDEDED] text-[#5C0505] max-w-max mb-2 hover:bg-[none]">
                             {activeQuestion?.type}
                         </Badge>
-                        <CardTitle className="text-base md:text-xl">{activeQuestion?.text}</CardTitle>
+                        <CardTitle className="text-base md:text-xl">
+                            {activeQuestion?.text}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ChartContainer config={chartConfig} className="w-full text-base md:text-l">

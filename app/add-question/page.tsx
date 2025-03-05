@@ -141,7 +141,7 @@ export default function Page() {
             .then(() =>
                 createQuestion().then(() => {
                     setIsOpen(false);
-                    setLoading(false)
+                    setLoading(false);
                     form.reset();
                     return toast({
                         description: "Question added successfully",

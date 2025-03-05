@@ -16,11 +16,18 @@ export async function addQuestionWithOptions(
     };
 
     try {
+        const lastQuestion = await prisma.question.findFirst({
+            where: { sessionId },
+            orderBy: { position: "desc" },
+        });
+        const newPosition = lastQuestion ? lastQuestion.position + 1 : 1;
+
         return await prisma.question.create({
             data: {
                 sessionId,
                 text,
                 type: prismaQuestionTypes[type],
+                position: newPosition,
                 options: {
                     create: answerChoices.map((option) => {
                         return {
