@@ -1,15 +1,29 @@
+"use server";
 import { QuestionType } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-export async function getSessionById(sessionId: number) {
-    return prisma.courseSession.findUnique({
-        where: { id: sessionId },
-        include: {
-            questions: {
-                include: {
-                    options: true,
-                    responses: true,
-                },
+// export async function getSessionById(sessionId: number) {
+//     return prisma.courseSession.findUnique({
+//         where: { id: sessionId },
+//         include: {
+//             questions: {
+//                 include: {
+//                     options: true,
+//                     responses: true,
+//                 },
+//             },
+//         },
+//     });
+// }
+
+export async function getCourseSessionByDate(courseId: number, date: Date): Promise<CourseSession | null> {
+    const dateString = date.toISOString().split('T')[0]; // Extract the date part in 'YYYY-MM-DD' format
+    return prisma.courseSession.findFirst({
+        where: {
+            courseId,
+            startTime: {
+                gte: new Date(dateString + 'T00:00:00.000Z'),
+                lt: new Date(dateString + 'T23:59:59.999Z'),
             },
         },
     });
