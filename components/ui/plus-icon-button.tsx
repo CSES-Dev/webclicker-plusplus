@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,7 +7,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-export function IconQuestionButton() {
+import { QuestionType } from "@prisma/client";
+
+interface IconQuestionButtonProps {
+    onSelect: (selectedType: QuestionType) => void;
+}
+
+export function IconQuestionButton({ onSelect }: IconQuestionButtonProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -22,8 +27,12 @@ export function IconQuestionButton() {
                 <DropdownMenuLabel>Question Type</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    <DropdownMenuItem>Multiple choice</DropdownMenuItem>
-                    <DropdownMenuItem>Multi-select</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onSelect(QuestionType.MCQ)}>
+                        Multiple choice
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onSelect(QuestionType.MSQ)}>
+                        Multi-select
+                    </DropdownMenuItem>
                 </DropdownMenuGroup>
             </DropdownMenuContent>
         </DropdownMenu>
