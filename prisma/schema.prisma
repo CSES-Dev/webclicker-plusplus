@@ -91,6 +91,7 @@ model CourseSession {
   endTime   DateTime?
   course    Course     @relation(fields: [courseId], references: [id])
   questions Question[]
+  activeQuestionId Int
 }
 
 model Question {
@@ -98,11 +99,12 @@ model Question {
   sessionId Int
   text      String        @db.VarChar(1024)
   type      QuestionType  @default(MCQ)
+  position  Int           @default(0)
   options   Option[]
   session   CourseSession @relation(fields: [sessionId], references: [id])
   responses Response[]
-
 }
+
 model Option {
   id         Int        @id @default(autoincrement())
   questionId Int
