@@ -20,8 +20,8 @@ export default function Home() {
     }
 
     const roles = [
-        { value: "lecturer", label: "Lecturer" },
-        { value: "student", label: "Student" },
+        { value: "LECTURER", label: "Lecturer" },
+        { value: "STUDENT", label: "Student" },
     ];
 
     //this function runs after a page render
