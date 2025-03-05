@@ -140,7 +140,7 @@ function SlidingCalendar({ courseId }: Props) {
                         {questions.map((question) => (
                             <div
                                 key={question.id}
-                                className="relative w-[95%] h-[200px] p-4 m-4 bg-white border border-[#D9D9D9] rounded-xl shadow-lg shadow-slate-400 cursor-pointer flex justify-between items-start"
+                                className="relative w-[95%] h-[200px] p-4 m-4 bg-white border border-[#D9D9D9] rounded-xl shadow-md shadow-slate-400 cursor-pointer flex justify-between items-start"
                                 onClick={() => handleQuestionClick(question)}
                             >
                                 <div className="w-full">

@@ -18,7 +18,7 @@ export default function Page() {
     return (
         <div className="w-4/5 mx-auto flex flex-col justify-center items-center pt-10">
             <section className="w-full flex flex-col items-start pb-16">
-                <h1 className="text-xl font-normal">{courseName}</h1>
+                <h1 className="text-2xl font-normal">{courseName}</h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
                     <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
                         Add Question +
