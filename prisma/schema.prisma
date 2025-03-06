@@ -85,13 +85,13 @@ model Schedule {
 }
 
 model CourseSession {
-  id        Int        @id @default(autoincrement())
-  courseId  Int
-  startTime DateTime   @default(now())
-  endTime   DateTime?
-  course    Course     @relation(fields: [courseId], references: [id])
-  questions Question[]
-  activeQuestionId Int
+  id               Int        @id @default(autoincrement())
+  courseId         Int
+  startTime        DateTime   @default(now())
+  endTime          DateTime?
+  activeQuestionId Int        @default(0)
+  course           Course     @relation(fields: [courseId], references: [id])
+  questions        Question[]
 }
 
 model Question {
