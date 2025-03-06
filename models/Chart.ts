@@ -1,4 +1,4 @@
 export interface ChartData {
-  option: string;
-  Votes: number;
+    option: string;
+    Votes: number;
 }

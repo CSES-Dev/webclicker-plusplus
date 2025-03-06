@@ -1,7 +1,8 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,113 +14,129 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
-import { getCourseSessionByDate, getQuestionsForSession, getQuestionById } from "@/services/session";
-import { ChartData } from "@/models/Chart"
+import { ChartData } from "@/models/Chart";
+import { CourseSessionData, QuestionData, StartSessionProps } from "@/models/CourseSession";
+import {
+    getCourseSessionByDate,
+    getQuestionById,
+    getQuestionsForSession,
+} from "@/services/session";
 
-
-export default function StartSession() {
+export default function StartSession({ courseId }: StartSessionProps) {
     const [date] = useState(new Date());
-    const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
+    const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
-    const [_, setCourseSessionId] = useState<number | null>(null);
-    const [chartData, setChartData] = useState<ChartData[]>([]);
+    const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
 
     const utcDate = date.toISOString();
-    const courseId = 19; // Need to make dynamic hardcoded for now
 
-    
+    // get course session and questions on initial load.
     useEffect(() => {
-        async function fetchCourseSession() {
-            const courseSession = await getCourseSessionByDate(courseId, utcDate);
-            console.log(courseSession);
-
-
-
-            if (courseSession) {
-                setCourseSessionId(courseSession.id);
-                console.log("courseSessionID =", courseSession.id);
-                
-                const sessionQuestions = await getQuestionsForSession(courseSession.id);
-                setQuestions(sessionQuestions);
-                console.log("questions =", sessionQuestions);
-                
-                setTotalQuestions(sessionQuestions.length);
-                console.log("totalQuestions =", sessionQuestions.length);
-                
-                // active question check db to see if active question is present should make this null because it will be 0 when created 
-                // make activeQuestion optional it can be null so on our first go around we know that we trying to fetch the "First" question 
-                // aka smallest position number (0) - else if sttement
-                //  if statement if we refreseht we can just check the databasae for the activeQuestionId and set our variable up 
-                if (courseSession.activeQuestionId) {
-                    setActiveQuestionId(courseSession.activeQuestionId);
-                } else if (sessionQuestions.length > 0) {
-                setActiveQuestionId(sessionQuestions[0].id);
+        async function fetchSessionData() {
+            const session = await getCourseSessionByDate(courseId, utcDate);
+            if (session) {
+                setCourseSession({
+                    id: session.id,
+                    activeQuestionId: session.activeQuestionId,
+                });
+                const sessionQs = await getQuestionsForSession(session.id);
+                setQuestions(sessionQs);
+                setTotalQuestions(sessionQs.length);
+                if (session.activeQuestionId === null && sessionQs.length > 0) {
+                    const firstQuestionId = sessionQs[0].id;
+                    setActiveQuestionId(firstQuestionId);
+                    // Retrieve the activeQuestioId if reload occurs
+                    try {
+                        const response = await fetch(`/api/session/${session.id}/activeQuestion`, {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ activeQuestionId: firstQuestionId }),
+                        });
+                        if (!response.ok) {
+                            console.error("Failed to update active question in DB");
+                        }
+                    } catch (err) {
+                        console.error("Error updating active question:", err);
+                    }
+                } else {
+                    setActiveQuestionId(session.activeQuestionId);
                 }
             }
         }
-        fetchCourseSession();
-    }, [courseId, date]); 
+        void fetchSessionData();
+    }, [courseId, utcDate]);
 
-    const handleNextQuestion = () => {
+    // cache the active question data.
+    const { data: questionData } = useQuery<QuestionData | null>(
+        ["question", activeQuestionId],
+        () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
+        {
+            refetchInterval: 2000,
+            enabled: !!activeQuestionId,
+        },
+    );
+
+    // memoize chart data to avoid unnecessary recalculations.
+    const chartData: ChartData[] = useMemo(() => {
+        if (!questionData) return [];
+        return questionData.options.map((option: { id: number; text: string }) => ({
+            option: option.text,
+            Votes: questionData.responses.filter(
+                (resp: { optionId: number }) => resp.optionId === option.id,
+            ).length,
+        }));
+    }, [questionData]);
+
+    const handleNextQuestion = useCallback(async () => {
         const index = questions.findIndex((q) => q.id === activeQuestionId);
-
-        // Check if the current question index is valid and less than totalQuestions - 1
-        if (index !== -1 && index < totalQuestions - 1) {
+        if (index !== -1 && index < totalQuestions - 1 && courseSession) {
             const nextQuestionID = questions[index + 1].id;
             setActiveQuestionId(nextQuestionID);
-            console.log("activeQuestionId (after state update) =", nextQuestionID);
-        }
-    };
-
-    //  handler to add a wildcard question.
-    const handleAddWildcard = async (selectedType: QuestionType) => {
-        const courseSession = await getCourseSessionByDate(courseId, utcDate);
-        if (!courseSession) {
-            console.error("No course session found for this course and date");
-            return; 
-        }
-        setCourseSessionId(courseSession.id);
-        const index = questions.findIndex(q => q.id === activeQuestionId);
-        const position = index !== -1 ? index + 1 : questions.length + 1;
-
-        try {
-            const res = await fetch(`/api/session/${courseSession.id}/wildcard`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ position, questionType: selectedType }),
-            });
-            if (!res.ok) {
-                throw new Error("Failed to add wildcard question");
+            // update activeQuestionId in database
+            try {
+                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ activeQuestionId: nextQuestionID }),
+                });
+                if (!response.ok) {
+                    console.error("Failed to update active question in DB");
+                }
+            } catch (err) {
+                console.error("Error updating active question:", err);
             }
-            const newQuestion = await res.json();
-            console.log("Wildcard question created:", newQuestion);
-        } catch (error) {
-            console.error(error);
         }
-    };
-    useEffect(() => {
-        if (!activeQuestionId) return;
-        const fetchUpdatedQuestion = async () => {
-            const updatedQuestion = await getQuestionById(activeQuestionId);
-            if (updatedQuestion) {
-                const newChartData: ChartData[] = updatedQuestion.options.map(option => ({
-                    option: option.text,
-                    Votes: updatedQuestion.responses.filter(resp => resp.optionId === option.id).length
-                }));
-                setChartData(newChartData);
-            }
-        };
+    }, [activeQuestionId, questions, totalQuestions, courseSession]);
 
-        // update chart every 2 seconds.
-        fetchUpdatedQuestion();
-        const interval = setInterval(fetchUpdatedQuestion, 2000);
-        return () => clearInterval(interval);
-    }, [activeQuestionId]);
+    const handleAddWildcard = useCallback(
+        async (selectedType: QuestionType) => {
+            if (!courseSession) {
+                console.error("No course session found for this course and date");
+                return;
+            }
+            const index = questions.findIndex((q) => q.id === activeQuestionId);
+            const position = index !== -1 ? index + 1 : questions.length + 1;
+            try {
+                const res = await fetch(`/api/session/${courseSession.id}/wildcard`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ position, questionType: selectedType }),
+                });
+                if (!res.ok) {
+                    throw new Error("Failed to add wildcard question");
+                }
+                const newQuestion = (await res.json()) as Question;
+                console.log("Wildcard question created:", newQuestion);
+            } catch (error) {
+                console.error(error);
+            }
+        },
+        [activeQuestionId, courseSession, questions],
+    );
 
     const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
     const activeQuestion = questions.find((q) => q.id === activeQuestionId);
-
 
     const chartConfig: ChartConfig = {
         Votes: {
@@ -128,10 +145,9 @@ export default function StartSession() {
         },
     };
 
-
     return (
         <div className="flex flex-col items-center p-4">
-            {/* Top row with Back button + date */}
+            {/* Top row with Back button and date */}
             <div className="flex justify-between w-full mb-4">
                 <Button className="bg-[#18328D] text-white" variant="outline">
                     &lt; Back
@@ -139,7 +155,7 @@ export default function StartSession() {
                 {date.toDateString()}
             </div>
 
-            {/* Card to hold question and chart */}
+            {/* Card with question and chart */}
             <div className="w-full max-w-4xl">
                 <Card>
                     <CardHeader className="border border-[hsl(var(--input-border))] rounded-md">
@@ -183,10 +199,7 @@ export default function StartSession() {
                                             position="right"
                                             offset={10}
                                             formatter={(value: number) => {
-                                                const total = chartData.reduce((sum, item) => sum + item.Votes, 0);
-                                                if (!total || !value) {
-                                                    return "0%";
-                                                }
+                                                if (!totalVotes || !value) return "0%";
                                                 const percent = (value / totalVotes) * 100;
                                                 return `${percent.toFixed(1)}%`;
                                             }}
@@ -202,8 +215,10 @@ export default function StartSession() {
 
             {/* Next Question and Wildcard Button */}
             <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
-                <IconQuestionButton onSelect={handleAddWildcard} />
-                <Button onClick={handleNextQuestion}>Next Question &gt;</Button>
+                <IconQuestionButton
+                    onSelect={(selectedType) => void handleAddWildcard(selectedType)}
+                />
+                <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button>
             </div>
         </div>
     );

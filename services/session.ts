@@ -7,7 +7,7 @@ export async function getCourseSessionByDate(
     date: string,
 ): Promise<CourseSession | null> {
     const dateString = date.split("T")[0]; // Extract the date part in 'YYYY-MM-DD' format
-    console.log(dateString)
+    console.log(dateString);
     return prisma.courseSession.findFirst({
         where: {
             courseId,
@@ -34,55 +34,55 @@ export async function getQuestionsForSession(sessionId: number) {
 }
 
 export async function createWildcardQuestion(
-  sessionId: number,
-  position: number,
-  questionType: QuestionType
+    sessionId: number,
+    position: number,
+    questionType: QuestionType,
 ) {
-  return await prisma.$transaction(async (tx) => {
-    await tx.question.updateMany({
-      where: {
-        sessionId,
-        position: { gte: position },
-      },
-      data: {
-        position: { increment: 1 },
-      },
-    });
+    return await prisma.$transaction(async (tx) => {
+        await tx.question.updateMany({
+            where: {
+                sessionId,
+                position: { gte: position },
+            },
+            data: {
+                position: { increment: 1 },
+            },
+        });
 
-    const newQuestion = await tx.question.create({
-      data: {
-        session: { connect: { id: sessionId } },
-        text: "Refer to the board",
-        type: questionType,
-        position: position,
-        options: {
-          create: [
-            { text: "A", isCorrect: true },
-            { text: "B", isCorrect: true },
-            { text: "C", isCorrect: true },
-            { text: "D", isCorrect: true },
-          ],
-        },
-      },
-      include: { options: true },
-    });
+        const newQuestion = await tx.question.create({
+            data: {
+                session: { connect: { id: sessionId } },
+                text: "Refer to the board",
+                type: questionType,
+                position,
+                options: {
+                    create: [
+                        { text: "A", isCorrect: true },
+                        { text: "B", isCorrect: true },
+                        { text: "C", isCorrect: true },
+                        { text: "D", isCorrect: true },
+                    ],
+                },
+            },
+            include: { options: true },
+        });
 
-    return newQuestion;
-  });
+        return newQuestion;
+    });
 }
 
 export async function getQuestionById(questionId: number) {
-  try {
-      const question = await prisma.question.findUnique({
-      where: { id: questionId },
-      include: {
-          options: true,
-          responses: true,
-      },
-      });
-      return question;
-  } catch (error) {
-      console.error("Error fetching question by ID:", error);
-      throw error;
-  }
+    try {
+        const question = await prisma.question.findUnique({
+            where: { id: questionId },
+            include: {
+                options: true,
+                responses: true,
+            },
+        });
+        return question;
+    } catch (error) {
+        console.error("Error fetching question by ID:", error);
+        throw error;
+    }
 }
