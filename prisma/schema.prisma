@@ -91,7 +91,7 @@ model CourseSession {
   endTime   DateTime?
   course    Course     @relation(fields: [courseId], references: [id])
   questions Question[]
-  activeQuestionId Int
+  activeQuestionId Int?
 }
 
 model Question {

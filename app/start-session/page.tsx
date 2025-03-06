@@ -47,6 +47,10 @@ export default function StartSession() {
                 setTotalQuestions(sessionQuestions.length);
                 console.log("totalQuestions =", sessionQuestions.length);
                 
+                // active question check db to see if active question is present should make this null because it will be 0 when created 
+                // make activeQuestion optional it can be null so on our first go around we know that we trying to fetch the "First" question 
+                // aka smallest position number (0) - else if sttement
+                //  if statement if we refreseht we can just check the databasae for the activeQuestionId and set our variable up 
                 if (courseSession.activeQuestionId) {
                     setActiveQuestionId(courseSession.activeQuestionId);
                 } else if (sessionQuestions.length > 0) {
