@@ -2,8 +2,8 @@
 
 "use client";
 import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import Header from "@/components/ui/header";
@@ -13,79 +13,81 @@ type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
 };
 
+type fetchCourseSessionQuestionResponse = {
+    activeQuestionId: number;
+    totalQuestions: number;
+};
+
 export default function LivePoll() {
     // Extract the course-session-id from the URL
     const params = useParams();
-    const router = useRouter();
+    // const router = useRouter();
     const courseSessionId = params["course-session-id"] as string;
-    
+
     const [currentQuestion, setCurrentQuestion] = useState<QuestionWithOptions | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [questionCount, setQuestionCount] = useState("1");
-    
+
     // Use useRef for activeQuestionId to prevent unnecessary re-renders
     const activeQuestionIdRef = useRef<number | null>(null);
-    
+
     // Unified state for selected values (either single number or array of numbers)
     const [selectedValues, setSelectedValues] = useState<number | number[] | null>(null);
 
     // Function to fetch active question - use useCallback to memoize
     const fetchActiveQuestion = useCallback(async () => {
-        try {            
+        try {
             // First, get the session to get the activeQuestionId
             const sessionResponse = await fetch(
                 `/api/fetchCourseSessionQuestion?sessionId=${courseSessionId}`,
             );
-            
+
             if (!sessionResponse.ok) {
                 throw new Error("Failed to fetch course session");
             }
-            
-            const sessionData = await sessionResponse.json();
+
+            const sessionData =
+                (await sessionResponse.json()) as fetchCourseSessionQuestionResponse;
             const newActiveQuestionId = sessionData.activeQuestionId;
-            
+
             // If the active question hasn't changed, don't re-fetch
             if (activeQuestionIdRef.current === newActiveQuestionId) {
-                console.log("Question unchanged, skipping fetch");
                 return;
             }
-
-            console.log("Question changed, fetching new question");
             setLoading(true);
-            
+
             // Update the ref
             activeQuestionIdRef.current = newActiveQuestionId;
-            
+
             // If active question ID is 0 or null, no question is active
             if (!newActiveQuestionId) {
                 setError("No active question at this time");
                 setLoading(false);
                 return;
             }
-            
+
             // Fetch the active question
             const questionResponse = await fetch(
-                `/api/fetchQuestionById?questionId=${newActiveQuestionId}`,
+                `/api/fetchQuestionById?questionId=${String(newActiveQuestionId)}`,
             );
-            
+
             if (!questionResponse.ok) {
                 throw new Error("Failed to fetch question");
             }
-            
-            const questionData = await questionResponse.json() as QuestionWithOptions;
+
+            const questionData = (await questionResponse.json()) as QuestionWithOptions;
             setCurrentQuestion(questionData);
-            
+
             // Reset selected values based on question type
             setSelectedValues(questionData.type === "MCQ" ? null : []);
-            
+
             // Use the position directly from the question object
             // Add 1 since positions typically start at 0 but display to users starts at 1
             const currentNumber = questionData.position + 1;
-            
+
             setQuestionCount(String(currentNumber));
-            
         } catch (err) {
             setError(err instanceof Error ? err.message : "An error occurred");
             console.error(err);
@@ -97,28 +99,24 @@ export default function LivePoll() {
     // Initial fetch and polling setup
     useEffect(() => {
         if (!courseSessionId) return;
-        
+
         let intervalId: NodeJS.Timeout | null = null;
-        
+
         // Create an async function to handle the initial fetch
         const initialFetch = async () => {
             try {
                 // Wait for the initial fetch to complete
                 await fetchActiveQuestion();
-                
+
                 // Once initial fetch is done, start polling
                 intervalId = setInterval(() => {
                     void fetchActiveQuestion();
                 }, 5000); // Poll every 5 seconds
-            } catch (error) {
-                console.error("Error in initial fetch:", error);
+            } catch (errorMessage) {
+                console.error("Error in initial fetch:", errorMessage);
             }
         };
-        
-        // Start the initial fetch process
         void initialFetch();
-        
-        // Clean up interval on unmount
         return () => {
             if (intervalId) {
                 clearInterval(intervalId);
@@ -157,7 +155,11 @@ export default function LivePoll() {
     };
 
     const handleSubmit = async () => {
-        if (!selectedValues || (Array.isArray(selectedValues) && selectedValues.length === 0) || !currentQuestion) {
+        if (
+            !selectedValues ||
+            (Array.isArray(selectedValues) && selectedValues.length === 0) ||
+            !currentQuestion
+        ) {
             return;
         }
         const optionIds = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
@@ -174,7 +176,7 @@ export default function LivePoll() {
                     optionIds,
                 }),
             });
-            
+
             if (!response.ok) {
                 console.error("Failed to save answer");
             }
@@ -207,12 +209,12 @@ export default function LivePoll() {
                 </div>
 
                 {/* Loading indicator for refreshing questions */}
-                {loading && currentQuestion && (
+                {/* {loading && currentQuestion && (
                     <div className="absolute top-4 right-4 flex items-center">
                         <div className="w-4 h-4 border-2 border-t-custom-background border-opacity-50 rounded-full animate-spin mr-2"></div>
                         <span className="text-xs text-gray-500">Syncing...</span>
                     </div>
-                )}
+                )} */}
 
                 {/* Question Card */}
                 <div className="w-full max-w-md">
