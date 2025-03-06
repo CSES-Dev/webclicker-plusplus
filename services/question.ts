@@ -20,7 +20,7 @@ export async function addQuestionWithOptions(
             where: { sessionId },
             orderBy: { position: "desc" },
         });
-        const newPosition = lastQuestion ? lastQuestion.position + 1 : 1;
+        const newPosition = lastQuestion ? lastQuestion.position + 1 : 0;
 
         return await prisma.question.create({
             data: {
