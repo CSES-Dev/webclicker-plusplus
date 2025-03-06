@@ -56,7 +56,7 @@ export default function Page() {
                                 timeStart={course.schedules?.[0]?.startTime ?? ""}
                                 timeEnd={course.schedules?.[0]?.endTime ?? ""}
                                 code={course.code ?? ""}
-                                role={course.role ?? "STUDENT"}
+                                role={role ?? "STUDENT"}
                             />
                         );
                     })}

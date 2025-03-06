@@ -25,3 +25,19 @@ export async function getOrCreateCourseSession(
         return { error: "Error finding or creating course session." };
     }
 }
+
+export type FindActiveCourseSessionsResult = CourseSession[] | { error: string } | null;
+
+export async function findActiveCourseSessions(
+    courseId: number,
+    start: Date,
+): Promise<FindActiveCourseSessionsResult> {
+    try {
+        return await prisma.courseSession.findMany({
+            where: { courseId, startTime: start, endTime: null },
+        });
+    } catch (err) {
+        console.error(err);
+        return { error: "Error finding course session." };
+    }
+}
