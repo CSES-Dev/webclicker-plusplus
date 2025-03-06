@@ -121,6 +121,7 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
             const index = questions.findIndex((q) => q.id === activeQuestionId);
             const position = index !== -1 ? index + 1 : questions.length + 1;
             try {
+                // create wildcard question
                 const res = await fetch(`/api/session/${courseSession.id}/wildcard`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -238,7 +239,6 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                 ) : (
                     <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button>
                 )}
-                {/* <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button> */}
             </div>
         </div>
     );
