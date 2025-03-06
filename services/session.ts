@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma";
 
 export async function getCourseSessionByDate(
     courseId: number,
-    date: Date,
+    date: string,
 ): Promise<CourseSession | null> {
-    const dateString = date.toISOString().split("T")[0]; // Extract the date part in 'YYYY-MM-DD' format
-
+    const dateString = date.split("T")[0]; // Extract the date part in 'YYYY-MM-DD' format
+    console.log(dateString)
     return prisma.courseSession.findFirst({
         where: {
             courseId,
@@ -69,4 +69,20 @@ export async function createWildcardQuestion(
 
     return newQuestion;
   });
+}
+
+export async function getQuestionById(questionId: number) {
+  try {
+      const question = await prisma.question.findUnique({
+      where: { id: questionId },
+      include: {
+          options: true,
+          responses: true,
+      },
+      });
+      return question;
+  } catch (error) {
+      console.error("Error fetching question by ID:", error);
+      throw error;
+  }
 }

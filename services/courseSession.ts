@@ -18,6 +18,7 @@ export async function getOrCreateCourseSession(
             data: {
                 courseId,
                 startTime: start,
+                activeQuestionId: 0
             },
         });
     } catch (err) {

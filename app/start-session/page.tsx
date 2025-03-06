@@ -13,51 +13,30 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
-import { getCourseSessionByDate, getQuestionsForSession } from "@/services/session";
+import { getCourseSessionByDate, getQuestionsForSession, getQuestionById } from "@/services/session";
+import { ChartData } from "@/models/Chart"
 
-const chartData = [
-    { option: "A.", Votes: 200 },
-    { option: "B.", Votes: 395 },
-    { option: "C.", Votes: 109 },
-    { option: "D.", Votes: 75 },
-];
-
-const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
-
-const chartConfig: ChartConfig = {
-    Votes: {
-        label: "Votes",
-        color: "hsl(var(--chart-1))",
-    },
-};
 
 export default function StartSession() {
-    const [date] = useState(new Date()); // TODO wondering what time zone this is using
-
-    // active question we are currently at. Gathered from db in case of refresh
+    const [date] = useState(new Date());
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
-
-    //questions array containing questions for session gathered from db
     const [questions, setQuestions] = useState<Question[]>([]);
-
-    // total size of questioons array
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
-
-    // CourseSessionId
     const [_, setCourseSessionId] = useState<number | null>(null);
+    const [chartData, setChartData] = useState<ChartData[]>([]);
 
-    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const utcDate = date.toISOString();
+    const courseId = 19; // Need to make dynamic hardcoded for now
 
-    // Example session id for demonstration purposes. should be linked up later
-    const courseId = 19;
     
     useEffect(() => {
         async function fetchCourseSession() {
-            const courseSession = await getCourseSessionByDate(courseId, date);
+            const courseSession = await getCourseSessionByDate(courseId, utcDate);
             console.log(courseSession);
 
+
+
             if (courseSession) {
-                console.log("date =", date.toISOString().split("T")[0]);
                 setCourseSessionId(courseSession.id);
                 console.log("courseSessionID =", courseSession.id);
                 
@@ -76,24 +55,22 @@ export default function StartSession() {
             }
         }
         fetchCourseSession();
-    }, [courseId, date]); // TODO whenever these change it reruns the effect but not sure if necessary yet
+    }, [courseId, date]); 
 
     const handleNextQuestion = () => {
         const index = questions.findIndex((q) => q.id === activeQuestionId);
 
         // Check if the current question index is valid and less than totalQuestions - 1
         if (index !== -1 && index < totalQuestions - 1) {
-            // Get the next question's Id
             const nextQuestionID = questions[index + 1].id;
-            // Set the activeQuestionId to the next question's ID
             setActiveQuestionId(nextQuestionID);
             console.log("activeQuestionId (after state update) =", nextQuestionID);
         }
     };
 
-    // TODO handler to add a wildcard question.
+    //  handler to add a wildcard question.
     const handleAddWildcard = async (selectedType: QuestionType) => {
-        const courseSession = await getCourseSessionByDate(courseId, date);
+        const courseSession = await getCourseSessionByDate(courseId, utcDate);
         if (!courseSession) {
             console.error("No course session found for this course and date");
             return; 
@@ -117,9 +94,36 @@ export default function StartSession() {
             console.error(error);
         }
     };
+    useEffect(() => {
+        if (!activeQuestionId) return;
+        const fetchUpdatedQuestion = async () => {
+            const updatedQuestion = await getQuestionById(activeQuestionId);
+            if (updatedQuestion) {
+                const newChartData: ChartData[] = updatedQuestion.options.map(option => ({
+                    option: option.text,
+                    Votes: updatedQuestion.responses.filter(resp => resp.optionId === option.id).length
+                }));
+                setChartData(newChartData);
+            }
+        };
 
-    // TODO updates when clicking wildcard
+        // update chart every 2 seconds.
+        fetchUpdatedQuestion();
+        const interval = setInterval(fetchUpdatedQuestion, 2000);
+        return () => clearInterval(interval);
+    }, [activeQuestionId]);
+
+    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
     const activeQuestion = questions.find((q) => q.id === activeQuestionId);
+
+
+    const chartConfig: ChartConfig = {
+        Votes: {
+            label: "Votes",
+            color: "hsl(var(--chart-1))",
+        },
+    };
+
 
     return (
         <div className="flex flex-col items-center p-4">
@@ -175,6 +179,10 @@ export default function StartSession() {
                                             position="right"
                                             offset={10}
                                             formatter={(value: number) => {
+                                                const total = chartData.reduce((sum, item) => sum + item.Votes, 0);
+                                                if (!total || !value) {
+                                                    return "0%";
+                                                }
                                                 const percent = (value / totalVotes) * 100;
                                                 return `${percent.toFixed(1)}%`;
                                             }}
