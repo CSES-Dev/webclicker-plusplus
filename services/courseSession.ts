@@ -9,13 +9,11 @@ export async function getOrCreateCourseSession(
     start: Date,
 ): Promise<GetOrCreateCourseSessionResult> {
     try {
-        const courseSessions : CourseSession[] = await prisma.courseSession.findMany({
-            where: { courseId, startTime: start },
+        const courseSession = await prisma.courseSession.findFirst({
+            where: { courseId, startTime: start, endTime: null },
         });
-        
-        for (const session of courseSessions){
-            if (session.endTime == null) return session;
-        }
+
+        if(courseSession) return courseSession;
 
         return await prisma.courseSession.create({
             data: {
