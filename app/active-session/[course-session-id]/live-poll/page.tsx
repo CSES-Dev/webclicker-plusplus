@@ -51,7 +51,6 @@ export default function LivePoll() {
             const sessionData =
                 (await sessionResponse.json()) as fetchCourseSessionQuestionResponse;
             const newActiveQuestionId = sessionData.activeQuestionId;
-
             // If the active question hasn't changed, don't re-fetch
             if (activeQuestionIdRef.current === newActiveQuestionId) {
                 return;
@@ -60,15 +59,12 @@ export default function LivePoll() {
 
             // Update the ref
             activeQuestionIdRef.current = newActiveQuestionId;
-
             // If active question ID is 0 or null, no question is active
             if (!newActiveQuestionId) {
                 setError("No active question at this time");
                 setLoading(false);
                 return;
             }
-
-            // Fetch the active question
             const questionResponse = await fetch(
                 `/api/fetchQuestionById?questionId=${String(newActiveQuestionId)}`,
             );
