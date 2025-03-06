@@ -153,9 +153,9 @@ function SlidingCalendar({ courseId }: Props) {
                                 </div>
                                 <Dialog>
                                     <DialogTrigger>
-                                        <PictureInPicture2/>
+                                        <PictureInPicture2 />
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-[90vw] h-[90vh]">
+                                    <DialogContent className="max-w-[80vw] lg:max-w-[70vw] h-[90vh]">
                                         <DialogHeader>
                                             <DialogTitle className="flex flex-col gap-6">
                                                 <p className="text-xl text-[#18328D] font-normal">
@@ -168,36 +168,38 @@ function SlidingCalendar({ courseId }: Props) {
                                                 </p>
                                                 <hr className="border-t border-[#D9D9D9] w-full"></hr>
                                             </DialogTitle>
-                                            <DialogDescription className="flex flex-col items-center h-full">
-                                                <section className="flex flex-col items-center space-y-12 flex-grow">
-                                                    <h1 className="text-center text-2xl text-black font-normal mt-10">
-                                                        Answer Choices:
-                                                    </h1>
-                                                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-x-32 sm:gap-y-20">
-                                                        {selectedQuestion?.options?.map(
-                                                            (option) => (
-                                                                <button
-                                                                    key={option.id}
-                                                                    className={`w-[184px] text-black text-xl font-normal p-4 rounded-[20px] border border-[#D9D9D9] ${
-                                                                        option.isCorrect
-                                                                            ? "bg-[#479B78]"
-                                                                            : "bg-white"
-                                                                    }`}
-                                                                >
-                                                                    {option.text}
-                                                                </button>
-                                                            ),
-                                                        )}
+                                            <DialogDescription asChild>
+                                                <div className="flex flex-col items-center h-full">
+                                                    <section className="flex flex-col items-center space-y-12 flex-grow">
+                                                        <h1 className="text-center text-2xl text-black font-normal mt-10">
+                                                            Answer Choices:
+                                                        </h1>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-x-32 sm:gap-y-20">
+                                                            {selectedQuestion?.options?.map(
+                                                                (option) => (
+                                                                    <button
+                                                                        key={option.id}
+                                                                        className={`w-[184px] text-black text-xl font-normal p-4 rounded-[20px] border border-[#D9D9D9] ${
+                                                                            option.isCorrect
+                                                                                ? "bg-[#479B78]"
+                                                                                : "bg-white"
+                                                                        }`}
+                                                                    >
+                                                                        {option.text}
+                                                                    </button>
+                                                                ),
+                                                            )}
+                                                        </div>
                                                     </section>
-                                                </section>
-                                                <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
-                                                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
-                                                        Edit Question <Pencil/>
-                                                    </button>
-                                                    <button className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
-                                                        Done
-                                                    </button>
-                                                </section>
+                                                    <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
+                                                        <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
+                                                            Edit Question <Pencil />
+                                                        </button>
+                                                        <button className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
+                                                            Done
+                                                        </button>
+                                                    </section>
+                                                </div>
                                             </DialogDescription>
                                         </DialogHeader>
                                     </DialogContent>

@@ -1,18 +1,23 @@
 "use client";
 
-import { getCourseWithId } from "@/services/course";
-import SlidingCalendar from "../../components/ui/SlidingCalendar";
 import { useEffect, useState } from "react";
+import SlidingCalendar from "../../components/ui/SlidingCalendar";
+import { getCourseWithId } from "@/services/course";
 
 export default function Page() {
     const courseId = 19; //hard-coded for now
-    const [courseName, setCourseName] = useState<String>();
+    const [courseName, setCourseName] = useState<string>();
 
     useEffect(() => {
         const getCourseName = async () => {
-            setCourseName((await getCourseWithId(courseId)).title);
+            try {
+                const course = await getCourseWithId(courseId);
+                setCourseName(course.title);
+            } catch (error) {
+                console.error("Failed to fetch course:", error);
+            }
         };
-        getCourseName();
+        void getCourseName();
     }, []);
 
     return (
