@@ -1,6 +1,7 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
+import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -30,7 +31,7 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
 
     const courseId = 19; // hardcoded for now
-
+    const router = useRouter();
     const utcDate = date.toISOString();
 
     // get course session and questions on initial load.
@@ -139,6 +140,12 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
 
     const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
     const activeQuestion = questions.find((q) => q.id === activeQuestionId);
+    const isLastQuestion =
+        questions.findIndex((q) => q.id === activeQuestionId) === totalQuestions - 1;
+
+    const handleEndPoll = useCallback(() => {
+        router.push("/dashboard"); // go to dashboard can change though
+    }, [router]);
 
     const chartConfig: ChartConfig = {
         Votes: {
@@ -220,7 +227,18 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                 <IconQuestionButton
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
                 />
-                <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button>
+                {isLastQuestion ? (
+                    <Button
+                        onClick={() => {
+                            handleEndPoll();
+                        }}
+                    >
+                        End Poll
+                    </Button>
+                ) : (
+                    <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button>
+                )}
+                {/* <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button> */}
             </div>
         </div>
     );
