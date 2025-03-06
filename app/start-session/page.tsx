@@ -15,19 +15,21 @@ import {
 } from "@/components/ui/chart";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
 import { ChartData } from "@/models/Chart";
-import { CourseSessionData, QuestionData, StartSessionProps } from "@/models/CourseSession";
+import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import {
     getCourseSessionByDate,
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
 
-export default function StartSession({ courseId }: StartSessionProps) {
+export default function StartSession(/*{ courseId }: StartSessionProps*/) {
     const [date] = useState(new Date());
     const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
+
+    const courseId = 19; // hardcoded for now
 
     const utcDate = date.toISOString();
 
