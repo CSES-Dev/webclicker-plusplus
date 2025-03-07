@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import BackButton from "@/components/ui/backButton";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import Header from "@/components/ui/header";
-import { findActiveCourseSession } from "@/services/courseSession";
+import { findActiveCourseSession } from "@/services/findCourseSession";
 
 export default function CourseDetails() {
     const router = useRouter();

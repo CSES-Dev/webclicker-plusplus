@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import zod from "zod";
+import { z } from "zod";
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 import { Input } from "./ui/input";
@@ -16,13 +16,13 @@ import { colorOptions, daysOptions } from "@/lib/constants";
 
 import { addCourse } from "@/services/course";
 
-const schema = zod
+const schema = z
     .object({
-        title: zod.string().min(2),
-        color: zod.string().length(7, "Invalid color"),
-        days: zod.array(zod.string()).min(1, "Select at least one day"),
-        startTime: zod.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid Time"),
-        endTime: zod.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid Time"),
+        title: z.string().min(2),
+        color: z.string().length(7, "Invalid color"),
+        days: z.array(z.string()).min(1, "Select at least one day"),
+        startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid Time"),
+        endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid Time"),
     })
     .refine((data) => data.startTime < data.endTime, {
         message: "Start time cannot be after end time",
@@ -39,7 +39,7 @@ export const AddCourseForm = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const form = useForm<zod.infer<typeof schema>>({
+    const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
         defaultValues: {
@@ -51,7 +51,7 @@ export const AddCourseForm = () => {
         },
     });
 
-    const handleSubmit = (values: zod.infer<typeof schema>) => {
+    const handleSubmit = (values: z.infer<typeof schema>) => {
         const { title, color, days, endTime, startTime } = values;
         setLoading(true);
         addCourse(title, days, color, startTime, endTime, user.id)
