@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        if (!courseId || isNaN(Number(sessionId))) {
+        if (isNaN(Number(sessionId))) {
             return NextResponse.json(
                 { error: "Invalid or missing sessionId parameter" },
                 { status: 400 },
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        if (!courseSession || courseSession.courseId === +courseId) {
+        if (!courseSession) {
             return NextResponse.json({ error: "Course session not found" }, { status: 404 });
         }
 
