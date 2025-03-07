@@ -1,4 +1,7 @@
 "use client";
+import { CourseSession } from "@prisma/client";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import LivePoll from "@/components/LivePoll";
 import BackButton from "@/components/ui/backButton";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
@@ -6,9 +9,6 @@ import Header from "@/components/ui/header";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { findActiveCourseSession } from "@/services/findCourseSession";
-import { CourseSession } from "@prisma/client";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function CourseDetails() {
     const router = useRouter();
@@ -36,7 +36,7 @@ export default function CourseDetails() {
                     setCourseSession(res);
                 }
             })
-            .catch((err) => {
+            .catch((err: unknown) => {
                 console.error("Error fetching course session:", err);
                 toast({ variant: "destructive", description: "Failed to load course session" });
                 setIsLoading(false);
@@ -78,8 +78,8 @@ export default function CourseDetails() {
                         </p>
 
                         <button
-                            onClick={async () => {
-                                await getActiveSession();
+                            onClick={() => {
+                                void getActiveSession();
                             }}
                             className="w-full px-[47px] py-3 bg-custom-background text-white rounded-md text-lg font-medium"
                         >

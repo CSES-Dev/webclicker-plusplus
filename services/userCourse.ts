@@ -1,6 +1,6 @@
 "use server";
-import prisma from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
 export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({

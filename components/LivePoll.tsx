@@ -1,15 +1,15 @@
 // app/active-session/[course-session-id]/live-poll/page.tsx
 
 "use client";
+import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import Header from "@/components/ui/header";
 import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
-import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
-import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];

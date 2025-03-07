@@ -13,7 +13,7 @@ export async function getOrCreateCourseSession(
             where: { courseId, startTime: start, endTime: null },
         });
 
-        if(courseSession) return courseSession;
+        if (courseSession) return courseSession;
 
         return await prisma.courseSession.create({
             data: {

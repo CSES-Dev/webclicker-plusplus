@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import BackButton from "@/components/ui/backButton";
+import { useToast } from "@/hooks/use-toast";
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
-import { useToast } from "@/hooks/use-toast";
-import BackButton from "@/components/ui/backButton";
 
 export default function Page() {
     const session = useSession();

@@ -1,7 +1,7 @@
-import { validateUser } from "@/services/userCourse";
 import { Role } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { validateUser } from "@/services/userCourse";
 
 const useAccess = ({ courseId, role }: { courseId: number; role: Role }) => {
     const session = useSession();
