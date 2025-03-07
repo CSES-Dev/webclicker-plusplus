@@ -1,6 +1,7 @@
 "use client";
 
 import { Course, Role, Schedule } from "@prisma/client";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AddCourseForm } from "@/components/AddCourseForm";
@@ -66,12 +67,15 @@ export default function Page() {
                     {role === "LECTURER" ? (
                         <AddCourseForm />
                     ) : (
-                        <div className="flex flex-col w-80 h-56 rounded-md shadow-lg border border-gray-300">
+                        <Link
+                            href="/join-course"
+                            className="flex flex-col w-80 h-56 rounded-md shadow-lg border border-gray-300"
+                        >
                             <div className="bg-primary h-[40%] w-full rounded-t-md"></div>
                             <div className="h-[60%] w-full bg-gray-50 flex items-center justify-center rounded-b-md">
                                 <p className="text-lg font-medium text-primary">Add Class +</p>
                             </div>
-                        </div>
+                        </Link>
                     )}
                 </div>
             </div>
