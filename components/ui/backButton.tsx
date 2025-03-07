@@ -8,7 +8,7 @@ interface BackButtonProps {
 
 export default function BackButton({ href = "/", onClick }: BackButtonProps) {
     const buttonContent = (
-        <div className="flex items-center px-5 py-1  bg-custom-background text-white rounded-xl">
+        <div className="flex items-center px-5 py-1 pl-3 bg-custom-background text-white rounded-xl">
             <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"

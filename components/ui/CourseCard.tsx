@@ -25,7 +25,9 @@ export default function CourseCard({
     const router = useRouter();
 
     const handleCardClick = () => {
-        router.push(`/course/${id}`);
+        if (role === "STUDENT") {
+            router.push(`/course/${id}/live-poll`);
+        }
     };
 
     return (

@@ -1,13 +1,15 @@
 // app/active-session/[course-session-id]/live-poll/page.tsx
 
 "use client";
-import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
-import { useParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import Header from "@/components/ui/header";
 import QuestionCard from "@/components/ui/questionCard";
+import useAccess from "@/hooks/use-access";
+import { useToast } from "@/hooks/use-toast";
+import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -18,11 +20,14 @@ type fetchCourseSessionQuestionResponse = {
     totalQuestions: number;
 };
 
-export default function LivePoll() {
+export default function LivePoll({ courseSessionId }: { courseSessionId: number }) {
     // Extract the course-session-id from the URL
     const params = useParams();
-    // const router = useRouter();
-    const courseSessionId = params["course-session-id"] as string;
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const courseId = parseInt(params["course-id"] as string);
+    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "STUDENT" });
 
     const [currentQuestion, setCurrentQuestion] = useState<QuestionWithOptions | null>(null);
     const [loading, setLoading] = useState(true);
@@ -45,7 +50,10 @@ export default function LivePoll() {
             );
 
             if (!sessionResponse.ok) {
-                throw new Error("Failed to fetch course session");
+                return toast({
+                    variant: "destructive",
+                    description: "Failed to fetch course session",
+                });
             }
 
             const sessionData =
@@ -70,7 +78,9 @@ export default function LivePoll() {
             );
 
             if (!questionResponse.ok) {
-                throw new Error("Failed to fetch question");
+                toast({ variant: "destructive", description: "Failed to fetch question" });
+                router.push(`/course/${courseId}`);
+                return;
             }
 
             const questionData = (await questionResponse.json()) as QuestionWithOptions;
@@ -85,7 +95,7 @@ export default function LivePoll() {
 
             setQuestionCount(String(currentNumber));
         } catch (err) {
-            setError(err instanceof Error ? err.message : "An error occurred");
+            toast({ variant: "destructive", description: "An error occurre" });
             console.error(err);
         } finally {
             setLoading(false);
@@ -95,6 +105,14 @@ export default function LivePoll() {
     // Initial fetch and polling setup
     useEffect(() => {
         if (!courseSessionId) return;
+        if (isAccessLoading) {
+            return;
+        }
+        if (!hasAccess) {
+            toast({ variant: "destructive", description: "Access denied!" });
+            router.push("/dashboard");
+            return;
+        }
 
         let intervalId: NodeJS.Timeout | null = null;
 
@@ -113,6 +131,7 @@ export default function LivePoll() {
         //     }
         // };
         // void initialFetch();
+        void fetchActiveQuestion();
 
         intervalId = setInterval(() => {
             void fetchActiveQuestion();
@@ -122,10 +141,10 @@ export default function LivePoll() {
                 clearInterval(intervalId);
             }
         };
-    }, [fetchActiveQuestion]); // Dependency on memoized fetchActiveQuestion
+    }, [isAccessLoading, hasAccess, courseSessionId]); // Dependency on memoized fetchActiveQuestion
 
     // Handle loading state
-    if (loading && !currentQuestion) {
+    if ((loading && !currentQuestion) || isAccessLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">

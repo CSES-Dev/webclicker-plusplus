@@ -23,6 +23,13 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        if (!courseId || isNaN(Number(sessionId))) {
+            return NextResponse.json(
+                { error: "Invalid or missing sessionId parameter" },
+                { status: 400 },
+            );
+        }
+
         // Fetch the course session to get the activeQuestionId
         const courseSession = await prisma.courseSession.findUnique({
             where: {
@@ -37,10 +44,11 @@ export async function GET(request: NextRequest) {
                         questions: true,
                     },
                 },
+                courseId: true,
             },
         });
 
-        if (!courseSession) {
+        if (!courseSession || courseSession.courseId === +courseId) {
             return NextResponse.json({ error: "Course session not found" }, { status: 404 });
         }
 

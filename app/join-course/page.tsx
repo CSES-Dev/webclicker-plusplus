@@ -6,42 +6,48 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
+import { useToast } from "@/hooks/use-toast";
+import BackButton from "@/components/ui/backButton";
 
 export default function Page() {
     const session = useSession();
     const { register, handleSubmit, watch } = useForm<{
         code: string;
     }>();
+    const { toast } = useToast();
 
     const code = watch("code");
     const [course, setCourse] = useState<string>();
-    const [error, setError] = useState<string>();
 
     const user = session?.data?.user ?? { id: "", firstName: "" };
 
     const onFormSubmit = async () => {
         try {
             if (!code) {
-                setError("Invalid code");
+                toast({ variant: "destructive", description: "Invalid code" });
             } else {
                 console.log(code);
                 const courseInfo = await getCourseWithCode(code);
                 if (!courseInfo) {
-                    setError("Invalid code");
+                    toast({ variant: "destructive", description: "Invalid code" });
+
                     return;
                 }
                 const res = await addUserToCourse(courseInfo.id, user.id);
-                if (res?.error) setError(res.error);
+                if (res?.error) toast({ variant: "destructive", description: res?.error });
                 else setCourse(courseInfo.title);
             }
         } catch (err) {
             console.error("Error adding user to the course", err);
-            setError("Something went wrong");
+            toast({ variant: "destructive", description: "Something went wrong" });
         }
     };
 
     return (
-        <>
+        <div className="flex px-4 py-4 flex-col">
+            <div>
+                <BackButton href="/dashboard" />
+            </div>
             {!course ? (
                 <form
                     onSubmit={(e) => {
@@ -57,11 +63,6 @@ export default function Page() {
                             className="h-[3.5rem] w-80 px-5 bg-[#F2F5FF] text-black rounded-[10px]"
                             {...register("code")}
                         ></input>
-                        {error && (
-                            <p className="text-red-700 mt-2 absolute left-1/2 -translate-x-1/2">
-                                {error}
-                            </p>
-                        )}
                     </div>
                     <button
                         type="submit"
@@ -87,6 +88,6 @@ export default function Page() {
                     </button>
                 </div>
             )}
-        </>
+        </div>
     );
 }

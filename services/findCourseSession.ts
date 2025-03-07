@@ -11,15 +11,9 @@ import prisma from "@/lib/prisma";
 export async function findActiveCourseSession(courseId: number) {
     // Get the current date and reset the time to start of day
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfDay = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
     const endOfDay = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        today.getDate(),
-        23,
-        59,
-        59,
-        999,
+        Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999),
     );
 
     try {
