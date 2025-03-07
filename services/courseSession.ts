@@ -34,7 +34,14 @@ export async function findActiveCourseSessions(
 ): Promise<FindActiveCourseSessionsResult> {
     try {
         return await prisma.courseSession.findMany({
-            where: { courseId, startTime: start, endTime: null },
+            where: {
+                courseId,
+                startTime: {
+                    gte: new Date(start.setHours(0, 0, 0, 0)),
+                    lt: new Date(start.setHours(23, 59, 59, 999)),
+                },
+                endTime: null,
+            },
         });
     } catch (err) {
         console.error(err);

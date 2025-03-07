@@ -29,34 +29,30 @@ function SlidingCalendar({ courseId }: Props) {
     const [selectedQuestion, setSelectedQuestion] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] }) | null
     >(null);
-    const [loading, setLoading] = useState(true); // Add loading state
     const { toast } = useToast();
 
-    // Set selectedDate to the current date on initial render
     useEffect(() => {
         const currentDate = dayjs();
         setSelectedDate(currentDate);
+        handleDayClick(currentDate);
     }, []);
 
-    // Fetch questions when selectedDate or courseId changes
     useEffect(() => {
         const fetchQuestions = async () => {
-            if (!selectedDate) return;
-
-            setLoading(true); // Start loading
-            const date = selectedDate.toDate();
-            const result = await findQuestionsByCourseSession(courseId, date);
-
-            if (result && "error" in result) {
-                toast({ variant: "destructive", description: result.error });
-            } else {
-                setQuestions(result);
+            const date = selectedDate?.toDate();
+            if (date) {
+                await findQuestionsByCourseSession(courseId, date).then((res) => {
+                    if (res && "error" in res)
+                        return toast({ variant: "destructive", description: res?.error ?? "" });
+                    else {
+                        setQuestions(res);
+                        console.log(res);
+                    }
+                });
             }
-            setLoading(false); // End loading
         };
-
         fetchQuestions();
-    }, [selectedDate, courseId]);
+    }, [selectedDate]);
 
     const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
