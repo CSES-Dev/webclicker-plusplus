@@ -99,20 +99,24 @@ export default function LivePoll() {
         let intervalId: NodeJS.Timeout | null = null;
 
         // Create an async function to handle the initial fetch
-        const initialFetch = async () => {
-            try {
-                // Wait for the initial fetch to complete
-                await fetchActiveQuestion();
+        // const initialFetch = async () => {
+        //     try {
+        //         // Wait for the initial fetch to complete
+        //         // await fetchActiveQuestion();
 
-                // Once initial fetch is done, start polling
-                intervalId = setInterval(() => {
-                    void fetchActiveQuestion();
-                }, 5000); // Poll every 5 seconds
-            } catch (errorMessage) {
-                console.error("Error in initial fetch:", errorMessage);
-            }
-        };
-        void initialFetch();
+        //         // Once initial fetch is done, start polling
+        //         intervalId = setInterval(() => {
+        //             void fetchActiveQuestion();
+        //         }, 5000); // Poll every 5 seconds
+        //     } catch (errorMessage) {
+        //         console.error("Error in initial fetch:", errorMessage);
+        //     }
+        // };
+        // void initialFetch();
+
+        intervalId = setInterval(() => {
+            void fetchActiveQuestion();
+        }, 5000);
         return () => {
             if (intervalId) {
                 clearInterval(intervalId);

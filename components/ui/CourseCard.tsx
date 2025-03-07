@@ -1,5 +1,6 @@
 import { Role } from "@prisma/client";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export type Props = {
     color: string;
@@ -9,12 +10,31 @@ export type Props = {
     timeEnd: string;
     code: string;
     role: Role;
+    id: number;
 };
-export default function CourseCard({ color, days, title, timeStart, timeEnd, code, role }: Props) {
+export default function CourseCard({
+    color,
+    days,
+    title,
+    timeStart,
+    timeEnd,
+    code,
+    role,
+    id,
+}: Props) {
+    const router = useRouter();
+
+    const handleCardClick = () => {
+        router.push(`/course/${id}`);
+    };
+
     return (
         <>
             {/* Mobile View */}
-            <button className="md:hidden flex flex-col w-80 h-40 border border-black rounded-xl shadow-lg">
+            <button
+                onClick={handleCardClick}
+                className="md:hidden flex flex-col w-80 h-40 border border-black rounded-xl shadow-lg"
+            >
                 <div style={{ backgroundColor: color }} className={`mt-4 h-4 w-full`}></div>
 
                 <div className="min-h-[60%] py-3 px-6 flex flex-col gap-2 items-start justify-start">
@@ -26,7 +46,10 @@ export default function CourseCard({ color, days, title, timeStart, timeEnd, cod
                 <p className="px-6 text-xs text-[#585858]">{days.join(", ")}</p>
             </button>
             {/* Desktop View */}
-            <button className="hidden md:block flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg">
+            <button
+                onClick={handleCardClick}
+                className="hidden md:block flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg"
+            >
                 <div
                     className={`min-h-[40%] max-h-[40%] w-full rounded-t-md`}
                     style={{ backgroundColor: color }}
