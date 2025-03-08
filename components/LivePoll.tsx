@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
-import Header from "@/components/ui/header";
 import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
@@ -207,10 +206,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
-            {/* Header */}
-            <Header />
-
+        <div className="min-h-screen bg-inherit flex flex-col">
             <div className="p-4 sm:p-6 flex flex-col items-center">
                 {/* Back Button */}
                 <div className="self-start mb-6 mt-2">
