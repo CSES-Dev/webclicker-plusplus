@@ -1,5 +1,9 @@
 "use client";
 
+import { QuestionType } from "@prisma/client";
+import { X } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -14,14 +18,10 @@ import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { createCourseSession } from "@/services/courseSession";
 import { getCourseSessionByDate } from "@/services/session";
-import { QuestionType } from "@prisma/client";
-import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export default function Page(/*{ courseId }: { courseId: number }*/) {
-    const courseId = 19;
-
+    const params = useParams();
+    const courseId = parseInt(params["courseId"] as string);
     const router = useRouter();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
@@ -43,9 +43,11 @@ export default function Page(/*{ courseId }: { courseId: number }*/) {
                     // only add question if poll has not started
                     await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
                 }
-                router.push("/start-session");
+                //router.push("/start-session");
+                router.push(`/course/${courseId}/start-session`);
+
             })
-            .catch((err) => {
+            .catch(() => {
                 setIsLoading(false);
                 return toast({
                     variant: "destructive",
@@ -88,7 +90,9 @@ export default function Page(/*{ courseId }: { courseId: number }*/) {
                     <Button
                         variant="primary"
                         onClick={() => {
-                            router.push("/start-session");
+                            // router.push("/start-session");
+                            router.push(`/course/${courseId}/start-session`);
+                            
                         }}
                         disabled={isLoading}
                         className="h-12  disabled:bg-slate-400 rounded-lg"

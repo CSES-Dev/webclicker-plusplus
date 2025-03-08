@@ -96,7 +96,7 @@ export default function Page() {
         if (Object.keys(form.formState.isValid)?.length) return;
 
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
-        const courseId = 19; //get courseId based on course page
+        const courseId = 49; //get courseId based on course page
         let courseSessionId: number;
 
         async function getCourseSessionInfo() {

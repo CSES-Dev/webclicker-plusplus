@@ -18,8 +18,7 @@ export async function getOrCreateCourseSession(
         return await prisma.courseSession.create({
             data: {
                 courseId,
-                startTime: start.toUTCString(),
-                activeQuestionId: 0,
+                startTime: start,
             },
         });
     } catch (err) {
@@ -36,7 +35,7 @@ export async function createCourseSession(courseId: number) {
         const newSession = await prisma.courseSession.create({
             data: {
                 courseId,
-                startTime: new Date().toUTCString(),
+                startTime: new Date(),
             },
         });
         return newSession;

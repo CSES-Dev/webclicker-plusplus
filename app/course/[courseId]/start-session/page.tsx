@@ -1,22 +1,24 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { notFound, useParams, useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import BackButton from "@/components/ui/backButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import {
     ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
+import { useToast } from "@/hooks/use-toast";
+import { addWildcardQuestion } from "@/lib/server-utils";
 import { ChartData } from "@/models/Chart";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import {
@@ -24,92 +26,89 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
-import { addWildcardQuestion } from "@/lib/server-utils";
-import BackButton from "@/components/ui/backButton";
 
-export default function StartSession(/*{ courseId }: StartSessionProps*/) {
-    const [date] = useState(new Date());
-    const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [totalQuestions, setTotalQuestions] = useState<number>(0);
-    const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
-    const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(true);
-
-    const courseId = 19; // hardcoded for now
+export default function StartSession() {
+    const params = useParams();
     const router = useRouter();
+    const courseId = parseInt(params["courseId"] as string);
+    const { toast } = useToast();
+    const [date] = useState(new Date());
     const utcDate = date.toISOString();
+    const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
+    const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
 
-    // get course session and questions on initial load.
     useEffect(() => {
         async function fetchSessionData() {
-            setIsLoading(true);
             const session = await getCourseSessionByDate(courseId, utcDate);
+            console.log(session)
             if (session) {
-                setCourseSession({
-                    id: session.id,
-                    activeQuestionId: session.activeQuestionId,
-                });
-                const sessionQs = await getQuestionsForSession(session.id);
-                setQuestions(sessionQs);
-                setTotalQuestions(sessionQs.length);
-                if (session.activeQuestionId === null && sessionQs.length > 0) {
-                    const firstQuestionId = sessionQs[0].id;
-                    setActiveQuestionId(firstQuestionId);
-                    // Retrieve the activeQuestioId if reload occurs
-                    try {
-                        const response = await fetch(`/api/session/${session.id}/activeQuestion`, {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ activeQuestionId: firstQuestionId }),
-                        });
-                        setIsLoading(false);
-                        if (!response.ok) {
-                            console.error("Failed to update active question in DB");
-                        }
-                    } catch (err) {
-                        console.error("Error updating active question:", err);
-                        setIsLoading(false);
-                    }
-                } else {
+                setCourseSession({ id: session.id, activeQuestionId: session.activeQuestionId });
+                if (session.activeQuestionId !== null) {
                     setActiveQuestionId(session.activeQuestionId);
-                    setIsLoading(false);
                 }
             } else {
                 toast({ description: "No session found" });
-                router.push("/dashboard");
+                router.push(`/course/${courseId}/dashboard`);
             }
         }
         void fetchSessionData();
-    }, [courseId, utcDate]);
+    }, [courseId, utcDate, router, toast]);
 
-    // cache the active question data.
+    // fetch session questions
+    const {
+        data: questions,
+        isLoading: questionsLoading,
+        refetch: refetchQuestions,
+    } = useQuery<Question[]>(
+        ["questions", courseSession?.id],
+        () => {
+            if (!courseSession) return Promise.resolve([]);
+            return getQuestionsForSession(courseSession.id);
+        },
+        { enabled: !!courseSession, refetchInterval: 2000 },
+    );
+
+    // scenario when questions load and no active question is set, we will default to the first question
+    useEffect(() => {
+        if (questions && questions.length > 0 && activeQuestionId === null) {
+            setActiveQuestionId(questions[0].id);
+            if (courseSession) {
+                fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ activeQuestionId: questions[0].id }),
+                }).catch((err: unknown) => {
+                    console.error("Error updating active question:", err);
+                });
+            }
+        }
+    }, [questions, activeQuestionId, courseSession]);
+
+    // retrieve details of the active question
     const { data: questionData } = useQuery<QuestionData | null>(
         ["question", activeQuestionId],
         () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
-        {
-            refetchInterval: 2000,
-            enabled: !!activeQuestionId,
-        },
+        { refetchInterval: 2000, enabled: !!activeQuestionId },
     );
 
-    // memoize chart data to avoid unnecessary recalculations.
-    const chartData: ChartData[] = useMemo(() => {
-        if (!questionData) return [];
-        return questionData.options.map((option: { id: number; text: string }) => ({
-            option: option.text,
-            Votes: questionData.responses.filter(
-                (resp: { optionId: number }) => resp.optionId === option.id,
-            ).length,
-        }));
-    }, [questionData]);
+    const totalQuestions = questions?.length ?? 0;
+
+    const activeIndex = questions ? questions.findIndex((q) => q.id === activeQuestionId) : -1;
+    const isLastQuestion = activeIndex === totalQuestions - 1;
+
+    const chartData: ChartData[] = questionData
+        ? questionData.options.map((option: { id: number; text: string }) => ({
+              option: option.text,
+              Votes: questionData.responses.filter(
+                  (resp: { optionId: number }) => resp.optionId === option.id,
+              ).length,
+          }))
+        : [];
 
     const handleNextQuestion = useCallback(async () => {
-        const index = questions.findIndex((q) => q.id === activeQuestionId);
-        if (index !== -1 && index < totalQuestions - 1 && courseSession) {
-            const nextQuestionID = questions[index + 1].id;
+        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
+            const nextQuestionID = questions[activeIndex + 1].id;
             setActiveQuestionId(nextQuestionID);
-            // update activeQuestionId in database
             try {
                 const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
                     method: "PATCH",
@@ -120,12 +119,12 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                     toast({ variant: "destructive", description: "Error updating question" });
                     console.error("Failed to update active question in DB", response);
                 }
-            } catch (err) {
+            } catch (err: unknown) {
                 toast({ variant: "destructive", description: "Error updating question" });
                 console.error("Error updating active question:", err);
             }
         }
-    }, [activeQuestionId, questions, totalQuestions, courseSession]);
+    }, [activeIndex, questions, totalQuestions, courseSession, toast]);
 
     const handleAddWildcard = useCallback(
         async (selectedType: QuestionType) => {
@@ -133,27 +132,22 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                 console.error("No course session found for this course and date");
                 return;
             }
-            const index = questions.findIndex((q) => q.id === activeQuestionId);
-            const position = index !== -1 ? index + 1 : questions.length + 1;
+            const index = questions ? questions.findIndex((q) => q.id === activeQuestionId) : -1;
+            const position = index !== -1 ? index + 1 : questions ? questions.length + 1 : 1;
             try {
-                // create wildcard question
-                addWildcardQuestion(courseSession.id, position, selectedType);
-            } catch (error) {
+                await addWildcardQuestion(courseSession.id, position, selectedType);
+                await refetchQuestions(); // refetch the questions query so the new question appears immediately without the need of a manual refresh
+            } catch (error: unknown) {
                 toast({ variant: "destructive", description: "Failed to add question" });
                 console.error(error);
             }
         },
-        [activeQuestionId, courseSession, questions],
+        [activeQuestionId, courseSession, questions, refetchQuestions, toast],
     );
 
-    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
-    const activeQuestion = questions.find((q) => q.id === activeQuestionId);
-    const isLastQuestion =
-        questions.findIndex((q) => q.id === activeQuestionId) === totalQuestions - 1;
-
     const handleEndPoll = useCallback(() => {
-        router.push("/dashboard"); // go to dashboard can change though
-    }, [router]);
+        router.push(`/course/${courseId}/dashboard`);
+    }, [router, courseId]);
 
     const chartConfig: ChartConfig = {
         Votes: {
@@ -162,15 +156,18 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
         },
     };
 
-    if (isLoading) {
+    if (!courseSession || questionsLoading) {
         return <GlobalLoadingSpinner />;
     }
+
+    const activeQuestion = questions ? questions.find((q) => q.id === activeQuestionId) : null;
+    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
 
     return (
         <div className="flex flex-col items-center p-4">
             {/* Top row with Back button and date */}
             <div className="flex justify-between w-full mb-4">
-                <BackButton href="/dashboard" />
+                <BackButton href={`/course/${courseId}/dashboard`} />
                 {date.toDateString()}
             </div>
 
@@ -238,13 +235,7 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
                 />
                 {isLastQuestion ? (
-                    <Button
-                        onClick={() => {
-                            handleEndPoll();
-                        }}
-                    >
-                        End Poll
-                    </Button>
+                    <Button onClick={handleEndPoll}>End Poll</Button>
                 ) : (
                     <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button>
                 )}
