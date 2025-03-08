@@ -36,6 +36,8 @@ export default function StartSession() {
     const utcDate = date.toISOString();
     const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
+    const [isAddingQuestion, setIsAddingQuestion] = useState(false);
+
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -132,6 +134,7 @@ export default function StartSession() {
                 console.error("No course session found for this course and date");
                 return;
             }
+            setIsAddingQuestion(true); // disable button
             const index = questions ? questions.findIndex((q) => q.id === activeQuestionId) : -1;
             const position = index !== -1 ? index + 1 : questions ? questions.length + 1 : 1;
             try {
@@ -140,6 +143,9 @@ export default function StartSession() {
             } catch (error: unknown) {
                 toast({ variant: "destructive", description: "Failed to add question" });
                 console.error(error);
+            }
+            finally {
+                setIsAddingQuestion(false); // re-enable the button
             }
         },
         [activeQuestionId, courseSession, questions, refetchQuestions, toast],
@@ -235,9 +241,9 @@ export default function StartSession() {
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
                 />
                 {isLastQuestion ? (
-                    <Button onClick={handleEndPoll}>End Poll</Button>
+                    <Button onClick={handleEndPoll} disabled={isAddingQuestion}>End Poll</Button>
                 ) : (
-                    <Button onClick={() => void handleNextQuestion()}>Next Question &gt;</Button>
+                    <Button onClick={() => void handleNextQuestion()} disabled={isAddingQuestion}>Next Question &gt;</Button>
                 )}
             </div>
         </div>
