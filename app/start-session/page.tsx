@@ -8,6 +8,8 @@ import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "rec
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import {
     ChartConfig,
     ChartContainer,
@@ -29,6 +31,8 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [totalQuestions, setTotalQuestions] = useState<number>(0);
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(true);
 
     const courseId = 19; // hardcoded for now
     const router = useRouter();
@@ -37,6 +41,7 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
     // get course session and questions on initial load.
     useEffect(() => {
         async function fetchSessionData() {
+            setIsLoading(true);
             const session = await getCourseSessionByDate(courseId, utcDate);
             if (session) {
                 setCourseSession({
@@ -56,15 +61,22 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ activeQuestionId: firstQuestionId }),
                         });
+                        setIsLoading(false);
                         if (!response.ok) {
                             console.error("Failed to update active question in DB");
                         }
                     } catch (err) {
                         console.error("Error updating active question:", err);
+                        setIsLoading(false);
                     }
                 } else {
                     setActiveQuestionId(session.activeQuestionId);
+                    setIsLoading(false);
                 }
+            }
+            else {
+                toast({ description: "No session found"});
+                router.push("/dashboard");
             }
         }
         void fetchSessionData();
@@ -154,6 +166,10 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
             color: "hsl(var(--chart-1))",
         },
     };
+
+    if (isLoading) {
+        return <GlobalLoadingSpinner />;
+    }
 
     return (
         <div className="flex flex-col items-center p-4">

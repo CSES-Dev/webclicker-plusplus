@@ -7,7 +7,6 @@ export async function getCourseSessionByDate(
     date: string,
 ): Promise<CourseSession | null> {
     const dateString = date.split("T")[0]; // Extract the date part in 'YYYY-MM-DD' format
-    console.log(dateString);
     return prisma.courseSession.findFirst({
         where: {
             courseId,
