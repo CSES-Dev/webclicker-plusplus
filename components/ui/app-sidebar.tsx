@@ -18,7 +18,7 @@ export function AppSidebar() {
 
     const links = [
         { name: "Dashboard", href: "/dashboard" },
-        { name: "Settings", href: "/settings" },
+        { name: "Settings", href: "/dashboard/settings" },
     ];
 
     return (

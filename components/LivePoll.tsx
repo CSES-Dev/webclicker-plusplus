@@ -207,10 +207,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
-            {/* Header */}
-            <Header />
-
+        <div className="min-h-screen bg-inherit flex flex-col">
             <div className="p-4 sm:p-6 flex flex-col items-center">
                 {/* Back Button */}
                 <div className="self-start mb-6 mt-2">

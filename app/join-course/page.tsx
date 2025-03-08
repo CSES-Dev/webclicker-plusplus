@@ -45,7 +45,7 @@ export default function Page() {
 
     return (
         <div className="flex flex-col items-center justify-start min-h-screen px-6 mt-10">
-            <div>
+            <div className="self-start">
                 <BackButton href="/dashboard" />
             </div>
             {!course ? (

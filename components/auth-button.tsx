@@ -1,14 +1,18 @@
 "use client";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuthButton() {
+    const { toast } = useToast();
+
     const handleSignIn = async () => {
         try {
             await signIn("google", {
                 callbackUrl: "/signup/name",
             });
         } catch (error) {
+            toast({ variant: "destructive", description: "Error signing in!" });
             console.error("Sign in error:", error);
         }
     };

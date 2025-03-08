@@ -39,7 +39,7 @@ export default function Page() {
         <div className="w-full flex flex-col justify-center items-center pt-10">
             <div className="w-full px-4 md:px-8 max-w-[1800px] mx-auto">
                 <div className="hidden md:block justify-between pb-8">
-                    <h1 className="text-[40px] leading-[48px] font-normal text-[#434343]">
+                    <h1 className="text-[40px] leading-[48px] font-normal text-[#333]">
                         Welcome Back, {user.firstName}!
                     </h1>
                 </div>
