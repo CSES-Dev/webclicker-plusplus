@@ -24,6 +24,8 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
+import { addWildcardQuestion } from "@/lib/server-utils";
+import BackButton from "@/components/ui/backButton";
 
 export default function StartSession(/*{ courseId }: StartSessionProps*/) {
     const [date] = useState(new Date());
@@ -73,9 +75,8 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                     setActiveQuestionId(session.activeQuestionId);
                     setIsLoading(false);
                 }
-            }
-            else {
-                toast({ description: "No session found"});
+            } else {
+                toast({ description: "No session found" });
                 router.push("/dashboard");
             }
         }
@@ -116,9 +117,11 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
                     body: JSON.stringify({ activeQuestionId: nextQuestionID }),
                 });
                 if (!response.ok) {
-                    console.error("Failed to update active question in DB");
+                    toast({ variant: "destructive", description: "Error updating question" });
+                    console.error("Failed to update active question in DB", response);
                 }
             } catch (err) {
+                toast({ variant: "destructive", description: "Error updating question" });
                 console.error("Error updating active question:", err);
             }
         }
@@ -134,17 +137,9 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
             const position = index !== -1 ? index + 1 : questions.length + 1;
             try {
                 // create wildcard question
-                const res = await fetch(`/api/session/${courseSession.id}/wildcard`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ position, questionType: selectedType }),
-                });
-                if (!res.ok) {
-                    throw new Error("Failed to add wildcard question");
-                }
-                const newQuestion = (await res.json()) as Question;
-                console.log("Wildcard question created:", newQuestion);
+                addWildcardQuestion(courseSession.id, position, selectedType);
             } catch (error) {
+                toast({ variant: "destructive", description: "Failed to add question" });
                 console.error(error);
             }
         },
@@ -175,9 +170,7 @@ export default function StartSession(/*{ courseId }: StartSessionProps*/) {
         <div className="flex flex-col items-center p-4">
             {/* Top row with Back button and date */}
             <div className="flex justify-between w-full mb-4">
-                <Button className="bg-[#18328D] text-white" variant="outline">
-                    &lt; Back
-                </Button>
+                <BackButton href="/dashboard" />
                 {date.toDateString()}
             </div>
 
