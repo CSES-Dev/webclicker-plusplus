@@ -33,9 +33,9 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="bg-gray-100 min-h-screen">
+        <div className="bg-inherit h-full">
             <main className="flex flex-col gap-8 row-start-2 items-start p-8">
-                <h1 className="text-4xl text-black font-semibold">Settings</h1>
+                <h1 className="text-[40px] leading-[48px] font-normal text-[#333]">Settings</h1>
                 <div className="flex flex-row gap-8">
                     <h2 className="text-2xl text-black font-normal">Role</h2>
                     <Select value={roleSelected} onValueChange={updateStorage}>

@@ -1,9 +1,9 @@
 "use client";
-import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import React, { useState } from "react";
+import { useState } from "react";
+import BackButton from "@/components/ui/backButton";
 import { useToast } from "@/hooks/use-toast";
 
 interface APIResponse {
@@ -44,14 +44,8 @@ export default function Name() {
     };
 
     return (
-        <main className="min-h-screen bg-gray-50">
-            <button
-                onClick={handleBack}
-                className="absolute top-8 left-8 flex items-center gap-2  outline outline-1 text-white bg-custom-background hover:bg-white hover:text-[#0029BD] outline-[#0029BD] transition-all p-2 rounded-lg px-4"
-            >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="text-lg">Back</span>
-            </button>
+        <main className="min-h-screen bg-gray-50 p-4">
+            <BackButton onClick={handleBack} />
             {/* Centered section with text and buttons */}
             <section className="flex justify-center pt-24">
                 <div className="flex flex-col space-y-8 content-center justify-center gap-1">

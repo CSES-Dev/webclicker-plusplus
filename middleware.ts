@@ -22,8 +22,13 @@ export async function middleware(req: NextRequest) {
         return NextResponse.redirect(new URL("/signup/name", req.url));
     }
 
-    // If onboarding is finished and user is trying to access the signup page, redirect to dashboard
-    if (!token.firstTimeUser && path.startsWith("/signup/name")) {
+    // If onboarding is finished and user is trying to access the onboarding pages, redirect to dashboard
+    if (
+        !token.firstTimeUser &&
+        (path.startsWith("/signup/name") ||
+            path.startsWith("/signup/role") ||
+            path.startsWith("/signup/finish"))
+    ) {
         return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
@@ -31,5 +36,12 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/signup/name", "/signup/finish", "/login", "/course/:path*"],
+    matcher: [
+        "/dashboard/:path*",
+        "/signup/name",
+        "/signup/role",
+        "/signup/finish",
+        "/login",
+        "/course/:path*",
+    ],
 };

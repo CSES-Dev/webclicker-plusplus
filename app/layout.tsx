@@ -38,7 +38,7 @@ export default function RootLayout({
                 <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
                     <Providers>
                         <AuthGuard>
-                            <main className="h-screen">{children}</main>
+                            <main>{children}</main>
                         </AuthGuard>
                     </Providers>
                     <Toaster />
