@@ -170,7 +170,7 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
                     setIsOpen(true);
                 }}
             >
-                {location == "page" ? (
+                {location === "page" ? (
                     <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
                         Add Question +
                     </button>
