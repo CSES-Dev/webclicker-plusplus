@@ -12,7 +12,7 @@ const useAccess = ({ courseId, role }: { courseId: number; role: Role }) => {
     useEffect(() => {
         setIsLoading(true);
         const checkAccess = async () => {
-            if (!session.data?.user.id) {
+            if (!session.data?.user.id || !courseId || Number.isNaN(courseId)) {
                 setHasAccess(false);
                 setIsLoading(false);
             } else {
