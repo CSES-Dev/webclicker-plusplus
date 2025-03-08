@@ -5,6 +5,7 @@ import { PictureInPicture2, Pencil } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogHeader,
@@ -197,9 +198,9 @@ function SlidingCalendar({ courseId }: Props) {
                                                         <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
                                                             Edit Question <Pencil />
                                                         </button>
-                                                        <button className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
+                                                        <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
-                                                        </button>
+                                                        </DialogClose>
                                                     </section>
                                                 </div>
                                             </DialogDescription>
