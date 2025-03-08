@@ -52,7 +52,7 @@ export default function Page() {
             <section className="w-full flex flex-col items-start pb-16">
                 <h1 className="text-2xl font-normal">{courseName}</h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
-                    <AddQuestionForm />
+                    <AddQuestionForm courseId={courseId} location="page" />
                     <button className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                         Begin Poll
                     </button>

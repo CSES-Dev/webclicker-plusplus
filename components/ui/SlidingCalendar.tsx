@@ -15,6 +15,7 @@ import { Question } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
 import { findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
+import { AddQuestionForm } from "../AddQuestionForm";
 
 interface Props {
     courseId: number;
@@ -213,7 +214,7 @@ function SlidingCalendar({ courseId }: Props) {
                         <p className="text-gray-400 text-2xl font-normal">
                             No Questions Assigned on this Day
                         </p>
-                        <p className="text-[#18328D] text-2xl font-normal">Add Question?</p>
+                        <AddQuestionForm courseId={courseId} location="calendar" />
                     </div>
                 )}
             </motion.div>

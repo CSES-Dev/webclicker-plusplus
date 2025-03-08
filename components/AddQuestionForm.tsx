@@ -54,7 +54,12 @@ const schema = z.object({
         .min(1, "Add at least one answer choice"),
 });
 
-export const AddQuestionForm: React.FC = () => {
+interface Props {
+    courseId: number;
+    location: "page" | "calendar";
+}
+
+export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) => {
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
@@ -96,7 +101,6 @@ export const AddQuestionForm: React.FC = () => {
         if (Object.keys(form.formState.isValid)?.length) return;
 
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
-        const courseId = 19; //get courseId based on course page
         let courseSessionId: number;
 
         async function getCourseSessionInfo() {
@@ -161,12 +165,20 @@ export const AddQuestionForm: React.FC = () => {
     return (
         <Sheet open={isOpen}>
             <SheetTrigger
+                asChild
                 onClick={() => {
                     setIsOpen(true);
                 }}
-                className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]"
             >
-                Add Question +
+                {location == "page" ? (
+                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
+                        Add Question +
+                    </button>
+                ) : (
+                    <button className="hover:underline text-[#18328D] text-2xl font-normal">
+                        Add Question?
+                    </button>
+                )}
             </SheetTrigger>
             <SheetContent className="h-full top-0 right-0 left-auto sm:w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <SheetClose
