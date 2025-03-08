@@ -1,37 +1,32 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import SlidingCalendar from "../../components/ui/SlidingCalendar";
 import { AddQuestionForm } from "@/components/AddQuestionForm";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
+import SlidingCalendar from "@/components/ui/SlidingCalendar";
+import useAccess from "@/hooks/use-access";
+import { useToast } from "@/hooks/use-toast";
 import { getCourseWithId } from "@/services/course";
-import { getUserCourses } from "@/services/userCourse";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Page() {
-    const searchParams = useSearchParams();
-    const courseId = parseInt(searchParams.get("courseId") ?? "0");
+    const params = useParams();
+    const courseId = parseInt((params["course-id"] as string) ?? "0");
     const [courseName, setCourseName] = useState<string>();
-    const { data: session } = useSession();
     const router = useRouter();
-    const [isLecturer, setIsLecturer] = useState(false);
+    const { toast } = useToast();
+    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
 
     useEffect(() => {
-        const checkUserRole = async () => {
-            if (session?.user?.id) {
-                const userCourses = await getUserCourses(session.user.id);
-                const course = userCourses.find((c) => c.id === courseId);
-                if (course?.role === "LECTURER") {
-                    setIsLecturer(true);
-                } else {
-                    router.push("/dashboard");
-                }
-            }
-        };
-        void checkUserRole();
-    }, [session, courseId, router]);
-
-    useEffect(() => {
+        if (isAccessLoading) {
+            return;
+        }
+        console.log(hasAccess, isAccessLoading)
+        if (!isAccessLoading && !hasAccess) {
+            toast({ variant: "destructive", description: "Access denied!" });
+            router.push("/dashboard");
+            return;
+        }
         const getCourseName = async () => {
             try {
                 const course = await getCourseWithId(courseId);
@@ -41,10 +36,12 @@ export default function Page() {
             }
         };
         void getCourseName();
-    }, [courseId]);
+    }, [courseId, hasAccess, isAccessLoading]);
 
-    if (!isLecturer) {
-        return <div>Unauthorized access. Redirecting...</div>;
+    useEffect(() => {}, [courseId]);
+
+    if (isAccessLoading) {
+        return <GlobalLoadingSpinner />;
     }
 
     return (

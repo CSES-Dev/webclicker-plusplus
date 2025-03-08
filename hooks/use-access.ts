@@ -17,7 +17,7 @@ const useAccess = ({ courseId, role }: { courseId: number; role: Role }) => {
                 setIsLoading(false);
             } else {
                 setHasAccess(
-                    (await validateUser(session.data?.user.id, courseId, "STUDENT")) ?? false,
+                    (await validateUser(session.data?.user.id, courseId, role)) ?? false,
                 );
                 setIsLoading(false);
             }
