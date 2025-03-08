@@ -15,6 +15,7 @@ export async function getCourseSessionByDate(
                 gte: new Date(dateString + "T00:00:00.000Z"),
                 lt: new Date(dateString + "T23:59:59.999Z"),
             },
+            endTime: null,
         },
     });
 }
@@ -57,10 +58,11 @@ export async function createWildcardQuestion(
                 position,
                 options: {
                     create: [
-                        { text: "A", isCorrect: true },
-                        { text: "B", isCorrect: true },
-                        { text: "C", isCorrect: true },
-                        { text: "D", isCorrect: true },
+                        { text: "A", isCorrect: false },
+                        { text: "B", isCorrect: false },
+                        { text: "C", isCorrect: false },
+                        { text: "D", isCorrect: false },
+                        { text: "E", isCorrect: false },
                     ],
                 },
             },
