@@ -45,6 +45,9 @@ export default function Page() {
 
     return (
         <div className="flex flex-col items-center justify-start min-h-screen px-6 mt-10">
+            <div>
+                <BackButton href="/dashboard" />
+            </div>
             {!course ? (
                 <form
                     onSubmit={(e) => {

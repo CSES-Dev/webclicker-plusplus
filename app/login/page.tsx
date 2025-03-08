@@ -9,7 +9,7 @@ export default function Login() {
         <div className="flex w-full flex-col lg:flex-row">
             {/* Left-side (Logo Section) */}
             <section className="h-[50vh] lg:h-screen w-full lg:w-1/2 grid flex-grow place-items-center bg-primary">
-            {/* <section className="h-[50vh] lg:h-screen w-full lg:w-1/2 card bg-base-300 rounded-box grid flex-grow place-items-center bg-custom-background"> */}
+                {/* <section className="h-[50vh] lg:h-screen w-full lg:w-1/2 card bg-base-300 rounded-box grid flex-grow place-items-center bg-custom-background"> */}
                 <div className="flex flex-col justify-center items-center">
                     <Image
                         src="/cube.svg"
@@ -20,7 +20,9 @@ export default function Login() {
                         priority
                     />
                     {/* <h1 className="text-2xl text-primary-foreground font-semibold">WebClicker++</h1> */}
-                    <h1 className="text-[50px] leading-[60px] text-primary-foreground font-semibold">WebClicker++</h1>
+                    <h1 className="text-[50px] leading-[60px] text-primary-foreground font-semibold">
+                        WebClicker++
+                    </h1>
                 </div>
             </section>
 

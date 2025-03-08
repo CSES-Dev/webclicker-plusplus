@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarMenu,
+    SidebarMenuItem,
+    SidebarMenuButton,
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 export function AppSidebar() {
@@ -40,7 +46,7 @@ export function AppSidebar() {
                             href={link.href}
                             className={cn(
                                 "text-lg py-2 px-4 w-full text-center hover:bg-blue-900 transition",
-                                pathname === link.href ? "bg-blue-900 font-bold" : "font-normal"
+                                pathname === link.href ? "bg-blue-900 font-bold" : "font-normal",
                             )}
                         >
                             {link.name}
@@ -72,10 +78,14 @@ export function AppSidebar() {
                                     isActive={pathname === link.href}
                                     className={cn(
                                         "text-2xl px-6 py-3 w-56 text-center flex justify-center items-center rounded-lg hover:bg-blue-900 transition",
-                                        pathname === link.href ? "bg-blue-900 font-bold" : "font-normal"
+                                        pathname === link.href
+                                            ? "bg-blue-900 font-bold"
+                                            : "font-normal",
                                     )}
                                 >
-                                    <Link href={link.href} className="w-full text-center">{link.name}</Link>
+                                    <Link href={link.href} className="w-full text-center">
+                                        {link.name}
+                                    </Link>
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         ))}
