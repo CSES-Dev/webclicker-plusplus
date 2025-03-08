@@ -102,7 +102,6 @@ model Question {
   position  Int           @default(0)
   options   Option[]
   session   CourseSession @relation(fields: [sessionId], references: [id])
-  position Int  @default(0)
   responses Response[]
 }
 
