@@ -1,9 +1,8 @@
 "use server";
-import { CourseSession, Question, QuestionType } from "@prisma/client";
+import { Question, QuestionType } from "@prisma/client";
+import { findActiveCourseSessions } from "./courseSession";
 import { questionTypes } from "@/lib/constants";
 import prisma from "@/lib/prisma";
-import { findActiveCourseSessions } from "./courseSession";
-import { FindActiveCourseSessionsResult } from "./courseSession";
 
 export async function addQuestionWithOptions(
     sessionId: number,
@@ -39,9 +38,9 @@ export async function addQuestionWithOptions(
     }
 }
 
-export type FindQuestionsByCourseSessionResult = 
-    (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[] 
-    | { error: string } 
+export type FindQuestionsByCourseSessionResult =
+    | (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[]
+    | { error: string }
     | null;
 
 export async function findQuestionsByCourseSession(
@@ -62,7 +61,7 @@ export async function findQuestionsByCourseSession(
                         options: true,
                     },
                 });
-            })
+            }),
         );
 
         return questions.flat();

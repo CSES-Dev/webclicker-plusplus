@@ -1,13 +1,13 @@
 "use client";
 
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { AddQuestionForm } from "@/components/AddQuestionForm";
-import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { getCourseWithId } from "@/services/course";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function Page() {
     const params = useParams();
@@ -21,7 +21,6 @@ export default function Page() {
         if (isAccessLoading) {
             return;
         }
-        console.log(hasAccess, isAccessLoading)
         if (!isAccessLoading && !hasAccess) {
             toast({ variant: "destructive", description: "Access denied!" });
             router.push("/dashboard");
@@ -38,9 +37,7 @@ export default function Page() {
         void getCourseName();
     }, [courseId, hasAccess, isAccessLoading]);
 
-    useEffect(() => {}, [courseId]);
-
-    if (isAccessLoading) {
+    if (isAccessLoading || !hasAccess) {
         return <GlobalLoadingSpinner />;
     }
 

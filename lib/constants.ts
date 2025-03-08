@@ -12,6 +12,6 @@ export const dayLabels: Record<(typeof daysOptions)[number], string> = {
 };
 
 export const questionTypeMap = {
-    "MSQ" : "Short Answer",
-    "MCQ" : "Multiple Choice"
-}
+    MSQ: "Short Answer",
+    MCQ: "Multiple Choice",
+};
