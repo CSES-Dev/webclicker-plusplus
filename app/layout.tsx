@@ -9,6 +9,9 @@ import { Providers } from "./providers";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/ui/app-sidebar";
+
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
     variable: "--font-geist-sans",
@@ -38,7 +41,15 @@ export default function RootLayout({
                 <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
                     <Providers>
                         <AuthGuard>
-                            <main>{children}</main>
+                            <SidebarProvider>
+                                <div className="flex h-screen w-screen">
+                                    {/* Sidebar */}
+                                    <AppSidebar />
+                                    <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
+                                        {children}
+                                    </main>
+                                </div>
+                            </SidebarProvider>
                         </AuthGuard>
                     </Providers>
                     <Toaster />
