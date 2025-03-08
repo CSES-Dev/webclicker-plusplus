@@ -39,7 +39,7 @@ export default function Page() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen px-6">
+        <div className="flex flex-col items-center justify-start min-h-screen px-6 mt-10">
             {!course ? (
                 <form
                     onSubmit={(e) => {
@@ -48,19 +48,19 @@ export default function Page() {
                     }}
                     className="flex flex-col justify-center items-center gap-6 pt-32 w-full max-w-md"
                 >
-                    <h1 className="text-[35px] leading-[42px] font-normal text-black text-center">
+                    <h1 className="text-[30px] leading-[42px] font-normal text-black text-center">
                         Enter Classroom Code:
                     </h1>
                     <input
                         type="text"
-                        className="h-[43px] w-[167px] px-5 bg-[#F2F5FF] text-black rounded-[10px] border border-gray-300 text-lg mt-2"
+                        className="h-[50px] w-[300px] px-4 bg-[#F2F5FF] text-black rounded-[10px] border border-gray-300 text-lg"
                         {...register("code")}
                     />
                     {error && <p className="text-red-700 mt-2 text-center">{error}</p>}
                     <button
                         type="submit"
                         disabled={!code}
-                        className="py-3 w-[225px] h-[56px] bg-[#18328D] disabled:bg-[#CFDAFF] text-white rounded-lg text-[20px] font-medium transition duration-200 ease-in-out hover:bg-[#10236A] disabled:cursor-not-allowed"
+                        className="py-2 px-6 bg-[#CFDAFF] text-[#18328D] rounded-lg text-[16px] font-medium transition duration-200 ease-in-out hover:bg-[#18328D] hover:text-white disabled:cursor-not-allowed disabled:bg-[#E0E7FF]"
                     >
                         Enter
                     </button>
