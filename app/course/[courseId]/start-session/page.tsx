@@ -51,7 +51,8 @@ export default function StartSession() {
                 }
             } else {
                 toast({ description: "No session found" });
-                router.push(`/course/${courseId}/dashboard`);
+            // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
+                router.push(`/course/${courseId}/dashboard`); 
             }
         }
         void fetchSessionData();
@@ -157,7 +158,7 @@ export default function StartSession() {
         setIsEndingSession(true);
         try {
             await endCourseSession(courseSession.id);
-            // Once the session is ended, navigate away
+            // Once the session is ended, navigate away - subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
             router.push(`/course/${courseId}/dashboard`);
         } catch (error) {
             toast({ variant: "destructive", description: "Failed to end session" });

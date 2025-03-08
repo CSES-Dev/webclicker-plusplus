@@ -43,8 +43,7 @@ export default function Page() {
                     // only add question if poll has not started
                     await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
                 }
-                //router.push("/start-session");
-                router.push(`/course/${courseId}/start-session`);
+                router.push(`/course/${courseId}/start-session`); 
             })
             .catch(() => {
                 setIsLoading(false);
