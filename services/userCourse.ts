@@ -46,3 +46,17 @@ export async function getUserCourses(userId: string) {
         role,
     }));
 }
+
+export async function validateUser(userId: string, courseId: number, role: Role): Promise<boolean> {
+    const userCourse = await prisma.userCourse.findFirst({
+        where: {
+            userId,
+            courseId,
+            role,
+        },
+    });
+    if (userCourse) {
+        return true;
+    }
+    return false;
+}

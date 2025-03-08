@@ -4,37 +4,42 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-
+import BackButton from "@/components/ui/backButton";
+import { useToast } from "@/hooks/use-toast";
 import { getCourseWithCode } from "@/services/course";
 import { addUserToCourse } from "@/services/userCourse";
 
 export default function Page() {
     const session = useSession();
-    const { register, handleSubmit, watch } = useForm<{ code: string }>();
+    const { register, handleSubmit, watch } = useForm<{
+        code: string;
+    }>();
+    const { toast } = useToast();
 
     const code = watch("code");
     const [course, setCourse] = useState<string>();
-    const [error, setError] = useState<string>();
 
     const user = session?.data?.user ?? { id: "", firstName: "" };
 
     const onFormSubmit = async () => {
         try {
             if (!code) {
-                setError("Invalid code");
+                toast({ variant: "destructive", description: "Invalid code" });
             } else {
+                console.log(code);
                 const courseInfo = await getCourseWithCode(code);
                 if (!courseInfo) {
-                    setError("Invalid code");
+                    toast({ variant: "destructive", description: "Invalid code" });
+
                     return;
                 }
                 const res = await addUserToCourse(courseInfo.id, user.id);
-                if (res?.error) setError(res.error);
+                if (res?.error) toast({ variant: "destructive", description: res?.error });
                 else setCourse(courseInfo.title);
             }
         } catch (err) {
             console.error("Error adding user to the course", err);
-            setError("Something went wrong");
+            toast({ variant: "destructive", description: "Something went wrong" });
         }
     };
 
@@ -56,7 +61,7 @@ export default function Page() {
                         className="h-[50px] w-[300px] px-4 bg-[#F2F5FF] text-black rounded-[10px] border border-gray-300 text-lg"
                         {...register("code")}
                     />
-                    {error && <p className="text-red-700 mt-2 text-center">{error}</p>}
+
                     <button
                         type="submit"
                         disabled={!code}

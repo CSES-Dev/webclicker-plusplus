@@ -60,6 +60,7 @@ export default function Page() {
                                 timeEnd={course.schedules?.[0]?.endTime ?? ""}
                                 code={course.code ?? ""}
                                 role={course.role ?? "STUDENT"}
+                                id={course.id}
                             />
                         </div>
                     ))}

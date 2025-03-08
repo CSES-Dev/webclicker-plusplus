@@ -1,7 +1,7 @@
 "use client";
 
-import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { useSession } from "next-auth/react";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const { status } = useSession();
