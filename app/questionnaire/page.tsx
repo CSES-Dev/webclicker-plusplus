@@ -1,16 +1,16 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import SlidingCalendar from "../../components/ui/SlidingCalendar";
-import { getCourseWithId } from "@/services/course";
 import { AddQuestionForm } from "@/components/AddQuestionForm";
-import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { getCourseWithId } from "@/services/course";
 import { getUserCourses } from "@/services/userCourse";
 
 export default function Page() {
     const searchParams = useSearchParams();
-    const courseId = parseInt(searchParams.get("courseId") || "0");
+    const courseId = parseInt(searchParams.get("courseId") ?? "0");
     const [courseName, setCourseName] = useState<string>();
     const { data: session } = useSession();
     const router = useRouter();
@@ -28,7 +28,7 @@ export default function Page() {
                 }
             }
         };
-        checkUserRole();
+        void checkUserRole();
     }, [session, courseId, router]);
 
     useEffect(() => {
