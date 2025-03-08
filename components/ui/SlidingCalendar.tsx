@@ -139,7 +139,7 @@ function SlidingCalendar({ courseId }: Props) {
                     })}
                 </div>
                 {questions && questions.length > 0 ? (
-                    <div className="mt-4 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 w-full justify-items-center">
+                    <div className="mt-4 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 w-full justify-items-center">
                         {questions.map((question) => (
                             <div
                                 key={question.id}
