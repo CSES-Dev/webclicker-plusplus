@@ -1,8 +1,8 @@
 "use client";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "@/components/ui/backButton";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Name() {
     const [selectedRole, setSelectedRole] = useState<string | null>(null);
@@ -31,15 +31,9 @@ export default function Name() {
     };
 
     return (
-        <main className="min-h-screen bg-gray-50">
+        <main className="min-h-screen bg-gray-50 p-4">
             {/* Content section */}
-            <button
-                onClick={handleBack}
-                className="absolute top-8 left-8 flex items-center gap-2  outline outline-1 text-white bg-custom-background hover:bg-white hover:text-[#0029BD] outline-[#0029BD] transition-all p-2 rounded-lg px-4"
-            >
-                <ArrowLeft className="w-5 h-5" />
-                <span className="text-lg">Back</span>
-            </button>
+            <BackButton onClick={handleBack} />
             <section className="flex justify-center pt-20">
                 <div className="flex flex-col space-y-8 content-center justify-center gap-1">
                     {/* Heading */}
