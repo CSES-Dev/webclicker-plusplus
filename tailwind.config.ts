@@ -28,6 +28,7 @@ export default {
                 },
                 secondary: {
                     DEFAULT: "hsl(var(--secondary))",
+                    "custom-light-blue": "hsl(var(--secondary))",
                     foreground: "hsl(var(--secondary-foreground))",
                 },
                 muted: {

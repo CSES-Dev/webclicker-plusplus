@@ -10,8 +10,9 @@ export async function getOrCreateCourseSession(
 ): Promise<GetOrCreateCourseSessionResult> {
     try {
         const courseSession = await prisma.courseSession.findFirst({
-            where: { courseId, startTime: start },
+            where: { courseId, startTime: start, endTime: null },
         });
+
         if (courseSession) return courseSession;
 
         return await prisma.courseSession.create({
