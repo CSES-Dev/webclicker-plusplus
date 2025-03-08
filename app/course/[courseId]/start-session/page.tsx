@@ -1,7 +1,7 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { ChartData } from "@/models/Chart";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
+import { endCourseSession } from "@/services/courseSession";
 import {
     getCourseSessionByDate,
     getQuestionById,
@@ -30,19 +31,19 @@ import {
 export default function StartSession() {
     const params = useParams();
     const router = useRouter();
-    const courseId = parseInt(params["courseId"] as string);
+    const courseId = parseInt(params.courseId as string);
     const { toast } = useToast();
     const [date] = useState(new Date());
     const utcDate = date.toISOString();
     const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
-
+    const [isEndingSession, setIsEndingSession] = useState(false);
 
     useEffect(() => {
         async function fetchSessionData() {
             const session = await getCourseSessionByDate(courseId, utcDate);
-            console.log(session)
+            console.log(session);
             if (session) {
                 setCourseSession({ id: session.id, activeQuestionId: session.activeQuestionId });
                 if (session.activeQuestionId !== null) {
@@ -143,17 +144,28 @@ export default function StartSession() {
             } catch (error: unknown) {
                 toast({ variant: "destructive", description: "Failed to add question" });
                 console.error(error);
-            }
-            finally {
+            } finally {
                 setIsAddingQuestion(false); // re-enable the button
             }
         },
         [activeQuestionId, courseSession, questions, refetchQuestions, toast],
     );
 
-    const handleEndPoll = useCallback(() => {
-        router.push(`/course/${courseId}/dashboard`);
-    }, [router, courseId]);
+    const handleEndPoll = useCallback(async () => {
+        if (!courseSession) return;
+
+        setIsEndingSession(true);
+        try {
+            await endCourseSession(courseSession.id);
+            // Once the session is ended, navigate away
+            router.push(`/course/${courseId}/dashboard`);
+        } catch (error) {
+            toast({ variant: "destructive", description: "Failed to end session" });
+            console.error(error);
+        } finally {
+            setIsEndingSession(false);
+        }
+    }, [courseSession, courseId, router, toast]);
 
     const chartConfig: ChartConfig = {
         Votes: {
@@ -241,9 +253,16 @@ export default function StartSession() {
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
                 />
                 {isLastQuestion ? (
-                    <Button onClick={handleEndPoll} disabled={isAddingQuestion}>End Poll</Button>
+                    <Button
+                        onClick={() => void handleEndPoll()}
+                        disabled={isEndingSession || isAddingQuestion}
+                    >
+                        End Poll
+                    </Button>
                 ) : (
-                    <Button onClick={() => void handleNextQuestion()} disabled={isAddingQuestion}>Next Question &gt;</Button>
+                    <Button onClick={() => void handleNextQuestion()} disabled={isAddingQuestion}>
+                        Next Question &gt;
+                    </Button>
                 )}
             </div>
         </div>

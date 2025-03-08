@@ -13,7 +13,7 @@ import { getCourseSessionByDate } from "@/services/session";
 export default function CourseDetails() {
     const router = useRouter();
     const params = useParams();
-    const courseId = parseInt(params["courseId"] as string);
+    const courseId = parseInt(params.courseId as string);
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "STUDENT" });
 
     const { toast } = useToast();

@@ -19,9 +19,9 @@ import { addWildcardQuestion } from "@/lib/server-utils";
 import { createCourseSession } from "@/services/courseSession";
 import { getCourseSessionByDate } from "@/services/session";
 
-export default function Page(/*{ courseId }: { courseId: number }*/) {
+export default function Page() {
     const params = useParams();
-    const courseId = parseInt(params["courseId"] as string);
+    const courseId = parseInt(params.courseId as string);
     const router = useRouter();
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +45,6 @@ export default function Page(/*{ courseId }: { courseId: number }*/) {
                 }
                 //router.push("/start-session");
                 router.push(`/course/${courseId}/start-session`);
-
             })
             .catch(() => {
                 setIsLoading(false);
@@ -92,7 +91,6 @@ export default function Page(/*{ courseId }: { courseId: number }*/) {
                         onClick={() => {
                             // router.push("/start-session");
                             router.push(`/course/${courseId}/start-session`);
-                            
                         }}
                         disabled={isLoading}
                         className="h-12  disabled:bg-slate-400 rounded-lg"

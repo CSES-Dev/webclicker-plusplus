@@ -39,7 +39,8 @@ export async function createCourseSession(courseId: number) {
             },
         });
         return newSession;
-    } catch (error) {
+    } catch (err) {
+        console.error(err);
         throw new Error("Failed to create course session");
     }
 }
