@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
+import { LetteredYAxisTick } from "@/components/YAxisTick";
 import BackButton from "@/components/ui/backButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,8 +52,8 @@ export default function StartSession() {
                 }
             } else {
                 toast({ description: "No session found" });
-            // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
-                router.push(`/course/${courseId}/dashboard`); 
+                // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
+                router.push(`/course/${courseId}/dashboard`);
             }
         }
         void fetchSessionData();
@@ -69,7 +70,7 @@ export default function StartSession() {
             if (!courseSession) return Promise.resolve([]);
             return getQuestionsForSession(courseSession.id);
         },
-        { enabled: !!courseSession, refetchInterval: 2000 },
+        { enabled: !!courseSession },
     );
 
     // scenario when questions load and no active question is set, we will default to the first question
@@ -204,13 +205,20 @@ export default function StartSession() {
                     <CardContent>
                         <ChartContainer config={chartConfig} className="w-full text-base md:text-l">
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={chartData} layout="vertical" barCategoryGap={20}>
+                                <BarChart
+                                    data={chartData}
+                                    layout="vertical"
+                                    barCategoryGap={20}
+                                    margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
+                                >
                                     <XAxis type="number" domain={[0, totalVotes]} hide />
                                     <YAxis
                                         dataKey="option"
                                         type="category"
+                                        tick={<LetteredYAxisTick />}
                                         tickLine={false}
                                         axisLine={false}
+                                        tickMargin={8}
                                         style={{ fill: "#000" }}
                                     />
                                     <ChartTooltip
