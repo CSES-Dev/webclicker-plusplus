@@ -7,6 +7,11 @@ export async function getCourseSessionByDate(
     date: string,
 ): Promise<CourseSession | null> {
     const dateString = date.split("T")[0]; // Extract the date part in 'YYYY-MM-DD' format
+
+    // Find a session that:
+    // 1. Belongs to the specified course
+    // 2. Started on the day
+    // 3. Has no end time (still active)
     return prisma.courseSession.findFirst({
         where: {
             courseId,

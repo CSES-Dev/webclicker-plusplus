@@ -8,7 +8,7 @@ import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import Header from "@/components/ui/header";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
-import { findActiveCourseSession } from "@/services/findCourseSession";
+import { getCourseSessionByDate } from "@/services/session";
 
 export default function CourseDetails() {
     const router = useRouter();
@@ -30,7 +30,7 @@ export default function CourseDetails() {
             return;
         }
 
-        await findActiveCourseSession(courseId)
+        await getCourseSessionByDate(courseId, new Date().toISOString())
             .then((res) => {
                 if (res?.id) {
                     setCourseSession(res);

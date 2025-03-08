@@ -27,3 +27,43 @@ export async function getOrCreateCourseSession(
         return { error: "Error finding or creating course session." };
     }
 }
+
+/**
+ * Creates a new course session
+ */
+export async function createCourseSession(courseId: number) {
+    try {
+        const newSession = await prisma.courseSession.create({
+            data: {
+                courseId,
+                startTime: new Date(),
+            },
+        });
+
+        return newSession;
+    } catch (error) {
+        console.error("Error creating new course session:", error);
+        throw new Error("Failed to create course session");
+    }
+}
+
+/**
+ * Ends an active course session
+ */
+export async function endCourseSession(sessionId: number) {
+    try {
+        const endedSession = await prisma.courseSession.update({
+            where: {
+                id: sessionId,
+            },
+            data: {
+                endTime: new Date(),
+            },
+        });
+
+        return endedSession;
+    } catch (error) {
+        console.error("Error ending course session:", error);
+        throw new Error("Failed to end course session");
+    }
+}
