@@ -62,9 +62,9 @@ export async function findQuestionsByCourseSession(
 ): Promise<FindQuestionsByCourseSessionResult> {
     try {
         const activeSessions = await findActiveCourseSessions(courseId, start);
-        return activeSessions.reduce(
+        return activeSessions.reduce<(Question & { options: Option[] })[]>(
             (prev, curr) => [...prev, ...curr.questions],
-            [] as (Question & { options: Option[] })[],
+            [],
         );
     } catch (err) {
         console.error(err);

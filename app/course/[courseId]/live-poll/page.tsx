@@ -8,8 +8,8 @@ import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import Header from "@/components/ui/header";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
-import { getCourseSessionByDate } from "@/services/session";
 import { formatDateToISO } from "@/lib/utils";
+import { getCourseSessionByDate } from "@/services/session";
 
 export default function CourseDetails() {
     const router = useRouter();
@@ -31,10 +31,7 @@ export default function CourseDetails() {
             return;
         }
 
-        await getCourseSessionByDate(
-            courseId,
-            formatDateToISO(new Date()),
-        )
+        await getCourseSessionByDate(courseId, formatDateToISO(new Date()))
             .then((res) => {
                 if (res?.id) {
                     setCourseSession(res);

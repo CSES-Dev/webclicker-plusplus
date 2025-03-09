@@ -20,6 +20,7 @@ import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
+import { formatDateToISO } from "@/lib/utils";
 import { ChartData } from "@/models/Chart";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession } from "@/services/courseSession";
@@ -28,7 +29,6 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
-import { formatDateToISO } from "@/lib/utils";
 
 export default function StartSession() {
     const params = useParams();
@@ -204,7 +204,10 @@ export default function StartSession() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={chartConfig} className="w-full text-base md:text-lg">
+                        <ChartContainer
+                            config={chartConfig}
+                            className="w-full text-base md:text-lg"
+                        >
                             <ResponsiveContainer width="100%" height={300}>
                                 <BarChart
                                     data={chartData}

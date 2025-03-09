@@ -1,23 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AddInstructorForm } from "@/components/AddInstuctorForm";
 import { AddQuestionForm } from "@/components/AddQuestionForm";
+import BeginPollDialog from "@/components/BeginPollDialog";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
+import { Button } from "@/components/ui/button";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
-import { getCourseWithId } from "@/services/course";
-import BeginPollDialog from "@/components/BeginPollDialog";
-import { getCourseSessionByDate } from "@/services/session";
 import { formatDateToISO } from "@/lib/utils";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { getCourseWithId } from "@/services/course";
+import { getCourseSessionByDate } from "@/services/session";
 
 export default function Page() {
     const params = useParams();
-    const courseId = parseInt((params["courseId"] as string) ?? "0");
+    const courseId = parseInt((params.courseId as string) ?? "0");
     const [courseInfo, setCourseInfo] = useState<{ name: string; code: string }>();
     const [activeSession, setActiveSession] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
