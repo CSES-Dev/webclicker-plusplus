@@ -139,7 +139,7 @@ function SlidingCalendar({ courseId }: Props) {
                     })}
                 </div>
                 {questions && questions.length > 0 ? (
-                    <div className="mt-4 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 w-full justify-items-center">
+                    <div className="mt-4 h-full overflow-y-auto grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 w-full justify-items-center">
                         {questions.map((question) => (
                             <div
                                 key={question.id}
@@ -195,9 +195,9 @@ function SlidingCalendar({ courseId }: Props) {
                                                         </div>
                                                     </section>
                                                     <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
-                                                        <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
+                                                        {/* <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
                                                             Edit Question <Pencil />
-                                                        </button>
+                                                        </button> */}
                                                         <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
                                                         </DialogClose>

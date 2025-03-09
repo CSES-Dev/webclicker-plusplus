@@ -29,23 +29,22 @@ export async function getOrCreateCourseSession(
 
 export type FindActiveCourseSessionsResult = CourseSession[] | { error: string } | null;
 
-export async function findActiveCourseSessions(
-    courseId: number,
-    start: Date,
-): Promise<FindActiveCourseSessionsResult> {
-    try {
-        return await prisma.courseSession.findMany({
-            where: {
-                courseId,
-                startTime: {
-                    gte: new Date(start.setHours(0, 0, 0, 0)),
-                    lt: new Date(start.setHours(23, 59, 59, 999)),
-                },
-                endTime: null,
+export async function findActiveCourseSessions(courseId: number, start: Date) {
+    return await prisma.courseSession.findMany({
+        where: {
+            courseId,
+            startTime: {
+                gte: new Date(start.setHours(0, 0, 0, 0)),
+                lt: new Date(start.setHours(23, 59, 59, 999)),
             },
-        });
-    } catch (err) {
-        console.error(err);
-        return { error: "Error finding course session." };
-    }
+            endTime: null,
+        },
+        include: {
+            questions: {
+                include: {
+                    options: true,
+                },
+            },
+        },
+    });
 }

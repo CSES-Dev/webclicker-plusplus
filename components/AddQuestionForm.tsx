@@ -329,7 +329,7 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col justify-center items-start">
                                                 <FormLabel className="text-left">
-                                                    Answer Choices:
+                                                    Other Choices:
                                                 </FormLabel>
                                                 <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsAnswerChoices.map(

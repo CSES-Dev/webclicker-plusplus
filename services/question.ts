@@ -1,5 +1,5 @@
 "use server";
-import { Question, QuestionType } from "@prisma/client";
+import { Option, Question, QuestionType } from "@prisma/client";
 import { findActiveCourseSessions } from "./courseSession";
 import { questionTypes } from "@/lib/constants";
 import prisma from "@/lib/prisma";
@@ -23,12 +23,18 @@ export async function addQuestionWithOptions(
                 text,
                 type: prismaQuestionTypes[type],
                 options: {
-                    create: answerChoices.map((option) => {
-                        return {
+                    create: [
+                        ...correctAnswers.map((option) => ({
                             text: option,
-                            isCorrect: correctAnswers.includes(option),
-                        };
-                    }),
+                            isCorrect: true,
+                        })),
+                        ...answerChoices.map((option) => {
+                            return {
+                                text: option,
+                                isCorrect: false,
+                            };
+                        }),
+                    ],
                 },
             },
         });
@@ -49,22 +55,10 @@ export async function findQuestionsByCourseSession(
 ): Promise<FindQuestionsByCourseSessionResult> {
     try {
         const activeSessions = await findActiveCourseSessions(courseId, start);
-        if (!activeSessions || "error" in activeSessions) {
-            return { error: "Cannot find active sessions" };
-        }
-
-        const questions = await Promise.all(
-            activeSessions.map(async (session) => {
-                return prisma.question.findMany({
-                    where: { sessionId: session.id },
-                    include: {
-                        options: true,
-                    },
-                });
-            }),
+        return activeSessions.reduce(
+            (prev, curr) => [...prev, ...curr.questions],
+            [] as (Question & { options: Option[] })[],
         );
-
-        return questions.flat();
     } catch (err) {
         console.error(err);
         return { error: "Error finding questions for course session" };
