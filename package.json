@@ -34,6 +34,8 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^3.6.0",
+        "dayjs": "^1.11.13",
+        "framer-motion": "^12.4.10",
         "lucide-react": "^0.464.0",
         "next": "^15.1.7",
         "next-auth": "^4.24.11",

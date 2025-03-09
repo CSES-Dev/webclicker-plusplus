@@ -45,7 +45,7 @@ export default function Page() {
                 </div>
 
                 {/* Grid layout with responsive column count */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 py-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 py-8">
                     {courses?.map((course, idx) => (
                         <div key={idx} className="flex justify-center">
                             <CourseCard
@@ -60,7 +60,7 @@ export default function Page() {
                                 timeEnd={course.schedules?.[0]?.endTime ?? ""}
                                 code={course.code ?? ""}
                                 role={course.role ?? "STUDENT"}
-                                id={course.id}
+                                id={course.id ?? ""}
                             />
                         </div>
                     ))}

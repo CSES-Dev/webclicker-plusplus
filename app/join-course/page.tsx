@@ -82,13 +82,13 @@ export default function Page() {
                         {course}
                     </h1>
                     <Link href="/dashboard">
-                        <button className="py-3 w-full max-w-md bg-[#18328D] text-white border border-[#18328D] rounded-lg text-lg font-medium transition duration-200 ease-in-out hover:bg-[#10236A]">
+                        <button className="py-3 w-56 max-w-md bg-[#18328D] text-white border border-[#18328D] rounded-lg text-base font-medium transition duration-200 ease-in-out hover:bg-[#10236A]">
                             Continue
                         </button>
                     </Link>
-                    <button className="py-3 w-full max-w-md bg-white text-[#18328D] border border-[#18328D] rounded-lg text-lg font-medium transition duration-200 ease-in-out hover:bg-gray-100">
+                    {/* <button className="py-3 w-56 max-w-md bg-white text-[#18328D] border border-[#18328D] rounded-lg text-base font-medium transition duration-200 ease-in-out hover:bg-gray-100">
                         Send email confirmation
-                    </button>
+                    </button> */}
                 </div>
             )}
         </div>

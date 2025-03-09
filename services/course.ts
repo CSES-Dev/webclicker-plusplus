@@ -33,9 +33,14 @@ export async function getCourseWithId(courseId: number) {
         },
     });
 
+    if (!course || !schedule) {
+        throw new Error("Course not found");
+    }
+
     return {
         color: course?.color,
         title: course?.title,
+        code: course?.code,
         days: schedule?.dayOfWeek,
         startTime: schedule?.startTime,
         endTime: schedule?.endTime,

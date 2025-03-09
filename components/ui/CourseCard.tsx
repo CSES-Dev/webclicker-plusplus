@@ -12,6 +12,7 @@ export type Props = {
     role: Role;
     id: number;
 };
+
 export default function CourseCard({
     color,
     days,
@@ -25,7 +26,9 @@ export default function CourseCard({
     const router = useRouter();
 
     const handleCardClick = () => {
-        if (role === "STUDENT") {
+        if (role === "LECTURER") {
+            router.push(`/course/${id}/questionnaire`);
+        } else if (role === "STUDENT") {
             router.push(`/course/${id}/live-poll`);
         }
     };
@@ -38,7 +41,6 @@ export default function CourseCard({
                 className="md:hidden flex flex-col w-80 h-40 border border-black rounded-xl shadow-lg"
             >
                 <div style={{ backgroundColor: color }} className={`mt-4 h-4 w-full`}></div>
-
                 <div className="min-h-[60%] py-3 px-6 flex flex-col gap-2 items-start justify-start">
                     <p className={"text-xs text-[#18328D]"}>
                         Time: {timeStart} - {timeEnd}
