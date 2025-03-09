@@ -60,3 +60,39 @@ export async function validateUser(userId: string, courseId: number, role: Role)
     }
     return false;
 }
+
+export async function getInstructorsForCourse(courseId: number) {
+    return await prisma.userCourse.findMany({
+        where: { courseId, role: "LECTURER" },
+        select: {
+            user: true,
+        },
+    });
+}
+
+export async function addUserToCourseByEmail(
+    courseId: number,
+    email: string,
+    role: Role = "LECTURER",
+) {
+    const existingUser = await prisma.userCourse.findFirst({
+        where: {
+            user: {
+                email,
+            },
+            courseId,
+        },
+    });
+    if (!existingUser) {
+        const user = await prisma.user.findFirstOrThrow({ where: { email } });
+        await prisma.userCourse.create({
+            data: {
+                userId: user.id,
+                courseId,
+                role,
+            },
+        });
+    } else {
+        return { error: "User is already enrolled in this course" };
+    }
+}

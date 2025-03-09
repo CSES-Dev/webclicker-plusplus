@@ -44,8 +44,8 @@ export default function Page() {
     };
 
     return (
-        <div className="flex px-4 py-4 flex-col">
-            <div>
+        <div className="flex flex-col items-center justify-start min-h-screen px-6 mt-10">
+            <div className="self-start">
                 <BackButton href="/dashboard" />
             </div>
             {!course ? (
@@ -54,38 +54,41 @@ export default function Page() {
                         e.preventDefault();
                         void handleSubmit(() => onFormSubmit())();
                     }}
-                    className="flex flex-col justify-center items-center gap-6 pt-72"
+                    className="flex flex-col justify-center items-center gap-6 pt-32 w-full max-w-md"
                 >
-                    <h1 className="text-3xl mb-5">Enter Classroom Code:</h1>
-                    <div className="mb-8">
-                        <input
-                            type="text"
-                            className="h-[3.5rem] w-80 px-5 bg-[#F2F5FF] text-black rounded-[10px]"
-                            {...register("code")}
-                        ></input>
-                    </div>
+                    <h1 className="text-[30px] leading-[42px] font-normal text-black text-center">
+                        Enter Classroom Code:
+                    </h1>
+                    <input
+                        type="text"
+                        className="h-[50px] w-[300px] px-4 bg-[#F2F5FF] text-black rounded-[10px] border border-gray-300 text-lg"
+                        {...register("code")}
+                    />
+
                     <button
                         type="submit"
-                        disabled={code ? false : true}
-                        className="py-3 px-12 bg-[#18328D] disabled:bg-[#CFDAFF] text-white rounded-lg"
+                        disabled={!code}
+                        className="py-2 px-6 bg-[#CFDAFF] text-[#18328D] rounded-lg text-[16px] font-medium transition duration-200 ease-in-out hover:bg-[#18328D] hover:text-white disabled:cursor-not-allowed disabled:bg-[#E0E7FF]"
                     >
                         Enter
                     </button>
                 </form>
             ) : (
-                <div className="flex flex-col justify-center items-center gap-9 pt-44">
-                    <h1 className="text-3xl text-center">
-                        You have been <br /> successfully added to:
+                <div className="flex flex-col justify-center items-center gap-9 pt-32 w-full max-w-md">
+                    <h1 className="text-[35px] leading-[42px] font-normal text-black text-center">
+                        You have been successfully added to:
                     </h1>
-                    <h1 className="text-3xl pb-16">{course}</h1>
+                    <h1 className="text-[35px] leading-[42px] font-semibold text-primary text-center">
+                        {course}
+                    </h1>
                     <Link href="/dashboard">
-                        <button className="py-2 w-72 px-6 bg-[#18328D] text-white border border-[#18328D] rounded-lg text-center mx-auto block">
+                        <button className="py-3 w-56 max-w-md bg-[#18328D] text-white border border-[#18328D] rounded-lg text-base font-medium transition duration-200 ease-in-out hover:bg-[#10236A]">
                             Continue
                         </button>
                     </Link>
-                    <button className="py-2 w-72 bg-white text-[#18328D] border border-[#18328D] rounded-lg">
+                    {/* <button className="py-3 w-56 max-w-md bg-white text-[#18328D] border border-[#18328D] rounded-lg text-base font-medium transition duration-200 ease-in-out hover:bg-gray-100">
                         Send email confirmation
-                    </button>
+                    </button> */}
                 </div>
             )}
         </div>

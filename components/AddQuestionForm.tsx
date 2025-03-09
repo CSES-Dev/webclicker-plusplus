@@ -54,7 +54,12 @@ const schema = z.object({
         .min(1, "Add at least one answer choice"),
 });
 
-export default function Page() {
+interface Props {
+    courseId: number;
+    location: "page" | "calendar";
+}
+
+export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) => {
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
@@ -96,7 +101,6 @@ export default function Page() {
         if (Object.keys(form.formState.isValid)?.length) return;
 
         const { question, selectedQuestionType, date, correctAnswers, answerChoices } = values;
-        const courseId = 49; //get courseId based on course page
         let courseSessionId: number;
 
         async function getCourseSessionInfo() {
@@ -161,12 +165,20 @@ export default function Page() {
     return (
         <Sheet open={isOpen}>
             <SheetTrigger
+                asChild
                 onClick={() => {
                     setIsOpen(true);
                 }}
-                className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg"
             >
-                Add Question
+                {location === "page" ? (
+                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
+                        Add Question +
+                    </button>
+                ) : (
+                    <button className="hover:underline text-[#18328D] text-2xl font-normal">
+                        Add Question?
+                    </button>
+                )}
             </SheetTrigger>
             <SheetContent className="h-full top-0 right-0 left-auto sm:w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <SheetClose
@@ -317,7 +329,7 @@ export default function Page() {
                                         render={({ field }) => (
                                             <FormItem className="flex flex-col justify-center items-start">
                                                 <FormLabel className="text-left">
-                                                    Answer Choices:
+                                                    Other Choices:
                                                 </FormLabel>
                                                 <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsAnswerChoices.map(
@@ -359,11 +371,11 @@ export default function Page() {
                     </SheetHeader>
                     <SheetFooter className="flex justify-items-end px-16 py-4">
                         <SheetClose
-                            onClick={() => {
+                            onClick={() =>
                                 void form.handleSubmit(submit, (err) => {
                                     console.error(err);
-                                })();
-                            }}
+                                })()
+                            }
                             disabled={loading}
                             className="w-40 h-12 bg-[hsl(var(--primary))] disabled:bg-slate-400 text-white rounded-lg"
                         >
@@ -374,4 +386,4 @@ export default function Page() {
             </SheetContent>
         </Sheet>
     );
-}
+};

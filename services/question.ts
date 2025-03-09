@@ -1,5 +1,6 @@
 "use server";
-import { QuestionType } from "@prisma/client";
+import { Option, Question, QuestionType } from "@prisma/client";
+import { findActiveCourseSessions } from "./courseSession";
 import { questionTypes } from "@/lib/constants";
 import prisma from "@/lib/prisma";
 
@@ -29,17 +30,44 @@ export async function addQuestionWithOptions(
                 type: prismaQuestionTypes[type],
                 position: newPosition,
                 options: {
-                    create: answerChoices.map((option) => {
-                        return {
+                    create: [
+                        ...correctAnswers.map((option) => ({
                             text: option,
-                            isCorrect: correctAnswers.includes(option),
-                        };
-                    }),
+                            isCorrect: true,
+                        })),
+                        ...answerChoices.map((option) => {
+                            return {
+                                text: option,
+                                isCorrect: false,
+                            };
+                        }),
+                    ],
                 },
             },
         });
     } catch (err) {
         console.error(err);
         return { error: "Error creating question." };
+    }
+}
+
+export type FindQuestionsByCourseSessionResult =
+    | (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[]
+    | { error: string }
+    | null;
+
+export async function findQuestionsByCourseSession(
+    courseId: number,
+    start: Date,
+): Promise<FindQuestionsByCourseSessionResult> {
+    try {
+        const activeSessions = await findActiveCourseSessions(courseId, start);
+        return activeSessions.reduce(
+            (prev, curr) => [...prev, ...curr.questions],
+            [] as (Question & { options: Option[] })[],
+        );
+    } catch (err) {
+        console.error(err);
+        return { error: "Error finding questions for course session" };
     }
 }
