@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import LivePoll from "@/components/LivePoll";
 import BackButton from "@/components/ui/backButton";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
-import Header from "@/components/ui/header";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";

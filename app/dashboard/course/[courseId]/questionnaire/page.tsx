@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
 import { getCourseWithId } from "@/services/course";
 import { getCourseSessionByDate } from "@/services/session";
-import BackButton from "@/components/ui/backButton";
 
 export default function Page() {
     const params = useParams();
