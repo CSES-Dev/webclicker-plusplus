@@ -35,7 +35,7 @@ export default function StartSession() {
     const courseId = parseInt(params.courseId as string);
     const { toast } = useToast();
     const [date] = useState(new Date());
-    const utcDate = date.toISOString();
+    const utcDate = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
     const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
@@ -53,7 +53,7 @@ export default function StartSession() {
             } else {
                 toast({ description: "No session found" });
                 // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
-                router.push(`/course/${courseId}/dashboard`);
+                router.push(`/course/${courseId}/questionnaire`);
             }
         }
         void fetchSessionData();
@@ -203,7 +203,7 @@ export default function StartSession() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={chartConfig} className="w-full text-base md:text-l">
+                        <ChartContainer config={chartConfig} className="w-full text-base md:text-lg">
                             <ResponsiveContainer width="100%" height={300}>
                                 <BarChart
                                     data={chartData}

@@ -27,7 +27,7 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleAddWildCard = async (questionType: QuestionType) => {
-        getCourseSessionByDate(courseId, new Date().toISOString())
+        getCourseSessionByDate(courseId, new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
             .then(async (res) => {
                 let session = res;
                 if (!res) {

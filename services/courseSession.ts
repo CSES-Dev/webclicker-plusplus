@@ -35,7 +35,7 @@ export async function createCourseSession(courseId: number) {
         const newSession = await prisma.courseSession.create({
             data: {
                 courseId,
-                startTime: new Date(),
+                startTime: new Date(new Date().setHours(0, 0, 0, 0)),
             },
         });
         return newSession;

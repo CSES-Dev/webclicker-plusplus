@@ -30,7 +30,10 @@ export default function CourseDetails() {
             return;
         }
 
-        await getCourseSessionByDate(courseId, new Date().toISOString())
+        await getCourseSessionByDate(
+            courseId,
+            new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+        )
             .then((res) => {
                 if (res?.id) {
                     setCourseSession(res);

@@ -6,8 +6,6 @@ export async function getCourseSessionByDate(
     courseId: number,
     date: string,
 ): Promise<CourseSession | null> {
-    const dateString = date.split("T")[0]; // Extract the date part in 'YYYY-MM-DD' format
-
     // Find a session that:
     // 1. Belongs to the specified course
     // 2. Started on the day
@@ -15,10 +13,7 @@ export async function getCourseSessionByDate(
     return prisma.courseSession.findFirst({
         where: {
             courseId,
-            startTime: {
-                gte: new Date(dateString + "T00:00:00.000Z"),
-                lt: new Date(dateString + "T23:59:59.999Z"),
-            },
+            startTime: new Date(date),
             endTime: null,
         },
     });
