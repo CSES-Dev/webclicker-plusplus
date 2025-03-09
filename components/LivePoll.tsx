@@ -78,7 +78,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
 
             if (!questionResponse.ok) {
                 toast({ variant: "destructive", description: "Failed to fetch question" });
-                router.push(`/course/${courseId}`);
+                router.refresh();
                 return;
             }
 

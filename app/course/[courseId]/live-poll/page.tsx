@@ -9,6 +9,7 @@ import Header from "@/components/ui/header";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { getCourseSessionByDate } from "@/services/session";
+import { formatDateToISO } from "@/lib/utils";
 
 export default function CourseDetails() {
     const router = useRouter();
@@ -32,7 +33,7 @@ export default function CourseDetails() {
 
         await getCourseSessionByDate(
             courseId,
-            new Date(new Date().setHours(0, 0, 0, 0)).toISOString(),
+            formatDateToISO(new Date()),
         )
             .then((res) => {
                 if (res?.id) {

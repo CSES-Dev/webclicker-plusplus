@@ -21,3 +21,13 @@ export function cn(...inputs: ClassValue[]) {
 export function greetUser(name: string): string {
     return `Hello, ${name}! Welcome to our site.`;
 }
+
+/**
+ * A utility function that replaces date objects time to 00:00:00 and returns ISO String.
+ *
+ * @param date - The name to greet.
+ * @returns A greeting message.
+ */
+export function formatDateToISO(date: Date) {
+    return new Date(date.setHours(0, 0, 0, 0)).toISOString();
+}

@@ -28,6 +28,7 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
+import { formatDateToISO } from "@/lib/utils";
 
 export default function StartSession() {
     const params = useParams();
@@ -35,7 +36,7 @@ export default function StartSession() {
     const courseId = parseInt(params.courseId as string);
     const { toast } = useToast();
     const [date] = useState(new Date());
-    const utcDate = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+    const utcDate = formatDateToISO(new Date());
     const [courseSession, setCourseSession] = useState<CourseSessionData | null>(null);
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
@@ -160,7 +161,7 @@ export default function StartSession() {
         try {
             await endCourseSession(courseSession.id);
             // Once the session is ended, navigate away - subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
-            router.push(`/course/${courseId}/dashboard`);
+            router.push(`/course/${courseId}/questionnaire`);
         } catch (error) {
             toast({ variant: "destructive", description: "Failed to end session" });
             console.error(error);
@@ -186,8 +187,8 @@ export default function StartSession() {
     return (
         <div className="flex flex-col items-center p-4">
             {/* Top row with Back button and date */}
-            <div className="flex justify-between w-full mb-4">
-                <BackButton href={`/course/${courseId}/dashboard`} />
+            <div className="flex justify-between w-full mb-4 text-2xl">
+                <BackButton href={`/course/${courseId}/questionnaire`} />
                 {date.toDateString()}
             </div>
 

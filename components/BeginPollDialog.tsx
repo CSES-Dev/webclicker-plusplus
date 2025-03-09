@@ -18,8 +18,9 @@ import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { createCourseSession } from "@/services/courseSession";
 import { getCourseSessionByDate } from "@/services/session";
+import { formatDateToISO } from "@/lib/utils";
 
-export default function Page() {
+export default function BeginPollDialog() {
     const params = useParams();
     const courseId = parseInt(params.courseId as string);
     const router = useRouter();
@@ -27,35 +28,30 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleAddWildCard = async (questionType: QuestionType) => {
-        getCourseSessionByDate(courseId, new Date(new Date().setHours(0, 0, 0, 0)).toISOString())
-            .then(async (res) => {
-                let session = res;
-                if (!res) {
-                    session = await createCourseSession(courseId);
-                }
-                if (!session) {
-                    return toast({
-                        variant: "destructive",
-                        description: "Error creating session. Please try again",
-                    });
-                }
-                if (!session.activeQuestionId) {
-                    // only add question if poll has not started
-                    await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
-                }
-                router.push(`/course/${courseId}/start-session`);
-            })
-            .catch(() => {
-                setIsLoading(false);
+        try {
+            const session = await createCourseSession(courseId);
+            if (!session) {
                 return toast({
                     variant: "destructive",
-                    description: "Something happened. Please try again",
+                    description: "Error creating session. Please try again",
                 });
+            }
+            if (!session.activeQuestionId) {
+                // only add question if poll has not started
+                await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
+            }
+            router.push(`/course/${courseId}/start-session`);
+        } catch (err) {
+            setIsLoading(false);
+            return toast({
+                variant: "destructive",
+                description: "Something happened. Please try again",
             });
+        }
     };
     return (
         <Dialog>
-            <DialogTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white rounded-lg">
+            <DialogTrigger className="py-3 px-10 m-3 bg-[hsl(var(--primary))] text-white text-base sm:text-xl font-normal rounded-xl">
                 Begin Poll
             </DialogTrigger>
             <DialogContent className="w-[90%] md:w-[70%] rounded-xl">
