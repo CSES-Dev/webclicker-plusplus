@@ -25,7 +25,7 @@ export const AddInstructorForm = () => {
     const session = useSession();
     const { toast } = useToast();
 
-    const courseId = +(params["course-id"] as string);
+    const courseId = +(params.courseId as string);
 
     const [instructors, setInstructors] = useState<{ user: User }[]>([]);
     const [loading, setLoading] = useState(false);

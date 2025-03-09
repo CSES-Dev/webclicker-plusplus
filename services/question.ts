@@ -17,11 +17,18 @@ export async function addQuestionWithOptions(
     };
 
     try {
+        const lastQuestion = await prisma.question.findFirst({
+            where: { sessionId },
+            orderBy: { position: "desc" },
+        });
+        const newPosition = lastQuestion ? lastQuestion.position + 1 : 0;
+
         return await prisma.question.create({
             data: {
                 sessionId,
                 text,
                 type: prismaQuestionTypes[type],
+                position: newPosition,
                 options: {
                     create: [
                         ...correctAnswers.map((option) => ({
@@ -55,9 +62,9 @@ export async function findQuestionsByCourseSession(
 ): Promise<FindQuestionsByCourseSessionResult> {
     try {
         const activeSessions = await findActiveCourseSessions(courseId, start);
-        return activeSessions.reduce(
+        return activeSessions.reduce<(Question & { options: Option[] })[]>(
             (prev, curr) => [...prev, ...curr.questions],
-            [] as (Question & { options: Option[] })[],
+            [],
         );
     } catch (err) {
         console.error(err);

@@ -27,9 +27,9 @@ export default function CourseCard({
 
     const handleCardClick = () => {
         if (role === "LECTURER") {
-            router.push(`/course/${id}/questionnaire`);
+            router.push(`/dashboard/course/${id}/questionnaire`);
         } else if (role === "STUDENT") {
-            router.push(`/course/${id}/live-poll`);
+            router.push(`/dashboard/course/${id}/live-poll`);
         }
     };
 

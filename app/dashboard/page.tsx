@@ -71,7 +71,7 @@ export default function Page() {
                             <AddCourseForm />
                         ) : (
                             <Link
-                                href="/join-course"
+                                href="/dashboard/join-course"
                                 className="flex flex-col w-80 h-56 rounded-md shadow-lg border border-gray-300"
                             >
                                 <div className="bg-primary h-[40%] w-full rounded-t-md"></div>

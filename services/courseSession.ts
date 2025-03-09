@@ -27,6 +27,45 @@ export async function getOrCreateCourseSession(
     }
 }
 
+/**
+ * Creates a new course session
+ */
+export async function createCourseSession(courseId: number) {
+    try {
+        const newSession = await prisma.courseSession.create({
+            data: {
+                courseId,
+                startTime: new Date(new Date().setHours(0, 0, 0, 0)),
+            },
+        });
+        return newSession;
+    } catch (err) {
+        console.error(err);
+        throw new Error("Failed to create course session");
+    }
+}
+
+/**
+ * Ends an active course session
+ */
+export async function endCourseSession(sessionId: number) {
+    try {
+        const endedSession = await prisma.courseSession.update({
+            where: {
+                id: sessionId,
+            },
+            data: {
+                endTime: new Date(),
+            },
+        });
+
+        return endedSession;
+    } catch (error) {
+        console.error("Error ending course session:", error);
+        throw new Error("Failed to end course session");
+    }
+}
+
 export type FindActiveCourseSessionsResult = CourseSession[] | { error: string } | null;
 
 export async function findActiveCourseSessions(courseId: number, start: Date) {

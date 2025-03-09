@@ -5,15 +5,15 @@ import { useEffect, useState } from "react";
 import LivePoll from "@/components/LivePoll";
 import BackButton from "@/components/ui/backButton";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
-import Header from "@/components/ui/header";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
-import { findActiveCourseSession } from "@/services/findCourseSession";
+import { formatDateToISO } from "@/lib/utils";
+import { getCourseSessionByDate } from "@/services/session";
 
 export default function CourseDetails() {
     const router = useRouter();
     const params = useParams();
-    const courseId = parseInt(params["course-id"] as string);
+    const courseId = parseInt(params.courseId as string);
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "STUDENT" });
 
     const { toast } = useToast();
@@ -30,7 +30,7 @@ export default function CourseDetails() {
             return;
         }
 
-        await findActiveCourseSession(courseId)
+        await getCourseSessionByDate(courseId, formatDateToISO(new Date()))
             .then((res) => {
                 if (res?.id) {
                     setCourseSession(res);
@@ -63,7 +63,6 @@ export default function CourseDetails() {
 
     return !courseSession ? (
         <div className="flex flex-col h-full">
-            <Header />
             <div className="flex-1 flex flex-col">
                 <div className="p-4">
                     <BackButton href="/dashboard" />

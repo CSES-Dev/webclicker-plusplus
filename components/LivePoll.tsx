@@ -25,7 +25,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
     const router = useRouter();
     const { toast } = useToast();
 
-    const courseId = parseInt(params["course-id"] as string);
+    const courseId = parseInt(params.courseId as string);
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "STUDENT" });
 
     const [currentQuestion, setCurrentQuestion] = useState<QuestionWithOptions | null>(null);
@@ -78,7 +78,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
 
             if (!questionResponse.ok) {
                 toast({ variant: "destructive", description: "Failed to fetch question" });
-                router.push(`/course/${courseId}`);
+                router.refresh();
                 return;
             }
 
