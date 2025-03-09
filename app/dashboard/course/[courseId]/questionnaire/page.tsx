@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
 import { getCourseWithId } from "@/services/course";
 import { getCourseSessionByDate } from "@/services/session";
+import BackButton from "@/components/ui/backButton";
 
 export default function Page() {
     const params = useParams();
@@ -61,7 +62,7 @@ export default function Page() {
     }
 
     return (
-        <div className="w-4/5 mx-auto flex flex-col gap-8 justify-center items-center py-10">
+        <div className="w-full mx-auto flex flex-col gap-8 justify-center items-center">
             <section className="w-full flex flex-col items-start">
                 <h1 className="text-2xl font-normal">
                     {`${courseInfo?.name} (${courseInfo?.code})`}{" "}
@@ -73,7 +74,9 @@ export default function Page() {
                             asChild
                             className="h-[50px] w-48 text-base sm:text-xl font-normal rounded-xl"
                         >
-                            <Link href={`/course/${courseId}/start-session`}>Continue Poll</Link>
+                            <Link href={`/dashboard/course/${courseId}/start-session`}>
+                                Continue Poll
+                            </Link>
                         </Button>
                     ) : (
                         <BeginPollDialog />

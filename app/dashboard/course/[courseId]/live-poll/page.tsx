@@ -64,7 +64,6 @@ export default function CourseDetails() {
 
     return !courseSession ? (
         <div className="flex flex-col h-full">
-            <Header />
             <div className="flex-1 flex flex-col">
                 <div className="p-4">
                     <BackButton href="/dashboard" />

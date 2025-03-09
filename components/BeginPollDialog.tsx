@@ -38,7 +38,7 @@ export default function BeginPollDialog() {
                 // only add question if poll has not started
                 await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
             }
-            router.push(`/course/${courseId}/start-session`);
+            router.push(`/dashboard/course/${courseId}/start-session`);
         } catch (err) {
             console.error(err);
             setIsLoading(false);
@@ -84,7 +84,7 @@ export default function BeginPollDialog() {
                         variant="primary"
                         onClick={() => {
                             // router.push("/start-session");
-                            router.push(`/course/${courseId}/start-session`);
+                            router.push(`/dashboard/course/${courseId}/start-session`);
                         }}
                         disabled={isLoading}
                         className="h-12  disabled:bg-slate-400 rounded-lg"

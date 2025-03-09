@@ -54,7 +54,7 @@ export default function StartSession() {
             } else {
                 toast({ description: "No session found" });
                 // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
-                router.push(`/course/${courseId}/questionnaire`);
+                router.push(`/dashboard/course/${courseId}/questionnaire`);
             }
         }
         void fetchSessionData();
@@ -161,7 +161,7 @@ export default function StartSession() {
         try {
             await endCourseSession(courseSession.id);
             // Once the session is ended, navigate away - subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
-            router.push(`/course/${courseId}/questionnaire`);
+            router.push(`/dashboard/course/${courseId}/questionnaire`);
         } catch (error) {
             toast({ variant: "destructive", description: "Failed to end session" });
             console.error(error);
@@ -188,7 +188,7 @@ export default function StartSession() {
         <div className="flex flex-col items-center p-4">
             {/* Top row with Back button and date */}
             <div className="flex justify-between w-full mb-4 text-2xl">
-                <BackButton href={`/course/${courseId}/questionnaire`} />
+                <BackButton href={`/dashboard/course/${courseId}/questionnaire`} />
                 {date.toDateString()}
             </div>
 
