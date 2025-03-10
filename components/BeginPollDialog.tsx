@@ -1,9 +1,5 @@
 "use client";
 
-import { QuestionType } from "@prisma/client";
-import { X } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -16,7 +12,13 @@ import {
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
+import { formatDateToISO } from "@/lib/utils";
 import { createCourseSession } from "@/services/courseSession";
+import { getCourseSessionByDate } from "@/services/session";
+import { QuestionType } from "@prisma/client";
+import { X } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function BeginPollDialog() {
     const params = useParams();
@@ -26,27 +28,34 @@ export default function BeginPollDialog() {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleAddWildCard = async (questionType: QuestionType) => {
-        try {
-            const session = await createCourseSession(courseId);
-            if (!session) {
+        setIsLoading(true);
+        getCourseSessionByDate(courseId, formatDateToISO(new Date()))
+            .then(async (res) => {
+                let session = res;
+                if (!res) {
+                    session = await createCourseSession(courseId);
+                }
+                if (!session) {
+                    return toast({
+                        variant: "destructive",
+                        description: "Error creating session. Please try again",
+                    });
+                }
+                if (!session.activeQuestionId) {
+                    // only add question if poll has not started
+                    await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
+                }
+                router.push(`/dashboard/course/${courseId}/start-session`);
+            })
+            .catch(() => {
                 return toast({
                     variant: "destructive",
-                    description: "Error creating session. Please try again",
+                    description: "Something happened. Please try again",
                 });
-            }
-            if (!session.activeQuestionId) {
-                // only add question if poll has not started
-                await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
-            }
-            router.push(`/dashboard/course/${courseId}/start-session`);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-            return toast({
-                variant: "destructive",
-                description: "Something happened. Please try again",
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
-        }
     };
 
     return (
@@ -83,7 +92,6 @@ export default function BeginPollDialog() {
                     <Button
                         variant="primary"
                         onClick={() => {
-                            // router.push("/start-session");
                             router.push(`/dashboard/course/${courseId}/start-session`);
                         }}
                         disabled={isLoading}
