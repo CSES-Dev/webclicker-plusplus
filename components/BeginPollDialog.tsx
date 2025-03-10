@@ -1,5 +1,9 @@
 "use client";
 
+import { QuestionType } from "@prisma/client";
+import { X } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -15,10 +19,6 @@ import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
 import { createCourseSession } from "@/services/courseSession";
 import { getCourseSessionByDate } from "@/services/session";
-import { QuestionType } from "@prisma/client";
-import { X } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
 
 export default function BeginPollDialog() {
     const params = useParams();
@@ -27,7 +27,7 @@ export default function BeginPollDialog() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleAddWildCard = async (questionType: QuestionType) => {
+    const handleAddWildCard = (questionType: QuestionType) => {
         setIsLoading(true);
         getCourseSessionByDate(courseId, formatDateToISO(new Date()))
             .then(async (res) => {
@@ -76,7 +76,7 @@ export default function BeginPollDialog() {
                 <div className="flex flex-col gap-4 md:flex-row justify-around items-center">
                     <IconQuestionButton
                         onSelect={(questionType) => {
-                            void handleAddWildCard(questionType);
+                            handleAddWildCard(questionType);
                         }}
                         label={
                             <Button
