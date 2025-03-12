@@ -45,7 +45,6 @@ export default function StartSession() {
     useEffect(() => {
         async function fetchSessionData() {
             const session = await getCourseSessionByDate(courseId, utcDate);
-            console.log(session);
             if (session) {
                 setCourseSession({ id: session.id, activeQuestionId: session.activeQuestionId });
                 if (session.activeQuestionId !== null) {

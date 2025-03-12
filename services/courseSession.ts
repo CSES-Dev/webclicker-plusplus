@@ -73,10 +73,7 @@ export async function findActiveCourseSessions(courseId: number, start: Date) {
     return await prisma.courseSession.findMany({
         where: {
             courseId,
-            startTime: {
-                gte: new Date(start.setHours(0, 0, 0, 0)),
-                lt: new Date(start.setHours(23, 59, 59, 999)),
-            },
+            startTime: start,
             endTime: null,
         },
         include: {

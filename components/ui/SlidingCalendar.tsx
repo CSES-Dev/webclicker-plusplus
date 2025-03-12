@@ -48,7 +48,6 @@ function SlidingCalendar({ courseId }: Props) {
                         return toast({ variant: "destructive", description: res?.error ?? "" });
                     else {
                         setQuestions(res);
-                        console.log(res);
                     }
                 });
             }
