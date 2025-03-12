@@ -29,11 +29,12 @@ export default function BeginPollDialog() {
 
     const handleAddWildCard = (questionType: QuestionType) => {
         setIsLoading(true);
-        getCourseSessionByDate(courseId, formatDateToISO(new Date()))
+        const date = formatDateToISO(new Date());
+        getCourseSessionByDate(courseId, date)
             .then(async (res) => {
                 let session = res;
                 if (!res) {
-                    session = await createCourseSession(courseId);
+                    session = await createCourseSession(courseId, date);
                 }
                 if (!session) {
                     return toast({
