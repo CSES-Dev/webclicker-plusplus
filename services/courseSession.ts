@@ -1,7 +1,6 @@
 "use server";
 import { CourseSession } from "@prisma/client";
 import prisma from "@/lib/prisma";
-import { formatDateToISO } from "@/lib/utils";
 
 type GetOrCreateCourseSessionResult = CourseSession | { error: string };
 
@@ -31,12 +30,12 @@ export async function getOrCreateCourseSession(
 /**
  * Creates a new course session
  */
-export async function createCourseSession(courseId: number) {
+export async function createCourseSession(courseId: number, date: string) {
     try {
         const newSession = await prisma.courseSession.create({
             data: {
                 courseId,
-                startTime: new Date(formatDateToISO(new Date())),
+                startTime: new Date(date),
             },
         });
         return newSession;
@@ -49,14 +48,14 @@ export async function createCourseSession(courseId: number) {
 /**
  * Ends an active course session
  */
-export async function endCourseSession(sessionId: number) {
+export async function endCourseSession(sessionId: number, date: Date) {
     try {
         const endedSession = await prisma.courseSession.update({
             where: {
                 id: sessionId,
             },
             data: {
-                endTime: new Date(),
+                endTime: date,
                 activeQuestionId: null,
             },
         });

@@ -159,7 +159,7 @@ export default function StartSession() {
 
         setIsEndingSession(true);
         try {
-            await endCourseSession(courseSession.id);
+            await endCourseSession(courseSession.id, new Date());
             // Once the session is ended, navigate away - subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
             router.push(`/dashboard/course/${courseId}/questionnaire`);
         } catch (error) {
