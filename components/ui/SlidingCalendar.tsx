@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
 import { AddQuestionForm } from "../AddQuestionForm";
+import { EditQuestionForm } from "../EditQuestionForm";
 
 interface Props {
     courseId: number;
@@ -24,7 +25,7 @@ interface Props {
 
 function SlidingCalendar({ courseId }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
-    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[] | null
     >(null);
@@ -68,6 +69,7 @@ function SlidingCalendar({ courseId }: Props) {
         question: Question & { options: { id: number; text: string; isCorrect: boolean }[] },
     ) => {
         setSelectedQuestion(question);
+        console.log(question);
     };
 
     return (
@@ -197,6 +199,39 @@ function SlidingCalendar({ courseId }: Props) {
                                                         {/* <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
                                                             Edit Question <Pencil />
                                                         </button> */}
+                                                        <EditQuestionForm
+                                                            courseId={courseId}
+                                                            prevQuestion={{
+                                                                name: question.text,
+                                                                type: question.type,
+                                                                date: selectedDate.toDate(),
+                                                                correctAnswers:
+                                                                    question.options.map(
+                                                                        (option) => {
+                                                                            if (option.isCorrect)
+                                                                                return {
+                                                                                    answer: option.text,
+                                                                                };
+                                                                            else
+                                                                                return {
+                                                                                    answer: "",
+                                                                                };
+                                                                        },
+                                                                    ),
+                                                                answerChoices: question.options.map(
+                                                                    (option) => {
+                                                                        if (!option.isCorrect)
+                                                                            return {
+                                                                                choice: option.text,
+                                                                            };
+                                                                        else
+                                                                            return {
+                                                                                choice: "",
+                                                                            };
+                                                                    },
+                                                                ),
+                                                            }}
+                                                        />
                                                         <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
                                                         </DialogClose>
