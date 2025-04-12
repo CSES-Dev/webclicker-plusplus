@@ -202,6 +202,7 @@ function SlidingCalendar({ courseId }: Props) {
                                                         <EditQuestionForm
                                                             courseId={courseId}
                                                             prevQuestion={{
+                                                                id: question.id,
                                                                 name: question.text,
                                                                 type: question.type,
                                                                 date: selectedDate.toDate(),

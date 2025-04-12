@@ -22,7 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
 import { getOrCreateCourseSession } from "@/services/courseSession";
-import { addQuestionWithOptions } from "@/services/question";
+import { updateQuestion } from "@/services/question";
 
 const schema = z.object({
     question: z.string().min(1, { message: "Question must have at least one character" }),
@@ -57,6 +57,7 @@ const schema = z.object({
 interface Props {
     courseId: number;
     prevQuestion: {
+        id: number;
         name: string;
         type: "MCQ" | "MSQ";
         date: Date;
@@ -92,14 +93,24 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
+        console.log(form.getValues("correctAnswers"));
+        console.log(form.getValues("answerChoices"));
+    }, [form.getValues("correctAnswers")]);
+    useEffect(() => {
         form.setValue("question", prevQuestion.name);
         form.setValue(
             "selectedQuestionType",
             prevQuestion.type === "MCQ" ? "Multiple Choice" : "Select All",
         );
         form.setValue("date", prevQuestion.date);
-        form.setValue("answerChoices", prevQuestion.answerChoices);
-        form.setValue("correctAnswers", prevQuestion.correctAnswers);
+        form.setValue(
+            "answerChoices",
+            prevQuestion.answerChoices.filter((choice) => choice.choice !== ""),
+        );
+        form.setValue(
+            "correctAnswers",
+            prevQuestion.correctAnswers.filter((choice) => choice.answer !== ""),
+        );
     }, [prevQuestion]);
 
     const currentQuestionType = form.watch("selectedQuestionType");
@@ -129,13 +140,14 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
                     });
                 });
         }
-        async function createQuestion() {
+        async function editQuestion() {
             if (!courseSessionId)
                 return toast({
                     variant: "destructive",
-                    description: "Could not add question to session",
+                    description: "Could not find course session",
                 });
-            await addQuestionWithOptions(
+            await updateQuestion(
+                prevQuestion.id,
                 courseSessionId,
                 question,
                 selectedQuestionType,
@@ -154,12 +166,12 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
         setLoading(false);
         getCourseSessionInfo()
             .then(() =>
-                createQuestion().then(() => {
+                editQuestion().then(() => {
                     setIsOpen(false);
                     setLoading(false);
                     form.reset();
                     return toast({
-                        description: "Question added successfully",
+                        description: "Question edited successfully",
                     });
                 }),
             )
@@ -199,7 +211,7 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
                 <ScrollArea className="h-full flex flex-col">
                     <SheetHeader className="pt-10 px-3 sm:px-8 md:px-16 mx-auto">
                         <SheetTitle className="w-full text-3xl mb-5 font-normal">
-                            Add a Question:
+                            Edit Question:
                         </SheetTitle>
                         <FormProvider {...form}>
                             <div className="flex flex-col lg:flex-row sm:gap-8 sm:justify-between">
