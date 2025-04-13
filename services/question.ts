@@ -102,3 +102,13 @@ export async function updateQuestion(questionId: number, sessionId: number, text
         return { error: "Error updating question." };
     }
 }
+
+export async function deleteQuestion(questionId: number) {
+    try {
+        await prisma.option.deleteMany({ where: { questionId } });
+        return await prisma.question.delete({ where: { id: questionId } });
+    } catch (err) {
+        console.error(err);
+        return { error: "Error deleting question." };
+    }
+}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { PictureInPicture2, Pencil } from "lucide-react";
+import { Pencil, PictureInPicture2, Trash2 } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import {
     Dialog,
@@ -14,7 +14,7 @@ import {
 } from "./dialog";
 import { Question } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
-import { findQuestionsByCourseSession } from "@/services/question";
+import { deleteQuestion, findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
 import { AddQuestionForm } from "../AddQuestionForm";
 import { EditQuestionForm } from "../EditQuestionForm";
@@ -40,19 +40,20 @@ function SlidingCalendar({ courseId }: Props) {
         handleDayClick(currentDate);
     }, []);
 
+    const fetchQuestions = async () => {
+        const date = selectedDate?.toDate();
+        if (date) {
+            await findQuestionsByCourseSession(courseId, date).then((res) => {
+                if (res && "error" in res)
+                    return toast({ variant: "destructive", description: res?.error ?? "" });
+                else {
+                    setQuestions(res);
+                }
+            });
+        }
+    };
+
     useEffect(() => {
-        const fetchQuestions = async () => {
-            const date = selectedDate?.toDate();
-            if (date) {
-                await findQuestionsByCourseSession(courseId, date).then((res) => {
-                    if (res && "error" in res)
-                        return toast({ variant: "destructive", description: res?.error ?? "" });
-                    else {
-                        setQuestions(res);
-                    }
-                });
-            }
-        };
         fetchQuestions();
     }, [selectedDate]);
 
@@ -69,7 +70,30 @@ function SlidingCalendar({ courseId }: Props) {
         question: Question & { options: { id: number; text: string; isCorrect: boolean }[] },
     ) => {
         setSelectedQuestion(question);
-        console.log(question);
+    };
+
+    const handleQuestionDelete = async (questionId: number) => {
+        await deleteQuestion(questionId)
+            .then((res) => {
+                if (res && "error" in res)
+                    return toast({
+                        variant: "destructive",
+                        description: res?.error ?? "",
+                    });
+                else {
+                    fetchQuestions();
+                    toast({
+                        description: "Question deleted successfully",
+                    });
+                }
+            })
+            .catch((err: unknown) => {
+                console.error(err);
+                return toast({
+                    variant: "destructive",
+                    description: "Unknown error occurred",
+                });
+            });
     };
 
     return (
@@ -155,6 +179,12 @@ function SlidingCalendar({ courseId }: Props) {
                                         {question.text}
                                     </p>
                                 </div>
+                                <Trash2
+                                    className="mx-3 min-w-[20px] min-h-auto text-red-800"
+                                    onClick={async () => {
+                                        handleQuestionDelete(question.id);
+                                    }}
+                                />
                                 <Dialog>
                                     <DialogTrigger>
                                         <PictureInPicture2 />
@@ -196,9 +226,6 @@ function SlidingCalendar({ courseId }: Props) {
                                                         </div>
                                                     </section>
                                                     <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
-                                                        {/* <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
-                                                            Edit Question <Pencil />
-                                                        </button> */}
                                                         <EditQuestionForm
                                                             courseId={courseId}
                                                             prevQuestion={{
