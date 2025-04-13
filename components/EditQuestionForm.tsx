@@ -303,33 +303,28 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
                                                 <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsCorrectAnswers.map(
                                                         (correctAnswer, index) => {
-                                                            if (field.value[index]?.answer)
-                                                                return (
-                                                                    <ListInput
-                                                                        key={correctAnswer.id}
-                                                                        id={correctAnswer.id}
-                                                                        index={index}
-                                                                        value={
-                                                                            field.value[index]
-                                                                                ?.answer || ""
-                                                                        }
-                                                                        removeItem={
-                                                                            removeCorrectAnswer
-                                                                        }
-                                                                        onChange={(
-                                                                            e: React.ChangeEvent<HTMLTextAreaElement>,
-                                                                        ) => {
-                                                                            const newValue = [
-                                                                                ...field.value,
-                                                                            ];
-                                                                            newValue[index].answer =
-                                                                                e.target.value;
-                                                                            field.onChange(
-                                                                                newValue,
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                );
+                                                            return (
+                                                                <ListInput
+                                                                    key={correctAnswer.id}
+                                                                    id={correctAnswer.id}
+                                                                    index={index}
+                                                                    value={
+                                                                        field.value[index]
+                                                                            ?.answer || ""
+                                                                    }
+                                                                    removeItem={removeCorrectAnswer}
+                                                                    onChange={(
+                                                                        e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                                    ) => {
+                                                                        const newValue = [
+                                                                            ...field.value,
+                                                                        ];
+                                                                        newValue[index].answer =
+                                                                            e.target.value;
+                                                                        field.onChange(newValue);
+                                                                    }}
+                                                                />
+                                                            );
                                                         },
                                                     )}
                                                     {form.getValues("selectedQuestionType") ===
@@ -359,34 +354,28 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
                                                 <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsAnswerChoices.map(
                                                         (answerChoice, index) => {
-                                                            if (field.value[index]?.choice)
-                                                                return (
-                                                                    <ListInput
-                                                                        key={answerChoice.id}
-                                                                        id={answerChoice.id}
-                                                                        index={index}
-                                                                        value={
-                                                                            field.value[index]
-                                                                                ?.choice || ""
-                                                                        }
-                                                                        removeItem={
-                                                                            removeAnswerChoice
-                                                                        }
-                                                                        onChange={(
-                                                                            e: React.ChangeEvent<HTMLTextAreaElement>,
-                                                                        ) => {
-                                                                            const newValue = [
-                                                                                ...field.value,
-                                                                            ];
-                                                                            newValue[index].choice =
-                                                                                e.target.value ||
-                                                                                "";
-                                                                            field.onChange(
-                                                                                newValue,
-                                                                            );
-                                                                        }}
-                                                                    />
-                                                                );
+                                                            return (
+                                                                <ListInput
+                                                                    key={answerChoice.id}
+                                                                    id={answerChoice.id}
+                                                                    index={index}
+                                                                    value={
+                                                                        field.value[index]
+                                                                            ?.choice || ""
+                                                                    }
+                                                                    removeItem={removeAnswerChoice}
+                                                                    onChange={(
+                                                                        e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                                    ) => {
+                                                                        const newValue = [
+                                                                            ...field.value,
+                                                                        ];
+                                                                        newValue[index].choice =
+                                                                            e.target.value || "";
+                                                                        field.onChange(newValue);
+                                                                    }}
+                                                                />
+                                                            );
                                                         },
                                                     )}
                                                     <AddInput

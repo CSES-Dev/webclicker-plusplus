@@ -16,7 +16,6 @@ export async function addQuestionWithOptions(
     answerChoices: string[],
     correctAnswers: string[],
 ) {
-
     try {
         const lastQuestion = await prisma.question.findFirst({
             where: { sessionId },
@@ -73,13 +72,20 @@ export async function findQuestionsByCourseSession(
     }
 }
 
-
-export async function updateQuestion(questionId: number, sessionId: number, text : string, type: (typeof questionTypes)[number], answerChoices: string[], correctAnswers: string[]) {
+export async function updateQuestion(
+    questionId: number,
+    sessionId: number,
+    text: string,
+    type: (typeof questionTypes)[number],
+    answerChoices: string[],
+    correctAnswers: string[],
+) {
     try {
         await prisma.option.deleteMany({ where: { questionId } });
         return await prisma.question.update({
             where: { id: questionId },
-            data: { sessionId,
+            data: {
+                sessionId,
                 text,
                 type: prismaQuestionTypes[type],
                 options: {
@@ -95,7 +101,8 @@ export async function updateQuestion(questionId: number, sessionId: number, text
                             };
                         }),
                     ],
-                },},
+                },
+            },
         });
     } catch (err) {
         console.error(err);
