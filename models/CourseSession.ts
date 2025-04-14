@@ -19,5 +19,5 @@ export interface WildcardPayload {
 }
 export interface QuestionData {
     options: { id: number; text: string }[];
-    responses: { optionId: number }[];
+    responses: { optionId: number , userId: string}[];
 }

@@ -181,7 +181,7 @@ export default function StartSession() {
     }
 
     const activeQuestion = questions ? questions.find((q) => q.id === activeQuestionId) : null;
-    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
+    const totalVotes = questionData ? new Set(questionData.responses.map((resp) => resp.userId)).size : 0;
 
     return (
         <div className="flex flex-col items-center p-4">
