@@ -181,6 +181,8 @@ export default function StartSession() {
     }
 
     const activeQuestion = questions ? questions.find((q) => q.id === activeQuestionId) : null;
+
+    // totalVotes is total number of unique users that responded to the question
     const totalVotes = questionData ? new Set(questionData.responses.map((resp) => resp.userId)).size : 0;
 
     return (
