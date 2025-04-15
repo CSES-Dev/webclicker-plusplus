@@ -64,9 +64,14 @@ interface Props {
         correctAnswers: { answer: string }[];
         answerChoices: { choice: string }[];
     };
+    fetchQuestions: () => void;
 }
 
-export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Props) => {
+export const EditQuestionForm: React.FC<Props> = ({
+    courseId,
+    prevQuestion,
+    fetchQuestions,
+}: Props) => {
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
@@ -92,10 +97,6 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
 
-    useEffect(() => {
-        console.log(form.getValues("correctAnswers"));
-        console.log(form.getValues("answerChoices"));
-    }, [form.getValues("correctAnswers")]);
     useEffect(() => {
         form.setValue("question", prevQuestion.name);
         form.setValue(
@@ -170,6 +171,7 @@ export const EditQuestionForm: React.FC<Props> = ({ courseId, prevQuestion }: Pr
                     setIsOpen(false);
                     setLoading(false);
                     form.reset();
+                    fetchQuestions();
                     return toast({
                         description: "Question edited successfully",
                     });

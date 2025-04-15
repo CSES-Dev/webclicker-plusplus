@@ -14,7 +14,7 @@ import {
 } from "./dialog";
 import { Question } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
-import { deleteQuestion, findQuestionsByCourseSession } from "@/services/question";
+import { deleteQuestion, findQuestionsByCourseSession, updateQuestion } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
 import { AddQuestionForm } from "../AddQuestionForm";
 import { EditQuestionForm } from "../EditQuestionForm";
@@ -48,6 +48,13 @@ function SlidingCalendar({ courseId }: Props) {
                     return toast({ variant: "destructive", description: res?.error ?? "" });
                 else {
                     setQuestions(res);
+                    if (selectedQuestion) {
+                        let updatedQuestion = res?.find(
+                            (question: Question) => question.id === selectedQuestion.id,
+                        );
+                        console.log("updated", updatedQuestion);
+                        if (updatedQuestion) setSelectedQuestion(updatedQuestion);
+                    }
                 }
             });
         }
@@ -259,6 +266,7 @@ function SlidingCalendar({ courseId }: Props) {
                                                                     },
                                                                 ),
                                                             }}
+                                                            fetchQuestions={fetchQuestions}
                                                         />
                                                         <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
