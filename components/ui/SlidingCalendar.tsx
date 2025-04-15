@@ -160,11 +160,14 @@ function SlidingCalendar({ courseId }: Props) {
                                 className="relative w-[95%] h-[200px] p-4 m-4 bg-white border border-[#D9D9D9] rounded-xl shadow-md shadow-slate-400 cursor-pointer flex justify-between items-start"
                                 onClick={() => handleQuestionClick(question)}
                             >
-                                <div className="w-full">
+                                <div className="w-[90%]">
                                     <h2 className="text-[15px] font-normal text-[#18328D]">
                                         {questionTypeMap[question.type]}
                                     </h2>
-                                    <p className="text-base font-normal text-black mt-2 line-clamp-3 overflow-hidden text-ellipsis">
+                                    <p
+                                        className="text-base font-normal text-black mt-2 line-clamp-5 break-words overflow-wrap break-word"
+                                        title={question.text}
+                                    >
                                         {question.text}
                                     </p>
                                 </div>
@@ -200,7 +203,8 @@ function SlidingCalendar({ courseId }: Props) {
                                                                             option.isCorrect
                                                                                 ? "bg-[#479B78]"
                                                                                 : "bg-white"
-                                                                        }`}
+                                                                        } text-ellipsis overflow-hidden whitespace-nowrap`}
+                                                                        title={option.text}
                                                                     >
                                                                         {option.text}
                                                                     </button>
