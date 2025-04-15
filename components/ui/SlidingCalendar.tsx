@@ -24,7 +24,7 @@ interface Props {
 
 function SlidingCalendar({ courseId }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
-    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
     const [questions, setQuestions] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[] | null
     >(null);
@@ -36,7 +36,6 @@ function SlidingCalendar({ courseId }: Props) {
     useEffect(() => {
         const currentDate = dayjs();
         setSelectedDate(currentDate);
-        handleDayClick(currentDate);
     }, []);
 
     useEffect(() => {
@@ -50,13 +49,22 @@ function SlidingCalendar({ courseId }: Props) {
                         setQuestions(res);
                     }
                 });
+            } else {
+                setQuestions(null);
             }
         };
         fetchQuestions();
     }, [selectedDate]);
 
-    const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
-    const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
+    const slideLeft = () => {
+        setStartDate((prev) => prev.subtract(7, "day"));
+        setSelectedDate(null);
+    };
+
+    const slideRight = () => {
+        setStartDate((prev) => prev.add(7, "day"));
+        setSelectedDate(null);
+    };
 
     const dates: Dayjs[] = Array.from({ length: 7 }, (_, i) => startDate.add(i, "day"));
 
@@ -137,7 +145,14 @@ function SlidingCalendar({ courseId }: Props) {
                         );
                     })}
                 </div>
-                {questions && questions.length > 0 ? (
+
+                {!selectedDate ? (
+                    <div className="flex flex-col justify-center items-center w-full h-full gap-6">
+                        <p className="text-gray-400 text-2xl font-normal">
+                            View Questions By Selecting A Date
+                        </p>
+                    </div>
+                ) : questions && questions.length > 0 ? (
                     <div className="mt-4 h-full overflow-y-auto grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 w-full justify-items-center">
                         {questions.map((question) => (
                             <div
@@ -194,9 +209,6 @@ function SlidingCalendar({ courseId }: Props) {
                                                         </div>
                                                     </section>
                                                     <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
-                                                        {/* <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5] flex flex-row items-center gap-2">
-                                                            Edit Question <Pencil />
-                                                        </button> */}
                                                         <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
                                                         </DialogClose>
@@ -212,7 +224,7 @@ function SlidingCalendar({ courseId }: Props) {
                 ) : (
                     <div className="flex flex-col justify-center items-center w-full h-full gap-6">
                         <p className="text-gray-400 text-2xl font-normal">
-                            No Questions Assigned on this Day
+                            No Questions Assigned On This Day
                         </p>
                         <AddQuestionForm courseId={courseId} location="calendar" />
                     </div>
