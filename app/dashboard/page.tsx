@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AddCourseForm } from "@/components/AddCourseForm";
 import CourseCard from "@/components/ui/CourseCard";
+import { Plus } from "lucide-react";
 import { dayLabels, daysOptions } from "@/lib/constants";
 import { getUserCourses } from "@/services/userCourse";
 
@@ -65,7 +66,7 @@ export default function Page() {
                         </div>
                     ))}
 
-                    {/* Add Class Card */}
+                    {/* Create/Join Course Card */}
                     <div className="flex justify-center">
                         {role === "LECTURER" ? (
                             <AddCourseForm />
@@ -76,7 +77,9 @@ export default function Page() {
                             >
                                 <div className="bg-primary h-[40%] w-full rounded-t-md"></div>
                                 <div className="h-[60%] w-full bg-gray-50 flex items-center justify-center rounded-b-md">
-                                    <p className="text-lg font-medium text-primary">Add Class +</p>
+                                    <p className="flex text-lg font-medium text-primary gap-1 items-center">
+                                        Join Course <Plus />
+                                    </p>
                                 </div>
                             </Link>
                         )}
