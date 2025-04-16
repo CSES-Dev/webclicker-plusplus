@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/chart";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
@@ -41,6 +48,7 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
+    const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -112,6 +120,7 @@ export default function StartSession() {
 
     const handleNextQuestion = useCallback(async () => {
         if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
+            setIsChangingQuestion(true); // Disable buttons during navigation
             const nextQuestionID = questions[activeIndex + 1].id;
             setActiveQuestionId(nextQuestionID);
             try {
@@ -127,9 +136,65 @@ export default function StartSession() {
             } catch (err: unknown) {
                 toast({ variant: "destructive", description: "Error updating question" });
                 console.error("Error updating active question:", err);
+            } finally {
+                setIsChangingQuestion(false); // Re-enable buttons when done
             }
         }
     }, [activeIndex, questions, totalQuestions, courseSession, toast]);
+
+    const handlePreviousQuestion = useCallback(async () => {
+        if (questions && activeIndex > 0 && courseSession) {
+            setIsChangingQuestion(true); // Disable buttons during navigation
+            const prevQuestionID = questions[activeIndex - 1].id;
+            setActiveQuestionId(prevQuestionID);
+            try {
+                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ activeQuestionId: prevQuestionID }),
+                });
+                if (!response.ok) {
+                    toast({ variant: "destructive", description: "Error updating question" });
+                    console.error("Failed to update active question in DB", response);
+                }
+            } catch (err: unknown) {
+                toast({ variant: "destructive", description: "Error updating question" });
+                console.error("Error updating active question:", err);
+            } finally {
+                setIsChangingQuestion(false); // Re-enable buttons when done
+            }
+        }
+    }, [activeIndex, questions, courseSession, toast]);
+
+    const handleQuestionSelect = useCallback(
+        async (questionId: string) => {
+            if (courseSession) {
+                setIsChangingQuestion(true); // Disable buttons during selection
+                const selectedQuestionId = parseInt(questionId);
+                setActiveQuestionId(selectedQuestionId);
+                try {
+                    const response = await fetch(
+                        `/api/session/${courseSession.id}/activeQuestion`,
+                        {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
+                        },
+                    );
+                    if (!response.ok) {
+                        toast({ variant: "destructive", description: "Error updating question" });
+                        console.error("Failed to update active question in DB", response);
+                    }
+                } catch (err: unknown) {
+                    toast({ variant: "destructive", description: "Error updating question" });
+                    console.error("Error updating active question:", err);
+                } finally {
+                    setIsChangingQuestion(false); // Re-enable buttons when done
+                }
+            }
+        },
+        [courseSession, toast],
+    );
 
     const handleAddWildcard = useCallback(
         async (selectedType: QuestionType) => {
@@ -201,6 +266,12 @@ export default function StartSession() {
                         <CardTitle className="text-base md:text-xl">
                             {activeQuestion?.text}
                         </CardTitle>
+                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                            <span>
+                                Question {activeIndex !== -1 ? activeIndex + 1 : 0} of{" "}
+                                {totalQuestions}
+                            </span>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <ChartContainer
@@ -259,23 +330,73 @@ export default function StartSession() {
                 </Card>
             </div>
 
-            {/* Next Question and Wildcard Button */}
-            <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
-                <IconQuestionButton
-                    onSelect={(selectedType) => void handleAddWildcard(selectedType)}
-                />
-                {isLastQuestion ? (
+            {/* Question Selector Dropdown */}
+            <div className="w-full max-w-4xl mt-4">
+                <Select
+                    value={activeQuestionId?.toString()}
+                    onValueChange={(value) => {
+                        void handleQuestionSelect(value);
+                    }}
+                    disabled={
+                        !questions ||
+                        questions.length === 0 ||
+                        isChangingQuestion ||
+                        isAddingQuestion
+                    }
+                >
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Jump to question..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {questions?.map((question, index) => (
+                            <SelectItem key={question.id} value={question.id.toString()}>
+                                Question {index + 1}:{" "}
+                                {question.text.length > 30
+                                    ? `${question.text.substring(0, 30)}...`
+                                    : question.text}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Navigation and Control Buttons */}
+            <div className="flex items-center justify-between w-full max-w-4xl mt-4 gap-2">
+                <div>
                     <Button
-                        onClick={() => void handleEndPoll()}
-                        disabled={isEndingSession || isAddingQuestion}
+                        onClick={() => void handlePreviousQuestion()}
+                        disabled={activeIndex <= 0 || isAddingQuestion || isChangingQuestion}
+                        variant="outline"
                     >
-                        End Poll
+                        &lt; Previous Question
                     </Button>
-                ) : (
-                    <Button onClick={() => void handleNextQuestion()} disabled={isAddingQuestion}>
-                        Next Question &gt;
-                    </Button>
-                )}
+                </div>
+
+                <div className="flex gap-2">
+                    <IconQuestionButton
+                        onSelect={(selectedType) => {
+                            // Only proceed if not currently changing a question
+                            if (!isChangingQuestion) {
+                                void handleAddWildcard(selectedType);
+                            }
+                        }} // Also disable the add button during navigation
+                    />
+                    {isLastQuestion ? (
+                        <Button
+                            onClick={() => void handleEndPoll()}
+                            disabled={isEndingSession || isAddingQuestion || isChangingQuestion}
+                        >
+                            End Poll
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => void handleNextQuestion()}
+                            disabled={isAddingQuestion || isChangingQuestion}
+                        >
+                            Next Question &gt;
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );
