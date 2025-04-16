@@ -1,12 +1,12 @@
 "use client";
 
 import { Course, Role, Schedule } from "@prisma/client";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { AddCourseForm } from "@/components/AddCourseForm";
 import CourseCard from "@/components/ui/CourseCard";
-import { Plus } from "lucide-react";
 import { dayLabels, daysOptions } from "@/lib/constants";
 import { getUserCourses } from "@/services/userCourse";
 
@@ -21,19 +21,20 @@ export default function Page() {
 
     const user = session?.data?.user ?? { id: "", firstName: "" };
 
+    const fetchCourses = async () => {
+        try {
+            const courseInfo = await getUserCourses(user.id);
+            setCourses(courseInfo);
+        } catch (err) {
+            console.log("Error fetching courses", err);
+        }
+    };
+
     useEffect(() => {
-        const getCourses = async () => {
-            try {
-                const courseInfo = await getUserCourses(user.id);
-                setCourses(courseInfo);
-            } catch (err) {
-                console.log("Error fetching courses", err);
-            }
-        };
         if (window !== undefined) {
             setRole((localStorage?.getItem("userRole") ?? "STUDENT") as Role);
         }
-        void getCourses();
+        void fetchCourses();
     }, []);
 
     return (
@@ -69,7 +70,7 @@ export default function Page() {
                     {/* Create/Join Course Card */}
                     <div className="flex justify-center">
                         {role === "LECTURER" ? (
-                            <AddCourseForm />
+                            <AddCourseForm onCourseAdded={() => void fetchCourses()} />
                         ) : (
                             <Link
                                 href="/dashboard/join-course"

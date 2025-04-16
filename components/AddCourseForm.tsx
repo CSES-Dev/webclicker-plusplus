@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,7 +11,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "./ui/input";
 import { Sheet, SheetContent, SheetFooter, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { colorOptions, daysOptions } from "@/lib/constants";
 
@@ -30,8 +29,11 @@ const schema = z
         path: ["startTime"],
     });
 
-export const AddCourseForm = () => {
-    const router = useRouter();
+interface AddCourseFormProps {
+    onCourseAdded?: () => void;
+}
+
+export const AddCourseForm = ({ onCourseAdded }: AddCourseFormProps) => {
     const session = useSession();
     const { toast } = useToast();
 
@@ -63,7 +65,7 @@ export const AddCourseForm = () => {
                 }
                 form.reset();
                 setIsOpen(false);
-                router.refresh();
+                onCourseAdded?.();
                 return toast({ description: "Course created succesfuly with code " + result.code });
             })
             .catch((err: unknown) => {
