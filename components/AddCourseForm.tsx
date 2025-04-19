@@ -86,7 +86,7 @@ export const AddCourseForm = ({ onCourseAdded }: AddCourseFormProps) => {
             }}
         >
             <SheetTrigger asChild>
-                <button className="flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg">
+                <button className="flex flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg">
                     <div className="bg-primary min-h-[40%] max-h-[40%] w-full rounded-t-md"></div>
                     <div className="h-[60%] max-h-[60%] bg-gray-50 w-full flex items-center justify-center rounded-b-md">
                         <p className="flex text-lg text-center font-medium text-primary gap-1 items-center">
@@ -94,6 +94,7 @@ export const AddCourseForm = ({ onCourseAdded }: AddCourseFormProps) => {
                         </p>
                     </div>
                 </button>
+
                 {/* </> */}
             </SheetTrigger>
             <SheetContent className="w-[480px] max-w-full p-8 flex flex-col">
