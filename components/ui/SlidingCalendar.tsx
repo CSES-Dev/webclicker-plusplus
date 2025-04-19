@@ -72,7 +72,7 @@ function SlidingCalendar({ courseId }: Props) {
 
     return (
         <div className="flex flex-col items-center space-y-4 w-full">
-            <section className="w-full flex justify-between items-center">
+            <section className="w-full max-w-screen-xl flex justify-between items-center">
                 <h1 className="font-medium text-2xl sm:text-4xl">
                     <span className="text-black">{startDate.format("MMMM")}</span>{" "}
                     <span className="text-[#18328D]">{startDate.format("YYYY")}</span>
