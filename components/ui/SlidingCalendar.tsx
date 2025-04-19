@@ -24,7 +24,7 @@ interface Props {
 
 function SlidingCalendar({ courseId }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
-    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
     const [questions, setQuestions] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[] | null
     >(null);
@@ -36,6 +36,7 @@ function SlidingCalendar({ courseId }: Props) {
     useEffect(() => {
         const currentDate = dayjs();
         setSelectedDate(currentDate);
+        handleDayClick(currentDate);
     }, []);
 
     useEffect(() => {
@@ -49,22 +50,13 @@ function SlidingCalendar({ courseId }: Props) {
                         setQuestions(res);
                     }
                 });
-            } else {
-                setQuestions(null);
             }
         };
         fetchQuestions();
     }, [selectedDate]);
 
-    const slideLeft = () => {
-        setStartDate((prev) => prev.subtract(7, "day"));
-        setSelectedDate(null);
-    };
-
-    const slideRight = () => {
-        setStartDate((prev) => prev.add(7, "day"));
-        setSelectedDate(null);
-    };
+    const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
+    const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
 
     const dates: Dayjs[] = Array.from({ length: 7 }, (_, i) => startDate.add(i, "day"));
 
@@ -146,13 +138,7 @@ function SlidingCalendar({ courseId }: Props) {
                     })}
                 </div>
 
-                {!selectedDate ? (
-                    <div className="flex flex-col justify-center items-center w-full h-full gap-6">
-                        <p className="text-gray-400 text-2xl font-normal">
-                            View Questions By Selecting A Date
-                        </p>
-                    </div>
-                ) : questions && questions.length > 0 ? (
+                {questions && questions.length > 0 ? (
                     <div className="mt-4 h-full overflow-y-auto grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 w-full justify-items-center">
                         {questions.map((question) => (
                             <div
