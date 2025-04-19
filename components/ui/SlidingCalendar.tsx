@@ -36,33 +36,26 @@ function SlidingCalendar({ courseId }: Props) {
     useEffect(() => {
         const currentDate = dayjs();
         setSelectedDate(currentDate);
-        handleDayClick(currentDate);
+        fetchQuestions(currentDate.toDate());
     }, []);
-
+    
+    const fetchQuestions = async (date: Date) => {
+        const res = await findQuestionsByCourseSession(courseId, date);
+        if (res && "error" in res)
+            toast({ variant: "destructive", description: res?.error ?? "" });
+        else setQuestions(res);
+    };
+    
     useEffect(() => {
-        const fetchQuestions = async () => {
-            const date = selectedDate?.toDate();
-            if (date) {
-                await findQuestionsByCourseSession(courseId, date).then((res) => {
-                    if (res && "error" in res)
-                        return toast({ variant: "destructive", description: res?.error ?? "" });
-                    else {
-                        setQuestions(res);
-                    }
-                });
-            }
-        };
-        fetchQuestions();
+        if (selectedDate) {
+            fetchQuestions(selectedDate.toDate());
+        }
     }, [selectedDate]);
 
     const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
 
     const dates: Dayjs[] = Array.from({ length: 7 }, (_, i) => startDate.add(i, "day"));
-
-    const handleDayClick = (date: Dayjs) => {
-        setSelectedDate(date);
-    };
 
     const handleQuestionClick = (
         question: Question & { options: { id: number; text: string; isCorrect: boolean }[] },
@@ -113,7 +106,7 @@ function SlidingCalendar({ courseId }: Props) {
                                         ? "bg-[#18328D] text-white"
                                         : "bg-white text-black"
                                 }`}
-                                onClick={() => handleDayClick(date)}
+                                onClick={() => setSelectedDate(date)}
                             >
                                 <span
                                     className={`text-xs sm:text-lg font-normal ${
