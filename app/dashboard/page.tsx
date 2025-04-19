@@ -46,27 +46,7 @@ export default function Page() {
                     </h1>
                 </div>
 
-                {/* Grid layout with responsive column count */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 py-8">
-                    {courses?.map((course, idx) => (
-                        <div key={idx} className="flex justify-center">
-                            <CourseCard
-                                color={course.color ?? ""}
-                                days={
-                                    course.schedules?.[0]?.dayOfWeek.map(
-                                        (item) => dayLabels[item as (typeof daysOptions)[number]],
-                                    ) ?? []
-                                }
-                                title={course.title ?? "Unknown"}
-                                timeStart={course.schedules?.[0]?.startTime ?? ""}
-                                timeEnd={course.schedules?.[0]?.endTime ?? ""}
-                                code={course.code ?? ""}
-                                role={course.role ?? "STUDENT"}
-                                id={course.id ?? ""}
-                            />
-                        </div>
-                    ))}
-
                     {/* Create/Join Course Card */}
                     <div className="flex justify-center">
                         {role === "LECTURER" ? (
@@ -85,6 +65,26 @@ export default function Page() {
                             </Link>
                         )}
                     </div>
+
+                    {/* Render the rest of the course cards */}
+                    {courses?.map((course, idx) => (
+                        <div key={idx} className="flex justify-center">
+                            <CourseCard
+                                color={course.color ?? ""}
+                                days={
+                                    course.schedules?.[0]?.dayOfWeek.map(
+                                        (item) => dayLabels[item as (typeof daysOptions)[number]],
+                                    ) ?? []
+                                }
+                                title={course.title ?? "Unknown"}
+                                timeStart={course.schedules?.[0]?.startTime ?? ""}
+                                timeEnd={course.schedules?.[0]?.endTime ?? ""}
+                                code={course.code ?? ""}
+                                role={course.role ?? "STUDENT"}
+                                id={course.id ?? ""}
+                            />
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>
