@@ -1,6 +1,7 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
+import { EyeOff } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
@@ -41,6 +42,8 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
+    const defaultShowResults = false;
+    const [showResults, setShowResults] = useState(defaultShowResults);
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -208,51 +211,60 @@ export default function StartSession() {
                             className="w-full text-base md:text-lg"
                         >
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart
-                                    data={chartData}
-                                    layout="vertical"
-                                    barCategoryGap={20}
-                                    margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
-                                >
-                                    <XAxis type="number" domain={[0, totalVotes]} hide />
-                                    <YAxis
-                                        dataKey="option"
-                                        type="category"
-                                        tick={<LetteredYAxisTick />}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickMargin={8}
-                                        style={{ fill: "#000" }}
-                                    />
-                                    <ChartTooltip
-                                        cursor={false}
-                                        content={<ChartTooltipContent hideLabel />}
-                                    />
-                                    <Bar
-                                        dataKey="Votes"
-                                        fill="#F3AB7E"
-                                        barSize={30}
-                                        radius={[5, 5, 5, 5]}
-                                        background={{
-                                            fill: "#fff",
-                                            stroke: "#959595",
-                                            strokeWidth: 0.5,
-                                            radius: 5,
-                                        }}
+                                {showResults ? (
+                                    <BarChart
+                                        data={chartData}
+                                        layout="vertical"
+                                        barCategoryGap={20}
+                                        margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
                                     >
-                                        <LabelList
-                                            dataKey="Votes"
-                                            position="right"
-                                            offset={10}
-                                            formatter={(value: number) => {
-                                                if (!totalVotes || !value) return "0%";
-                                                const percent = (value / totalVotes) * 100;
-                                                return `${percent.toFixed(1)}%`;
-                                            }}
-                                            style={{ fill: "#000", fontSize: 12 }}
+                                        <XAxis type="number" domain={[0, totalVotes]} hide />
+                                        <YAxis
+                                            dataKey="option"
+                                            type="category"
+                                            tick={<LetteredYAxisTick />}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tickMargin={8}
+                                            style={{ fill: "#000" }}
                                         />
-                                    </Bar>
-                                </BarChart>
+                                        <ChartTooltip
+                                            cursor={false}
+                                            content={<ChartTooltipContent hideLabel />}
+                                        />
+                                        <Bar
+                                            dataKey="Votes"
+                                            fill="#F3AB7E"
+                                            barSize={30}
+                                            radius={[5, 5, 5, 5]}
+                                            background={{
+                                                fill: "#fff",
+                                                stroke: "#959595",
+                                                strokeWidth: 0.5,
+                                                radius: 5,
+                                            }}
+                                        >
+                                            <LabelList
+                                                dataKey="Votes"
+                                                position="right"
+                                                offset={10}
+                                                formatter={(value: number) => {
+                                                    if (!totalVotes || !value) return "0%";
+                                                    const percent = (value / totalVotes) * 100;
+                                                    return `${percent.toFixed(1)}%`;
+                                                }}
+                                                style={{ fill: "#000", fontSize: 12 }}
+                                            />
+                                        </Bar>
+                                    </BarChart>
+                                ) : (
+                                    <div className="w-full h-full bg-muted rounded-xl flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                                        <EyeOff className="w-10 h-10" />
+                                        <p className="text-sm font-medium">
+                                            Poll results are hidden
+                                        </p>
+                                    </div>
+                                )}
                             </ResponsiveContainer>
                         </ChartContainer>
                     </CardContent>
@@ -261,6 +273,13 @@ export default function StartSession() {
 
             {/* Next Question and Wildcard Button */}
             <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
+                <Button
+                    onClick={() => {
+                        setShowResults((prev) => !prev);
+                    }}
+                >
+                    {showResults ? "Hide" : "Unhide"}
+                </Button>
                 <IconQuestionButton
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
                 />
