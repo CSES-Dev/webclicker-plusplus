@@ -22,7 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
 import { getOrCreateCourseSession } from "@/services/courseSession";
-import { updateQuestion } from "@/services/question";
+import { addQuestionWithOptions, updateQuestion } from "@/services/question";
 
 const schema = z.object({
     question: z.string().min(1, { message: "Question must have at least one character" }),
@@ -56,25 +56,36 @@ const schema = z.object({
 
 interface Props {
     courseId: number;
-    prevQuestion: {
-        id: number;
-        name: string;
-        type: "MCQ" | "MSQ";
+    location: "page" | "calendar";
+    questionId?: number;
+    prevData?: {
+        question: string;
+        selectedQuestionType: "Multiple Choice" | "Select All";
         date: Date;
-        correctAnswers: { answer: string }[];
-        answerChoices: { choice: string }[];
+        correctAnswers: {
+            answer: string;
+        }[];
+        answerChoices: {
+            choice: string;
+        }[];
     };
-    fetchQuestions: () => void;
 }
 
-export const EditQuestionForm: React.FC<Props> = ({
+export const AddEditQuestionForm: React.FC<Props> = ({
     courseId,
-    prevQuestion,
-    fetchQuestions,
+    location,
+    questionId,
+    prevData,
 }: Props) => {
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
+        defaultValues: prevData ?? {
+            question: "",
+            selectedQuestionType: "Multiple Choice",
+            correctAnswers: [{ answer: " " }],
+            answerChoices: [{ choice: " " }],
+        },
     });
     const {
         fields: fieldsCorrectAnswers,
@@ -98,21 +109,16 @@ export const EditQuestionForm: React.FC<Props> = ({
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        form.setValue("question", prevQuestion.name);
-        form.setValue(
-            "selectedQuestionType",
-            prevQuestion.type === "MCQ" ? "Multiple Choice" : "Select All",
+        if (!prevData) return;
+        prevData.answerChoices = prevData.answerChoices.filter(
+            (answerChoice) => answerChoice.choice !== "",
         );
-        form.setValue("date", prevQuestion.date);
-        form.setValue(
-            "answerChoices",
-            prevQuestion.answerChoices.filter((choice) => choice.choice !== ""),
+        form.setValue("answerChoices", prevData.answerChoices);
+        prevData.correctAnswers = prevData.correctAnswers.filter(
+            (correctAnswer) => correctAnswer.answer !== "",
         );
-        form.setValue(
-            "correctAnswers",
-            prevQuestion.correctAnswers.filter((choice) => choice.answer !== ""),
-        );
-    }, [prevQuestion]);
+        form.setValue("correctAnswers", prevData.correctAnswers);
+    }, [prevData]);
 
     const currentQuestionType = form.watch("selectedQuestionType");
     useEffect(() => {
@@ -141,39 +147,64 @@ export const EditQuestionForm: React.FC<Props> = ({
                     });
                 });
         }
-        async function editQuestion() {
+        async function createOrEditQuestion() {
             if (!courseSessionId)
                 return toast({
                     variant: "destructive",
-                    description: "Could not find course session",
+                    description: "Could not access course session",
                 });
-            await updateQuestion(
-                prevQuestion.id,
-                courseSessionId,
-                question,
-                selectedQuestionType,
-                answerChoices.map((choiceObject) => choiceObject.choice),
-                correctAnswers.map((answerObject) => answerObject.answer),
-            )
-                .then((res) => {
-                    if ("error" in res)
-                        return toast({ variant: "destructive", description: res?.error ?? "" });
-                })
-                .catch((err: unknown) => {
-                    console.error(err);
-                    return toast({ variant: "destructive", description: "Unknown error occurred" });
-                });
+            if (questionId) {
+                await updateQuestion(
+                    questionId,
+                    courseSessionId,
+                    question,
+                    selectedQuestionType,
+                    answerChoices.map((choiceObject) => choiceObject.choice),
+                    correctAnswers.map((answerObject) => answerObject.answer),
+                )
+                    .then((res) => {
+                        if ("error" in res)
+                            return toast({ variant: "destructive", description: res?.error ?? "" });
+                    })
+                    .catch((err: unknown) => {
+                        console.error(err);
+                        return toast({
+                            variant: "destructive",
+                            description: "Unknown error occurred",
+                        });
+                    });
+            } else {
+                await addQuestionWithOptions(
+                    courseSessionId,
+                    question,
+                    selectedQuestionType,
+                    answerChoices.map((choiceObject) => choiceObject.choice),
+                    correctAnswers.map((answerObject) => answerObject.answer),
+                )
+                    .then((res) => {
+                        if ("error" in res)
+                            return toast({ variant: "destructive", description: res?.error ?? "" });
+                    })
+                    .catch((err: unknown) => {
+                        console.error(err);
+                        return toast({
+                            variant: "destructive",
+                            description: "Unknown error occurred",
+                        });
+                    });
+            }
         }
         setLoading(false);
         getCourseSessionInfo()
             .then(() =>
-                editQuestion().then(() => {
+                createOrEditQuestion().then(() => {
                     setIsOpen(false);
                     setLoading(false);
                     form.reset();
-                    fetchQuestions();
                     return toast({
-                        description: "Question edited successfully",
+                        description: questionId
+                            ? "Question updated successfully"
+                            : "Question added successfully",
                     });
                 }),
             )
@@ -195,9 +226,15 @@ export const EditQuestionForm: React.FC<Props> = ({
                     setIsOpen(true);
                 }}
             >
-                <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
-                    Edit
-                </button>
+                {location === "page" ? (
+                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
+                        {prevData ? "Edit" : "Add Question +"}
+                    </button>
+                ) : (
+                    <button className="hover:underline text-[#18328D] text-2xl font-normal">
+                        Add Question?
+                    </button>
+                )}
             </SheetTrigger>
             <SheetContent className="h-full top-0 right-0 left-auto sm:w-[90%] md:w-[70%] mt-0 bottom-auto fixed rounded-none">
                 <SheetClose
@@ -213,7 +250,7 @@ export const EditQuestionForm: React.FC<Props> = ({
                 <ScrollArea className="h-full flex flex-col">
                     <SheetHeader className="pt-10 px-3 sm:px-8 md:px-16 mx-auto">
                         <SheetTitle className="w-full text-3xl mb-5 font-normal">
-                            Edit Question:
+                            Add a Question:
                         </SheetTitle>
                         <FormProvider {...form}>
                             <div className="flex flex-col lg:flex-row sm:gap-8 sm:justify-between">
@@ -304,30 +341,27 @@ export const EditQuestionForm: React.FC<Props> = ({
                                                 </FormLabel>
                                                 <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsCorrectAnswers.map(
-                                                        (correctAnswer, index) => {
-                                                            return (
-                                                                <ListInput
-                                                                    key={correctAnswer.id}
-                                                                    id={correctAnswer.id}
-                                                                    index={index}
-                                                                    value={
-                                                                        field.value[index]
-                                                                            ?.answer || ""
-                                                                    }
-                                                                    removeItem={removeCorrectAnswer}
-                                                                    onChange={(
-                                                                        e: React.ChangeEvent<HTMLTextAreaElement>,
-                                                                    ) => {
-                                                                        const newValue = [
-                                                                            ...field.value,
-                                                                        ];
-                                                                        newValue[index].answer =
-                                                                            e.target.value;
-                                                                        field.onChange(newValue);
-                                                                    }}
-                                                                />
-                                                            );
-                                                        },
+                                                        (correctAnswer, index) => (
+                                                            <ListInput
+                                                                key={correctAnswer.id}
+                                                                id={correctAnswer.id}
+                                                                index={index}
+                                                                value={
+                                                                    field.value[index]?.answer || ""
+                                                                }
+                                                                removeItem={removeCorrectAnswer}
+                                                                onChange={(
+                                                                    e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                                ) => {
+                                                                    const newValue = [
+                                                                        ...field.value,
+                                                                    ];
+                                                                    newValue[index].answer =
+                                                                        e.target.value;
+                                                                    field.onChange(newValue);
+                                                                }}
+                                                            />
+                                                        ),
                                                     )}
                                                     {form.getValues("selectedQuestionType") ===
                                                         "Select All" && (
@@ -355,30 +389,27 @@ export const EditQuestionForm: React.FC<Props> = ({
                                                 </FormLabel>
                                                 <div className="flex flex-col gap-2 items-start w-full">
                                                     {fieldsAnswerChoices.map(
-                                                        (answerChoice, index) => {
-                                                            return (
-                                                                <ListInput
-                                                                    key={answerChoice.id}
-                                                                    id={answerChoice.id}
-                                                                    index={index}
-                                                                    value={
-                                                                        field.value[index]
-                                                                            ?.choice || ""
-                                                                    }
-                                                                    removeItem={removeAnswerChoice}
-                                                                    onChange={(
-                                                                        e: React.ChangeEvent<HTMLTextAreaElement>,
-                                                                    ) => {
-                                                                        const newValue = [
-                                                                            ...field.value,
-                                                                        ];
-                                                                        newValue[index].choice =
-                                                                            e.target.value || "";
-                                                                        field.onChange(newValue);
-                                                                    }}
-                                                                />
-                                                            );
-                                                        },
+                                                        (answerChoice, index) => (
+                                                            <ListInput
+                                                                key={answerChoice.id}
+                                                                id={answerChoice.id}
+                                                                index={index}
+                                                                value={
+                                                                    field.value[index]?.choice || ""
+                                                                }
+                                                                removeItem={removeAnswerChoice}
+                                                                onChange={(
+                                                                    e: React.ChangeEvent<HTMLTextAreaElement>,
+                                                                ) => {
+                                                                    const newValue = [
+                                                                        ...field.value,
+                                                                    ];
+                                                                    newValue[index].choice =
+                                                                        e.target.value || "";
+                                                                    field.onChange(newValue);
+                                                                }}
+                                                            />
+                                                        ),
                                                     )}
                                                     <AddInput
                                                         onAdd={() => {

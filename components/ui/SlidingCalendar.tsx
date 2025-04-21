@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Pencil, PictureInPicture2, Trash2 } from "lucide-react";
+import { PictureInPicture2, Trash2 } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import {
     Dialog,
@@ -14,10 +14,9 @@ import {
 } from "./dialog";
 import { Question } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
-import { deleteQuestion, findQuestionsByCourseSession, updateQuestion } from "@/services/question";
+import { deleteQuestion, findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
-import { AddQuestionForm } from "../AddQuestionForm";
-import { EditQuestionForm } from "../EditQuestionForm";
+import { AddEditQuestionForm } from "../AddEditQuestionForm";
 
 interface Props {
     courseId: number;
@@ -32,6 +31,12 @@ function SlidingCalendar({ courseId }: Props) {
     const [selectedQuestion, setSelectedQuestion] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] }) | null
     >(null);
+    const [correctOptions, setCorrectOptions] = useState<
+        { id: number; text: string; isCorrect: boolean }[]
+    >([]);
+    const [incorrectOptions, setIncorrectOptions] = useState<
+        { id: number; text: string; isCorrect: boolean }[]
+    >([]);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -63,6 +68,18 @@ function SlidingCalendar({ courseId }: Props) {
     useEffect(() => {
         fetchQuestions();
     }, [selectedDate]);
+
+    // fetch incorrect and correct options of selected question
+    useEffect(() => {
+        const getOptions = async () => {
+            if (!selectedQuestion) return;
+            let correct = selectedQuestion.options.filter((option) => option.isCorrect) ?? [];
+            let incorrect = selectedQuestion.options.filter((option) => !option.isCorrect) ?? [];
+            setCorrectOptions(correct);
+            setIncorrectOptions(incorrect);
+        };
+        getOptions();
+    }, [selectedQuestion]);
 
     const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
@@ -233,41 +250,34 @@ function SlidingCalendar({ courseId }: Props) {
                                                         </div>
                                                     </section>
                                                     <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
-                                                        <EditQuestionForm
+                                                        <AddEditQuestionForm
                                                             courseId={courseId}
-                                                            prevQuestion={{
-                                                                id: question.id,
-                                                                name: question.text,
-                                                                type: question.type,
+                                                            location="page"
+                                                            questionId={question.id}
+                                                            prevData={{
+                                                                question: question.text,
+                                                                selectedQuestionType:
+                                                                    question.type === "MCQ"
+                                                                        ? "Multiple Choice"
+                                                                        : "Select All",
                                                                 date: selectedDate.toDate(),
-                                                                correctAnswers:
-                                                                    question.options.map(
-                                                                        (option) => {
-                                                                            if (option.isCorrect)
-                                                                                return {
-                                                                                    answer: option.text,
-                                                                                };
-                                                                            else
-                                                                                return {
-                                                                                    answer: "",
-                                                                                };
-                                                                        },
-                                                                    ),
-                                                                answerChoices: question.options.map(
+                                                                correctAnswers: correctOptions.map(
                                                                     (option) => {
-                                                                        if (!option.isCorrect)
-                                                                            return {
-                                                                                choice: option.text,
-                                                                            };
-                                                                        else
-                                                                            return {
-                                                                                choice: "",
-                                                                            };
+                                                                        return {
+                                                                            answer: option.text,
+                                                                        };
+                                                                    },
+                                                                ),
+                                                                answerChoices: incorrectOptions.map(
+                                                                    (option) => {
+                                                                        return {
+                                                                            choice: option.text,
+                                                                        };
                                                                     },
                                                                 ),
                                                             }}
-                                                            fetchQuestions={fetchQuestions}
                                                         />
+
                                                         <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
                                                         </DialogClose>
@@ -285,7 +295,7 @@ function SlidingCalendar({ courseId }: Props) {
                         <p className="text-gray-400 text-2xl font-normal">
                             No Questions Assigned on this Day
                         </p>
-                        <AddQuestionForm courseId={courseId} location="calendar" />
+                        <AddEditQuestionForm courseId={courseId} location="calendar" />
                     </div>
                 )}
             </motion.div>
