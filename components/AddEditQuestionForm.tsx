@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -56,7 +56,7 @@ const schema = z.object({
 
 interface Props {
     courseId: number;
-    defaultDate?: Date; 
+    defaultDate?: Date;
     location: "page" | "calendar";
     questionId?: number;
     prevData?: {
@@ -122,7 +122,7 @@ export const AddEditQuestionForm: React.FC<Props> = ({
         );
         form.setValue("correctAnswers", prevData.correctAnswers);
     }, [prevData]);
-    
+
     useEffect(() => {
         if (!defaultDate) return;
         form.setValue("date", defaultDate);
@@ -235,8 +235,14 @@ export const AddEditQuestionForm: React.FC<Props> = ({
                 }}
             >
                 {location === "page" ? (
-                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
-                        {prevData ? "Edit" : "Add Question +"}
+                    <button className="flex gap-1 items-center text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
+                        {prevData ? (
+                            "Edit"
+                        ) : (
+                            <>
+                                Add Question <Plus />
+                            </>
+                        )}
                     </button>
                 ) : (
                     <button className="hover:underline text-[#18328D] text-2xl font-normal">

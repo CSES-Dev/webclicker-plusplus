@@ -52,7 +52,7 @@ export default function CourseCard({
             {/* Desktop View */}
             <button
                 onClick={handleCardClick}
-                className="hidden md:block flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg"
+                className="hidden md:flex flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg"
             >
                 <div
                     className={`min-h-[40%] max-h-[40%] w-full rounded-t-md`}

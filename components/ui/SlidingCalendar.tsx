@@ -43,31 +43,30 @@ function SlidingCalendar({ courseId }: Props) {
     useEffect(() => {
         const currentDate = dayjs();
         setSelectedDate(currentDate);
-        handleDayClick(currentDate);
+        fetchQuestions(currentDate.toDate());
     }, []);
-
-    const fetchQuestions = async () => {
-        const date = selectedDate?.toDate();
-        if (date) {
-            await findQuestionsByCourseSession(courseId, date).then((res) => {
-                if (res && "error" in res)
-                    return toast({ variant: "destructive", description: res?.error ?? "" });
-                else {
-                    setQuestions(res);
-                    if (selectedQuestion) {
-                        let updatedQuestion = res?.find(
-                            (question: Question) => question.id === selectedQuestion.id,
-                        );
-                        console.log("updated", updatedQuestion);
-                        if (updatedQuestion) setSelectedQuestion(updatedQuestion);
-                    }
-                }
-            });
+    
+    const fetchQuestions = async (date: Date) => {
+        const res = await findQuestionsByCourseSession(courseId, date);
+        if (res && "error" in res)
+            toast({ variant: "destructive", description: res?.error ?? "" });
+        else {
+            setQuestions(res);
+            if (selectedQuestion) {
+                let updatedQuestion = res?.find(
+                    (question: Question) => question.id === selectedQuestion.id,
+                );
+                console.log("updated", updatedQuestion);
+                if (updatedQuestion) setSelectedQuestion(updatedQuestion);
+            }
         }
     };
+    
 
     useEffect(() => {
-        fetchQuestions();
+        if (selectedDate) {
+            fetchQuestions(selectedDate.toDate());
+        }
     }, [selectedDate]);
 
     // fetch incorrect and correct options of selected question
@@ -86,10 +85,6 @@ function SlidingCalendar({ courseId }: Props) {
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
 
     const dates: Dayjs[] = Array.from({ length: 7 }, (_, i) => startDate.add(i, "day"));
-
-    const handleDayClick = (date: Dayjs) => {
-        setSelectedDate(date);
-    };
 
     const handleQuestionClick = (
         question: Question & { options: { id: number; text: string; isCorrect: boolean }[] },
@@ -123,7 +118,7 @@ function SlidingCalendar({ courseId }: Props) {
 
     return (
         <div className="flex flex-col items-center space-y-4 w-full">
-            <section className="w-full flex justify-between items-center">
+            <section className="w-full max-w-screen-xl flex justify-between items-center">
                 <h1 className="font-medium text-2xl sm:text-4xl">
                     <span className="text-black">{startDate.format("MMMM")}</span>{" "}
                     <span className="text-[#18328D]">{startDate.format("YYYY")}</span>
@@ -164,7 +159,7 @@ function SlidingCalendar({ courseId }: Props) {
                                         ? "bg-[#18328D] text-white"
                                         : "bg-white text-black"
                                 }`}
-                                onClick={() => handleDayClick(date)}
+                                onClick={() => setSelectedDate(date)}
                             >
                                 <span
                                     className={`text-xs sm:text-lg font-normal ${
@@ -188,6 +183,7 @@ function SlidingCalendar({ courseId }: Props) {
                         );
                     })}
                 </div>
+
                 {questions && questions.length > 0 ? (
                     <div className="mt-4 h-full overflow-y-auto grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 w-full justify-items-center">
                         {questions.map((question) => (
@@ -196,11 +192,14 @@ function SlidingCalendar({ courseId }: Props) {
                                 className="relative w-[95%] h-[200px] p-4 m-4 bg-white border border-[#D9D9D9] rounded-xl shadow-md shadow-slate-400 cursor-pointer flex justify-between items-start"
                                 onClick={() => handleQuestionClick(question)}
                             >
-                                <div className="w-full">
+                                <div className="w-[90%]">
                                     <h2 className="text-[15px] font-normal text-[#18328D]">
                                         {questionTypeMap[question.type]}
                                     </h2>
-                                    <p className="text-base font-normal text-black mt-2 line-clamp-3 overflow-hidden text-ellipsis">
+                                    <p
+                                        className="text-base font-normal text-black mt-2 line-clamp-5 break-words overflow-wrap break-word"
+                                        title={question.text}
+                                    >
                                         {question.text}
                                     </p>
                                 </div>
@@ -242,7 +241,8 @@ function SlidingCalendar({ courseId }: Props) {
                                                                             option.isCorrect
                                                                                 ? "bg-[#479B78]"
                                                                                 : "bg-white"
-                                                                        }`}
+                                                                        } text-ellipsis overflow-hidden whitespace-nowrap`}
+                                                                        title={option.text}
                                                                     >
                                                                         {option.text}
                                                                     </button>
@@ -294,7 +294,7 @@ function SlidingCalendar({ courseId }: Props) {
                 ) : (
                     <div className="flex flex-col justify-center items-center w-full h-full gap-6">
                         <p className="text-gray-400 text-2xl font-normal">
-                            No Questions Assigned on this Day
+                            No Questions Assigned On This Day
                         </p>
                         <AddEditQuestionForm
                             courseId={courseId}
