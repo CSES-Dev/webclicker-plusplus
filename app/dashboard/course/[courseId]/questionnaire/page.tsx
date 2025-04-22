@@ -71,7 +71,7 @@ export default function Page() {
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
                     <AddQuestionForm
                         courseId={courseId}
-                        defaultDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                        defaultDate={new Date(formatDateToISO(new Date()))}
                         location="page"
                     />
                     {hasActiveSession ? (
