@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -177,8 +177,8 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, defaultDate, locati
                 }}
             >
                 {location === "page" ? (
-                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
-                        Add Question +
+                    <button className="flex gap-1 items-center text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
+                        Add Question <Plus />
                     </button>
                 ) : (
                     <button className="hover:underline text-[#18328D] text-2xl font-normal">
