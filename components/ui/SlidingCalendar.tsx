@@ -101,7 +101,7 @@ function SlidingCalendar({ courseId }: Props) {
                         description: res?.error ?? "",
                     });
                 else {
-                    fetchQuestions();
+                    fetchQuestions(selectedDate?.toDate());
                     toast({
                         description: "Question deleted successfully",
                     });
