@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { PictureInPicture2, Pencil } from "lucide-react";
+import { PictureInPicture2, Trash2 } from "lucide-react";
 import dayjs, { Dayjs } from "dayjs";
 import {
     Dialog,
@@ -14,9 +14,9 @@ import {
 } from "./dialog";
 import { Question } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
-import { findQuestionsByCourseSession } from "@/services/question";
+import { deleteQuestion, findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
-import { AddQuestionForm } from "../AddQuestionForm";
+import { AddEditQuestionForm } from "../AddEditQuestionForm";
 import { formatDateToISO } from "@/lib/utils";
 
 interface Props {
@@ -32,6 +32,12 @@ function SlidingCalendar({ courseId }: Props) {
     const [selectedQuestion, setSelectedQuestion] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] }) | null
     >(null);
+    const [correctOptions, setCorrectOptions] = useState<
+        { id: number; text: string; isCorrect: boolean }[]
+    >([]);
+    const [incorrectOptions, setIncorrectOptions] = useState<
+        { id: number; text: string; isCorrect: boolean }[]
+    >([]);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -39,19 +45,39 @@ function SlidingCalendar({ courseId }: Props) {
         setSelectedDate(currentDate);
         fetchQuestions(currentDate.toDate());
     }, []);
-    
+
     const fetchQuestions = async (date: Date) => {
         const res = await findQuestionsByCourseSession(courseId, date);
-        if (res && "error" in res)
-            toast({ variant: "destructive", description: res?.error ?? "" });
-        else setQuestions(res);
+        if (res && "error" in res) toast({ variant: "destructive", description: res?.error ?? "" });
+        else {
+            setQuestions(res);
+            if (selectedQuestion) {
+                let updatedQuestion = res?.find(
+                    (question: Question) => question.id === selectedQuestion.id,
+                );
+                console.log("updated", updatedQuestion);
+                if (updatedQuestion) setSelectedQuestion(updatedQuestion);
+            }
+        }
     };
-    
+
     useEffect(() => {
         if (selectedDate) {
             fetchQuestions(selectedDate.toDate());
         }
     }, [selectedDate]);
+
+    // fetch incorrect and correct options of selected question
+    useEffect(() => {
+        const getOptions = async () => {
+            if (!selectedQuestion) return;
+            let correct = selectedQuestion.options.filter((option) => option.isCorrect) ?? [];
+            let incorrect = selectedQuestion.options.filter((option) => !option.isCorrect) ?? [];
+            setCorrectOptions(correct);
+            setIncorrectOptions(incorrect);
+        };
+        getOptions();
+    }, [selectedQuestion]);
 
     const slideLeft = () => setStartDate((prev) => prev.subtract(7, "day"));
     const slideRight = () => setStartDate((prev) => prev.add(7, "day"));
@@ -62,6 +88,30 @@ function SlidingCalendar({ courseId }: Props) {
         question: Question & { options: { id: number; text: string; isCorrect: boolean }[] },
     ) => {
         setSelectedQuestion(question);
+    };
+
+    const handleQuestionDelete = async (questionId: number) => {
+        await deleteQuestion(questionId)
+            .then((res) => {
+                if (res && "error" in res)
+                    return toast({
+                        variant: "destructive",
+                        description: res?.error ?? "",
+                    });
+                else {
+                    fetchQuestions(selectedDate?.toDate());
+                    toast({
+                        description: "Question deleted successfully",
+                    });
+                }
+            })
+            .catch((err: unknown) => {
+                console.error(err);
+                return toast({
+                    variant: "destructive",
+                    description: "Unknown error occurred",
+                });
+            });
     };
 
     return (
@@ -151,6 +201,12 @@ function SlidingCalendar({ courseId }: Props) {
                                         {question.text}
                                     </p>
                                 </div>
+                                <Trash2
+                                    className="mx-3 min-w-[20px] min-h-auto text-red-800"
+                                    onClick={async () => {
+                                        handleQuestionDelete(question.id);
+                                    }}
+                                />
                                 <Dialog>
                                     <DialogTrigger>
                                         <PictureInPicture2 />
@@ -193,6 +249,34 @@ function SlidingCalendar({ courseId }: Props) {
                                                         </div>
                                                     </section>
                                                     <section className="flex gap-6 items-center ml-0 sm:ml-auto mt-auto mr-0 sm:mr-8 mb-0 sm:mb-2">
+                                                        <AddEditQuestionForm
+                                                            courseId={courseId}
+                                                            location="page"
+                                                            questionId={question.id}
+                                                            prevData={{
+                                                                question: question.text,
+                                                                selectedQuestionType:
+                                                                    question.type === "MCQ"
+                                                                        ? "Multiple Choice"
+                                                                        : "Select All",
+                                                                date: selectedDate.toDate(),
+                                                                correctAnswers: correctOptions.map(
+                                                                    (option) => {
+                                                                        return {
+                                                                            answer: option.text,
+                                                                        };
+                                                                    },
+                                                                ),
+                                                                answerChoices: incorrectOptions.map(
+                                                                    (option) => {
+                                                                        return {
+                                                                            choice: option.text,
+                                                                        };
+                                                                    },
+                                                                ),
+                                                            }}
+                                                        />
+
                                                         <DialogClose className="text-base sm:text-xl font-normal px-5 sm:px-10 py-3 bg-[#18328D] text-white rounded-xl">
                                                             Done
                                                         </DialogClose>
@@ -210,10 +294,10 @@ function SlidingCalendar({ courseId }: Props) {
                         <p className="text-gray-400 text-2xl font-normal">
                             No Questions Assigned On This Day
                         </p>
-                        <AddQuestionForm
+                        <AddEditQuestionForm
                             courseId={courseId}
-                            defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
                             location="calendar"
+                            defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
                         />
                     </div>
                 )}
