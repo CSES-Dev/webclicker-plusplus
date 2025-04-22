@@ -69,7 +69,11 @@ export default function Page() {
                     {`${courseInfo?.name} (${courseInfo?.code})`}{" "}
                 </h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
-                    <AddQuestionForm courseId={courseId} location="page" />
+                    <AddQuestionForm
+                        courseId={courseId}
+                        defaultDate={new Date(formatDateToISO(new Date()))}
+                        location="page"
+                    />
                     {hasActiveSession ? (
                         <Button
                             asChild

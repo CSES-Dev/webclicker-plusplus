@@ -56,10 +56,11 @@ const schema = z.object({
 
 interface Props {
     courseId: number;
+    defaultDate: Date;
     location: "page" | "calendar";
 }
 
-export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) => {
+export const AddQuestionForm: React.FC<Props> = ({ courseId, defaultDate, location }: Props) => {
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
@@ -70,6 +71,7 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
             answerChoices: [{ choice: " " }],
         },
     });
+
     const {
         fields: fieldsCorrectAnswers,
         append: appendCorrectAnswer,
@@ -90,6 +92,10 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        form.setValue("date", defaultDate);
+    }, [defaultDate]);
 
     const currentQuestionType = form.watch("selectedQuestionType");
     useEffect(() => {

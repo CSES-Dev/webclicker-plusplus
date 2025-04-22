@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
 import { AddQuestionForm } from "../AddQuestionForm";
+import { formatDateToISO } from "@/lib/utils";
 
 interface Props {
     courseId: number;
@@ -24,7 +25,7 @@ interface Props {
 
 function SlidingCalendar({ courseId }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
-    const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
         (Question & { options: { id: number; text: string; isCorrect: boolean }[] })[] | null
     >(null);
@@ -214,7 +215,11 @@ function SlidingCalendar({ courseId }: Props) {
                         <p className="text-gray-400 text-2xl font-normal">
                             No Questions Assigned on this Day
                         </p>
-                        <AddQuestionForm courseId={courseId} location="calendar" />
+                        <AddQuestionForm
+                            courseId={courseId}
+                            defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
+                            location="calendar"
+                        />
                     </div>
                 )}
             </motion.div>
