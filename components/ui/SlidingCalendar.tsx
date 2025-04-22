@@ -45,11 +45,10 @@ function SlidingCalendar({ courseId }: Props) {
         setSelectedDate(currentDate);
         fetchQuestions(currentDate.toDate());
     }, []);
-    
+
     const fetchQuestions = async (date: Date) => {
         const res = await findQuestionsByCourseSession(courseId, date);
-        if (res && "error" in res)
-            toast({ variant: "destructive", description: res?.error ?? "" });
+        if (res && "error" in res) toast({ variant: "destructive", description: res?.error ?? "" });
         else {
             setQuestions(res);
             if (selectedQuestion) {
@@ -61,7 +60,6 @@ function SlidingCalendar({ courseId }: Props) {
             }
         }
     };
-    
 
     useEffect(() => {
         if (selectedDate) {
