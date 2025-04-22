@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { deleteQuestion, findQuestionsByCourseSession } from "@/services/question";
 import { questionTypeMap } from "@/lib/constants";
 import { AddEditQuestionForm } from "../AddEditQuestionForm";
+import { formatDateToISO } from "@/lib/utils";
 
 interface Props {
     courseId: number;
@@ -295,7 +296,11 @@ function SlidingCalendar({ courseId }: Props) {
                         <p className="text-gray-400 text-2xl font-normal">
                             No Questions Assigned on this Day
                         </p>
-                        <AddEditQuestionForm courseId={courseId} location="calendar" />
+                        <AddEditQuestionForm
+                            courseId={courseId}
+                            location="calendar"
+                            defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
+                        />
                     </div>
                 )}
             </motion.div>

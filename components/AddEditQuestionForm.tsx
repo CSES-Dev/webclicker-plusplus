@@ -56,6 +56,7 @@ const schema = z.object({
 
 interface Props {
     courseId: number;
+    defaultDate?: Date; 
     location: "page" | "calendar";
     questionId?: number;
     prevData?: {
@@ -74,6 +75,7 @@ interface Props {
 export const AddEditQuestionForm: React.FC<Props> = ({
     courseId,
     location,
+    defaultDate,
     questionId,
     prevData,
 }: Props) => {
@@ -87,6 +89,7 @@ export const AddEditQuestionForm: React.FC<Props> = ({
             answerChoices: [{ choice: " " }],
         },
     });
+
     const {
         fields: fieldsCorrectAnswers,
         append: appendCorrectAnswer,
@@ -119,6 +122,11 @@ export const AddEditQuestionForm: React.FC<Props> = ({
         );
         form.setValue("correctAnswers", prevData.correctAnswers);
     }, [prevData]);
+    
+    useEffect(() => {
+        if (!defaultDate) return;
+        form.setValue("date", defaultDate);
+    }, [defaultDate]);
 
     const currentQuestionType = form.watch("selectedQuestionType");
     useEffect(() => {
