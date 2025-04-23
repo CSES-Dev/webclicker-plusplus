@@ -118,82 +118,63 @@ export default function StartSession() {
           }))
         : [];
 
-    const handleNextQuestion = useCallback(async () => {
-        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
-            setIsChangingQuestion(true); // Disable buttons during navigation
-            const nextQuestionID = questions[activeIndex + 1].id;
-            setActiveQuestionId(nextQuestionID);
+    // Create a reusable function for updating the active question
+    const updateActiveQuestion = useCallback(
+        async (questionId: number, sessionId: string) => {
             try {
-                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                const response = await fetch(`/api/session/${sessionId}/activeQuestion`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ activeQuestionId: nextQuestionID }),
+                    body: JSON.stringify({ activeQuestionId: questionId }),
                 });
+
                 if (!response.ok) {
                     toast({ variant: "destructive", description: "Error updating question" });
                     console.error("Failed to update active question in DB", response);
+                    return false;
                 }
+                return true;
             } catch (err: unknown) {
                 toast({ variant: "destructive", description: "Error updating question" });
                 console.error("Error updating active question:", err);
-            } finally {
-                setIsChangingQuestion(false); // Re-enable buttons when done
+                return false;
             }
+        },
+        [toast],
+    );
+
+    // Refactored navigation functions
+    const handleNextQuestion = useCallback(async () => {
+        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
+            setIsChangingQuestion(true);
+            const nextQuestionID = questions[activeIndex + 1].id;
+            setActiveQuestionId(nextQuestionID);
+            await updateActiveQuestion(nextQuestionID, String(courseSession.id));
+            setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession, toast]);
+    }, [activeIndex, questions, totalQuestions, courseSession, updateActiveQuestion]);
 
     const handlePreviousQuestion = useCallback(async () => {
         if (questions && activeIndex > 0 && courseSession) {
-            setIsChangingQuestion(true); // Disable buttons during navigation
+            setIsChangingQuestion(true);
             const prevQuestionID = questions[activeIndex - 1].id;
             setActiveQuestionId(prevQuestionID);
-            try {
-                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ activeQuestionId: prevQuestionID }),
-                });
-                if (!response.ok) {
-                    toast({ variant: "destructive", description: "Error updating question" });
-                    console.error("Failed to update active question in DB", response);
-                }
-            } catch (err: unknown) {
-                toast({ variant: "destructive", description: "Error updating question" });
-                console.error("Error updating active question:", err);
-            } finally {
-                setIsChangingQuestion(false); // Re-enable buttons when done
-            }
+            await updateActiveQuestion(prevQuestionID, String(courseSession.id));
+            setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, courseSession, toast]);
+    }, [activeIndex, questions, courseSession, updateActiveQuestion]);
 
     const handleQuestionSelect = useCallback(
         async (questionId: string) => {
             if (courseSession) {
-                setIsChangingQuestion(true); // Disable buttons during selection
+                setIsChangingQuestion(true);
                 const selectedQuestionId = parseInt(questionId);
                 setActiveQuestionId(selectedQuestionId);
-                try {
-                    const response = await fetch(
-                        `/api/session/${courseSession.id}/activeQuestion`,
-                        {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
-                        },
-                    );
-                    if (!response.ok) {
-                        toast({ variant: "destructive", description: "Error updating question" });
-                        console.error("Failed to update active question in DB", response);
-                    }
-                } catch (err: unknown) {
-                    toast({ variant: "destructive", description: "Error updating question" });
-                    console.error("Error updating active question:", err);
-                } finally {
-                    setIsChangingQuestion(false); // Re-enable buttons when done
-                }
+                await updateActiveQuestion(selectedQuestionId, String(courseSession.id));
+                setIsChangingQuestion(false);
             }
         },
-        [courseSession, toast],
+        [courseSession, updateActiveQuestion],
     );
 
     const handleAddWildcard = useCallback(
