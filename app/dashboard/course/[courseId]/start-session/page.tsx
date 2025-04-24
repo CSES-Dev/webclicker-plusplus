@@ -143,7 +143,6 @@ export default function StartSession() {
         [toast],
     );
 
-    // Refactored navigation functions
     const handleNextQuestion = useCallback(async () => {
         if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
             setIsChangingQuestion(true);
@@ -152,7 +151,7 @@ export default function StartSession() {
             await updateActiveQuestion(nextQuestionID, String(courseSession.id));
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession, updateActiveQuestion]);
+    }, [activeIndex, questions, totalQuestions, courseSession]);
 
     const handlePreviousQuestion = useCallback(async () => {
         if (questions && activeIndex > 0 && courseSession) {
@@ -162,7 +161,7 @@ export default function StartSession() {
             await updateActiveQuestion(prevQuestionID, String(courseSession.id));
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, courseSession, updateActiveQuestion]);
+    }, [activeIndex, questions, courseSession]);
 
     const handleQuestionSelect = useCallback(
         async (questionId: string) => {
@@ -174,7 +173,7 @@ export default function StartSession() {
                 setIsChangingQuestion(false);
             }
         },
-        [courseSession, updateActiveQuestion],
+        [courseSession],
     );
 
     const handleAddWildcard = useCallback(
