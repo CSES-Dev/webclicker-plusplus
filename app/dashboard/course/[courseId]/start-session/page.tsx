@@ -1,6 +1,7 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
+import { PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
@@ -18,13 +19,12 @@ import {
 } from "@/components/ui/chart";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
-import { PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
 import { ChartData } from "@/models/Chart";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
-import { endCourseSession } from "@/services/courseSession";
+import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
     getCourseSessionByDate,
     getQuestionById,
@@ -52,6 +52,7 @@ export default function StartSession() {
                 if (session.activeQuestionId !== null) {
                     setActiveQuestionId(session.activeQuestionId);
                 }
+                if (session.paused) setIsPaused(session.paused);
             } else {
                 toast({ description: "No session found" });
                 // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
@@ -171,6 +172,23 @@ export default function StartSession() {
         }
     }, [courseSession, courseId, router, toast]);
 
+    const handlePauseResume = useCallback(
+        async (pauseState: boolean) => {
+            if (!courseSession) return;
+            setIsPaused(pauseState);
+            try {
+                await pauseOrResumeCourseSession(courseSession.id, pauseState);
+            } catch (error) {
+                toast({
+                    variant: "destructive",
+                    description: `Failed to ${pauseState ? "pause" : "resume"} session`,
+                });
+                console.error(error);
+            }
+        },
+        [courseSession, toast],
+    );
+
     const chartConfig: ChartConfig = {
         Votes: {
             label: "Votes",
@@ -265,11 +283,19 @@ export default function StartSession() {
             <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
                 {isPaused ? (
                     <button>
-                        <PlayCircleIcon onClick={() => setIsPaused(!isPaused)} />
+                        <PlayCircleIcon
+                            onClick={() => {
+                                void handlePauseResume(!isPaused);
+                            }}
+                        />
                     </button>
                 ) : (
                     <button>
-                        <PauseCircleIcon onClick={() => setIsPaused(!isPaused)} />
+                        <PauseCircleIcon
+                            onClick={() => {
+                                void handlePauseResume(!isPaused);
+                            }}
+                        />
                     </button>
                 )}
                 <IconQuestionButton
