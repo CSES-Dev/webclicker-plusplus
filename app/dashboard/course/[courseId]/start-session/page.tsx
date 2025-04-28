@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/chart";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
+import { PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
@@ -41,6 +42,7 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -261,6 +263,15 @@ export default function StartSession() {
 
             {/* Next Question and Wildcard Button */}
             <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
+                {isPaused ? (
+                    <button>
+                        <PlayCircleIcon onClick={() => setIsPaused(!isPaused)} />
+                    </button>
+                ) : (
+                    <button>
+                        <PauseCircleIcon onClick={() => setIsPaused(!isPaused)} />
+                    </button>
+                )}
                 <IconQuestionButton
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
                 />
