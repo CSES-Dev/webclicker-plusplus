@@ -365,6 +365,14 @@ export default function StartSession() {
                     </Button>
                 </div>
 
+                <Button
+                    onClick={() => {
+                        setShowResults((prev) => !prev);
+                    }}
+                >
+                    {showResults ? "Hide" : "Show"}
+                </Button>
+
                 <div className="flex gap-2">
                     <IconQuestionButton
                         onSelect={(selectedType) => {
