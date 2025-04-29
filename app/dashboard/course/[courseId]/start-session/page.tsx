@@ -37,6 +37,7 @@ import {
     getQuestionsForSession,
 } from "@/services/session";
 
+
 export default function StartSession() {
     const params = useParams();
     const router = useRouter();
@@ -227,6 +228,7 @@ export default function StartSession() {
 
     const activeQuestion = questions ? questions.find((q) => q.id === activeQuestionId) : null;
     const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
+    
 
     return (
         <div className="flex flex-col items-center p-4">
@@ -263,7 +265,7 @@ export default function StartSession() {
                                     data={chartData}
                                     layout="vertical"
                                     barCategoryGap={20}
-                                    margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
+                                    margin={{ left: 100, right: 20, top: 0, bottom: 0 }}
                                 >
                                     <XAxis type="number" domain={[0, totalVotes]} hide />
                                     <YAxis
@@ -272,7 +274,7 @@ export default function StartSession() {
                                         tick={<LetteredYAxisTick />}
                                         tickLine={false}
                                         axisLine={false}
-                                        tickMargin={8}
+                                        tickMargin={9}
                                         style={{ fill: "#000" }}
                                     />
                                     <ChartTooltip
