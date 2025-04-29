@@ -257,7 +257,7 @@ export default function StartSession() {
                             </span>
                         </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-0">
                         <ChartContainer
                             config={chartConfig}
                             className="w-full text-base md:text-lg"
@@ -310,7 +310,7 @@ export default function StartSession() {
                                         </Bar>
                                     </BarChart>
                                 ) : (
-                                    <div className="w-full h-full bg-muted rounded-xl flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                                    <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
                                         <EyeOff className="w-10 h-10" />
                                         <p className="text-sm font-medium">
                                             Poll results are hidden
