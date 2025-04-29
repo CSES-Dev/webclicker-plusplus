@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,8 +29,11 @@ const schema = z
         path: ["startTime"],
     });
 
-export const AddCourseForm = () => {
-    const router = useRouter();
+interface AddCourseFormProps {
+    onCourseAdded?: () => void;
+}
+
+export const AddCourseForm = ({ onCourseAdded }: AddCourseFormProps) => {
     const session = useSession();
     const { toast } = useToast();
 
@@ -62,7 +65,7 @@ export const AddCourseForm = () => {
                 }
                 form.reset();
                 setIsOpen(false);
-                router.refresh();
+                onCourseAdded?.();
                 return toast({ description: "Course created succesfuly with code " + result.code });
             })
             .catch((err: unknown) => {
@@ -83,18 +86,19 @@ export const AddCourseForm = () => {
             }}
         >
             <SheetTrigger asChild>
-                <button className="flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg">
+                <button className="flex flex-col w-80 max-w-80 h-56 max-h-56 rounded-md shadow-lg">
                     <div className="bg-primary min-h-[40%] max-h-[40%] w-full rounded-t-md"></div>
                     <div className="h-[60%] max-h-[60%] bg-gray-50 w-full flex items-center justify-center rounded-b-md">
-                        <p className="text-lg text-center font-medium text-primary">
-                            Add a Class +
+                        <p className="flex text-lg text-center font-medium text-primary gap-1 items-center">
+                            Create Course <Plus />
                         </p>
                     </div>
                 </button>
+
                 {/* </> */}
             </SheetTrigger>
             <SheetContent className="w-[480px] max-w-full p-8 flex flex-col">
-                <SheetTitle className="text-4xl mb-8 font-normal">Add a class</SheetTitle>
+                <SheetTitle className="text-4xl mb-8 font-normal">Create a course</SheetTitle>
                 <Form {...form}>
                     <form className="flex-1 flex flex-col justify-between">
                         {/* Avoid form onSubmit due to default form Action behaviour in NextJS.
@@ -107,7 +111,7 @@ export const AddCourseForm = () => {
                                     <FormItem>
                                         <FormControl>
                                             <Input
-                                                placeholder="Name of Class"
+                                                placeholder="Name of Course"
                                                 {...field}
                                                 className="w-full p-0 pb-1 bg-white text-m text-black focus:outline-none border-b focus:border-b"
                                             />
@@ -238,7 +242,7 @@ export const AddCourseForm = () => {
                                 }
                                 className="mt-4"
                             >
-                                Add Class
+                                Add Course
                             </Button>
                         </SheetFooter>
                     </form>

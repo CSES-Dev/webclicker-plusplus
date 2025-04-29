@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/chart";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
@@ -45,6 +52,7 @@ export default function StartSession() {
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
+    const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -114,26 +122,63 @@ export default function StartSession() {
           }))
         : [];
 
-    const handleNextQuestion = useCallback(async () => {
-        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
-            const nextQuestionID = questions[activeIndex + 1].id;
-            setActiveQuestionId(nextQuestionID);
+    // Create a reusable function for updating the active question
+    const updateActiveQuestion = useCallback(
+        async (questionId: number, sessionId: string) => {
             try {
-                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                const response = await fetch(`/api/session/${sessionId}/activeQuestion`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ activeQuestionId: nextQuestionID }),
+                    body: JSON.stringify({ activeQuestionId: questionId }),
                 });
+
                 if (!response.ok) {
                     toast({ variant: "destructive", description: "Error updating question" });
                     console.error("Failed to update active question in DB", response);
+                    return false;
                 }
+                return true;
             } catch (err: unknown) {
                 toast({ variant: "destructive", description: "Error updating question" });
                 console.error("Error updating active question:", err);
+                return false;
             }
+        },
+        [toast],
+    );
+
+    const handleNextQuestion = useCallback(async () => {
+        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
+            setIsChangingQuestion(true);
+            const nextQuestionID = questions[activeIndex + 1].id;
+            setActiveQuestionId(nextQuestionID);
+            await updateActiveQuestion(nextQuestionID, String(courseSession.id));
+            setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession, toast]);
+    }, [activeIndex, questions, totalQuestions, courseSession]);
+
+    const handlePreviousQuestion = useCallback(async () => {
+        if (questions && activeIndex > 0 && courseSession) {
+            setIsChangingQuestion(true);
+            const prevQuestionID = questions[activeIndex - 1].id;
+            setActiveQuestionId(prevQuestionID);
+            await updateActiveQuestion(prevQuestionID, String(courseSession.id));
+            setIsChangingQuestion(false);
+        }
+    }, [activeIndex, questions, courseSession]);
+
+    const handleQuestionSelect = useCallback(
+        async (questionId: string) => {
+            if (courseSession) {
+                setIsChangingQuestion(true);
+                const selectedQuestionId = parseInt(questionId);
+                setActiveQuestionId(selectedQuestionId);
+                await updateActiveQuestion(selectedQuestionId, String(courseSession.id));
+                setIsChangingQuestion(false);
+            }
+        },
+        [courseSession],
+    );
 
     const handleAddWildcard = useCallback(
         async (selectedType: QuestionType) => {
@@ -205,6 +250,12 @@ export default function StartSession() {
                         <CardTitle className="text-base md:text-xl">
                             {activeQuestion?.text}
                         </CardTitle>
+                        <div className="flex items-center text-sm text-muted-foreground mt-1">
+                            <span>
+                                Question {activeIndex !== -1 ? activeIndex + 1 : 0} of{" "}
+                                {totalQuestions}
+                            </span>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <ChartContainer
@@ -272,30 +323,73 @@ export default function StartSession() {
                 </Card>
             </div>
 
-            {/* Next Question and Wildcard Button */}
-            <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
-                <Button
-                    onClick={() => {
-                        setShowResults((prev) => !prev);
+            {/* Question Selector Dropdown */}
+            <div className="w-full max-w-4xl mt-4">
+                <Select
+                    value={activeQuestionId?.toString()}
+                    onValueChange={(value) => {
+                        void handleQuestionSelect(value);
                     }}
+                    disabled={
+                        !questions ||
+                        questions.length === 0 ||
+                        isChangingQuestion ||
+                        isAddingQuestion
+                    }
                 >
-                    {showResults ? "Hide" : "Show"}
-                </Button>
-                <IconQuestionButton
-                    onSelect={(selectedType) => void handleAddWildcard(selectedType)}
-                />
-                {isLastQuestion ? (
+                    <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Jump to question..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {questions?.map((question, index) => (
+                            <SelectItem key={question.id} value={question.id.toString()}>
+                                Question {index + 1}:{" "}
+                                {question.text.length > 30
+                                    ? `${question.text.substring(0, 30)}...`
+                                    : question.text}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Navigation and Control Buttons */}
+            <div className="flex items-center justify-between w-full max-w-4xl mt-4 gap-2">
+                <div>
                     <Button
-                        onClick={() => void handleEndPoll()}
-                        disabled={isEndingSession || isAddingQuestion}
+                        onClick={() => void handlePreviousQuestion()}
+                        disabled={activeIndex <= 0 || isAddingQuestion || isChangingQuestion}
+                        variant="outline"
                     >
-                        End Poll
+                        &lt; Previous Question
                     </Button>
-                ) : (
-                    <Button onClick={() => void handleNextQuestion()} disabled={isAddingQuestion}>
-                        Next Question &gt;
-                    </Button>
-                )}
+                </div>
+
+                <div className="flex gap-2">
+                    <IconQuestionButton
+                        onSelect={(selectedType) => {
+                            // Only proceed if not currently changing a question
+                            if (!isChangingQuestion) {
+                                void handleAddWildcard(selectedType);
+                            }
+                        }} // Also disable the add button during navigation
+                    />
+                    {isLastQuestion ? (
+                        <Button
+                            onClick={() => void handleEndPoll()}
+                            disabled={isEndingSession || isAddingQuestion || isChangingQuestion}
+                        >
+                            End Poll
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => void handleNextQuestion()}
+                            disabled={isAddingQuestion || isChangingQuestion}
+                        >
+                            Next Question &gt;
+                        </Button>
+                    )}
+                </div>
             </div>
         </div>
     );

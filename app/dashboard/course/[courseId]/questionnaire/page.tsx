@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AddEditQuestionForm } from "@/components/AddEditQuestionForm";
 import { AddInstructorForm } from "@/components/AddInstuctorForm";
-import { AddQuestionForm } from "@/components/AddQuestionForm";
 import BeginPollDialog from "@/components/BeginPollDialog";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,12 @@ export default function Page() {
                     {`${courseInfo?.name} (${courseInfo?.code})`}{" "}
                 </h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
-                    <AddQuestionForm courseId={courseId} location="page" />
+                    <AddEditQuestionForm
+                        defaultDate={new Date(formatDateToISO(new Date()))}
+                        courseId={courseId}
+                        location="page"
+                    />
+                    
                     {hasActiveSession ? (
                         <Button
                             asChild
