@@ -31,6 +31,8 @@ import {
     getQuestionsForSession,
 } from "@/services/session";
 
+import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
+
 export default function StartSession() {
     const params = useParams();
     const router = useRouter();
@@ -42,8 +44,7 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
-    const defaultShowResults = false;
-    const [showResults, setShowResults] = useState(defaultShowResults);
+    const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -278,7 +279,7 @@ export default function StartSession() {
                         setShowResults((prev) => !prev);
                     }}
                 >
-                    {showResults ? "Hide" : "Unhide"}
+                    {showResults ? "Hide" : "Show"}
                 </Button>
                 <IconQuestionButton
                     onSelect={(selectedType) => void handleAddWildcard(selectedType)}
