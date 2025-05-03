@@ -1,8 +1,7 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
-import { PauseCircleIcon, PlayCircleIcon } from "lucide-react";
-import { EyeOff } from "lucide-react";
+import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
@@ -28,6 +27,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
 import { ChartData } from "@/models/Chart";
@@ -38,8 +38,6 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
-
-import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 
 export default function StartSession() {
     const params = useParams();
