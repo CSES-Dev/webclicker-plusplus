@@ -4,11 +4,14 @@
 import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "react-query";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
+
+import { getSessionPauseState } from "@/services/courseSession";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -100,6 +103,13 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
             setLoading(false);
         }
     }, [courseSessionId]); // Only depends on courseSessionId
+
+    // retrieve poll pause state every second
+    const { data: isPaused } = useQuery<boolean | null>(
+        ["pollPauseState", courseSessionId],
+        () => (courseSessionId ? getSessionPauseState(courseSessionId) : Promise.resolve(null)),
+        { refetchInterval: 1000, enabled: !!courseSessionId },
+    );
 
     // Initial fetch and polling setup
     useEffect(() => {
@@ -252,7 +262,8 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                     disabled={
                         !selectedValues ||
                         (Array.isArray(selectedValues) && selectedValues.length === 0) ||
-                        submitting
+                        submitting ||
+                        (isPaused !== undefined && isPaused !== null && isPaused)
                     }
                     className="mt-6 px-6 py-2 bg-custom-background text-white rounded-md hover:bg-opacity-90 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >

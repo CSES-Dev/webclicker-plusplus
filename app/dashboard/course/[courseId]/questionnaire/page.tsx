@@ -74,7 +74,7 @@ export default function Page() {
                         courseId={courseId}
                         location="page"
                     />
-                    
+
                     {hasActiveSession ? (
                         <Button
                             asChild

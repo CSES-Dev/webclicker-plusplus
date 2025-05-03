@@ -85,3 +85,34 @@ export async function findActiveCourseSessions(courseId: number, start: Date) {
         },
     });
 }
+
+export async function pauseOrResumeCourseSession(sessionId: number, paused: boolean) {
+    try {
+        await prisma.courseSession.update({
+            where: {
+                id: sessionId,
+            },
+            data: {
+                paused,
+            },
+        });
+        return true;
+    } catch (error) {
+        console.error("Error pausing/resuming course session:", error);
+        throw new Error("Failed to pause/resume course session");
+    }
+}
+
+export async function getSessionPauseState(sessionId: number) {
+    try {
+        const session = await prisma.courseSession.findUnique({
+            where: {
+                id: sessionId,
+            },
+        });
+        return session?.paused ?? false;
+    } catch (error) {
+        console.error("Error getting session pause state:", error);
+        throw new Error("Failed to get session pause state");
+    }
+}
