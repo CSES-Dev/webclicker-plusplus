@@ -279,40 +279,49 @@ export default function StartSession() {
                 </Card>
             </div>
 
-            {/* Next Question and Wildcard Button */}
-            <div className="flex items-center justify-end w-full max-w-4xl mt-4 gap-2">
-                {isPaused ? (
-                    <button>
-                        <PlayCircleIcon
-                            onClick={() => {
-                                void handlePauseResume(!isPaused);
-                            }}
-                        />
-                    </button>
-                ) : (
-                    <button>
-                        <PauseCircleIcon
-                            onClick={() => {
-                                void handlePauseResume(!isPaused);
-                            }}
-                        />
-                    </button>
-                )}
-                <IconQuestionButton
-                    onSelect={(selectedType) => void handleAddWildcard(selectedType)}
-                />
-                {isLastQuestion ? (
-                    <Button
-                        onClick={() => void handleEndPoll()}
-                        disabled={isEndingSession || isAddingQuestion}
-                    >
-                        End Poll
-                    </Button>
-                ) : (
-                    <Button onClick={() => void handleNextQuestion()} disabled={isAddingQuestion}>
-                        Next Question &gt;
-                    </Button>
-                )}
+            {/* Next Question, Pause/Resume Poll, and Wildcard Button */}
+            <div className="flex flex-row w-full max-w-4xl">
+                <div className="flex items-center justify-end w-1/2 max-w-4xl mt-4 gap-2">
+                    {isPaused ? (
+                        <button>
+                            <PlayCircleIcon
+                                size={28}
+                                onClick={() => {
+                                    void handlePauseResume(!isPaused);
+                                }}
+                            />
+                        </button>
+                    ) : (
+                        <button>
+                            <PauseCircleIcon
+                                size={28}
+                                onClick={() => {
+                                    void handlePauseResume(!isPaused);
+                                }}
+                            />
+                        </button>
+                    )}
+                </div>
+                <div className="flex items-center justify-end w-1/2 max-w-4xl mt-4 gap-2">
+                    <IconQuestionButton
+                        onSelect={(selectedType) => void handleAddWildcard(selectedType)}
+                    />
+                    {isLastQuestion ? (
+                        <Button
+                            onClick={() => void handleEndPoll()}
+                            disabled={isEndingSession || isAddingQuestion}
+                        >
+                            End Poll
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => void handleNextQuestion()}
+                            disabled={isAddingQuestion}
+                        >
+                            Next Question &gt;
+                        </Button>
+                    )}
+                </div>{" "}
             </div>
         </div>
     );
