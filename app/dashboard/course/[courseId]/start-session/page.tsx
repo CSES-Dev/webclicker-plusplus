@@ -393,7 +393,7 @@ export default function StartSession() {
                 </Button>
                 <div className="flex gap-2">
                     {isPaused ? (
-                        <button>
+                        <button className="w-fit h-10 transition-transform hover:scale-110 cursor-pointer">
                             <PlayCircleIcon
                                 size={28}
                                 strokeWidth={1.5}
@@ -403,7 +403,7 @@ export default function StartSession() {
                             />
                         </button>
                     ) : (
-                        <button>
+                        <button className="w-fit h-10 transition-transform hover:scale-110 cursor-pointer">
                             <PauseCircleIcon
                                 size={28}
                                 strokeWidth={1.5}
