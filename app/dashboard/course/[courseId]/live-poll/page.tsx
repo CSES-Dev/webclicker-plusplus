@@ -33,9 +33,7 @@ export default function CourseDetails() {
             .then((res) => {
                 if (res?.id) {
                     setCourseSession(res);
-                    console.log("here");
                 }
-                console.log("res = " + res);
             })
             .catch((err: unknown) => {
                 console.error("Error fetching course session:", err);
