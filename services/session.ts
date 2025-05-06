@@ -1,7 +1,7 @@
 "use server";
 import type { CourseSession, QuestionType } from "@prisma/client";
+import { endOfDay, startOfDay } from "date-fns";
 import prisma from "@/lib/prisma";
-import { startOfDay, endOfDay } from 'date-fns';
 
 export async function getCourseSessionByDate(
     courseId: number,

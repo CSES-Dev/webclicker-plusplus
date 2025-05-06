@@ -1,7 +1,6 @@
 "use client";
 import React, { useMemo } from "react";
 
-
 interface Option {
     id: number;
     questionId: number;

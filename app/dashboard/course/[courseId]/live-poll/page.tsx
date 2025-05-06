@@ -28,7 +28,7 @@ export default function CourseDetails() {
             setIsLoading(false);
             return;
         }
-        
+
         await getCourseSessionByDate(courseId, formatDateToISO(new Date()))
             .then((res) => {
                 if (res?.id) {
