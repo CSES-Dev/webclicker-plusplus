@@ -43,7 +43,6 @@ function SlidingCalendar({ courseId }: Props) {
     useEffect(() => {
         const currentDate = dayjs();
         setSelectedDate(currentDate);
-        fetchQuestions(currentDate.toDate());
     }, []);
 
     const fetchQuestions = async (date: Date) => {
@@ -253,6 +252,7 @@ function SlidingCalendar({ courseId }: Props) {
                                                             courseId={courseId}
                                                             location="page"
                                                             questionId={question.id}
+                                                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
                                                             prevData={{
                                                                 question: question.text,
                                                                 selectedQuestionType:
@@ -298,6 +298,7 @@ function SlidingCalendar({ courseId }: Props) {
                             courseId={courseId}
                             location="calendar"
                             defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
+                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
                         />
                     </div>
                 )}
