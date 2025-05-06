@@ -10,6 +10,7 @@ export async function getCourseSessionByDate(
     // 1. Belongs to the specified course
     // 2. Started on the day
     // 3. Has no end time (still active)
+    console.log("courseId = " + courseId);
     return prisma.courseSession.findFirst({
         where: {
             courseId,

@@ -20,7 +20,6 @@ export default function CourseDetails() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [courseSession, setCourseSession] = useState<CourseSession | null>(null);
-
     const getActiveSession = async () => {
         setCourseSession(null);
         setIsLoading(true);
@@ -29,12 +28,14 @@ export default function CourseDetails() {
             setIsLoading(false);
             return;
         }
-
+        
         await getCourseSessionByDate(courseId, formatDateToISO(new Date()))
             .then((res) => {
                 if (res?.id) {
                     setCourseSession(res);
+                    console.log("here");
                 }
+                console.log("res = " + res);
             })
             .catch((err: unknown) => {
                 console.error("Error fetching course session:", err);
