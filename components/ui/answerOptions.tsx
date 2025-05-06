@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
+
 
 interface Option {
     id: number;
@@ -15,6 +16,15 @@ interface AnswerOptionsProps {
     onSelectionChange: (value: number | number[]) => void;
 }
 
+const shuffleArray = (array: Option[]): Option[] => {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+};
+
 const AnswerOptions: React.FC<AnswerOptionsProps> = ({
     options,
     questionType,
@@ -23,6 +33,8 @@ const AnswerOptions: React.FC<AnswerOptionsProps> = ({
 }) => {
     const selectedOption = Array.isArray(selectedValues) ? null : selectedValues;
     const selectedOptions = Array.isArray(selectedValues) ? selectedValues : [];
+
+    const shuffledOptions = useMemo(() => shuffleArray(options), [options]);
 
     const handleMCQSelection = (optionId: number) => {
         onSelectionChange(optionId);
@@ -49,7 +61,7 @@ const AnswerOptions: React.FC<AnswerOptionsProps> = ({
                     Select the best answer:
                 </h2>
                 <div className="w-full max-w-md flex flex-col items-center gap-2">
-                    {options.map((option) => {
+                    {shuffledOptions.map((option) => {
                         const isSelected = selectedOption === option.id;
                         return (
                             <div
@@ -78,7 +90,7 @@ const AnswerOptions: React.FC<AnswerOptionsProps> = ({
         <div className="w-full mt-6 flex flex-col items-center">
             <h2 className="text-[16px] font-medium mb-3 self-center">Select the best answer(s):</h2>
             <div className="w-full max-w-md flex flex-col items-center gap-2">
-                {options.map((option) => {
+                {shuffledOptions.map((option) => {
                     const isSelected = selectedOptions.includes(option.id);
                     return (
                         <div
