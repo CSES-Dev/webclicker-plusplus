@@ -276,9 +276,16 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                 )}
 
                 {/* Footer Message */}
-                <p className="mt-6 text-[14px] text-gray-500 text-center">
-                    Instructor will start the next question shortly...
-                </p>
+                {isPaused !== undefined && isPaused !== null && isPaused ? (
+                    <p className="mt-6 text-[14px] text-gray-500 text-center">
+                        The poll is currently paused.
+                    </p>
+                ) : (
+                    <p className="mt-6 text-[14px] text-gray-500 text-center">
+                        Instructor will start the next question shortly...
+                    </p>
+                )}
+                <p></p>
             </div>
         </div>
     );
