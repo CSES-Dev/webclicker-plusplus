@@ -41,7 +41,7 @@ function SlidingCalendar({ courseId }: Props) {
     const { toast } = useToast();
 
     useEffect(() => {
-        const currentDate = dayjs();
+        const currentDate = dayjs().startOf("day");
         setSelectedDate(currentDate);
     }, []);
 
