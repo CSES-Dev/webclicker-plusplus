@@ -21,9 +21,10 @@ import { formatDateToISO } from "@/lib/utils";
 
 interface Props {
     courseId: number;
+    refreshTrigger?: boolean;
 }
 
-function SlidingCalendar({ courseId }: Props) {
+function SlidingCalendar({ courseId, refreshTrigger }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
@@ -64,7 +65,7 @@ function SlidingCalendar({ courseId }: Props) {
         if (selectedDate) {
             fetchQuestions(selectedDate.toDate());
         }
-    }, [selectedDate]);
+    }, [selectedDate, refreshTrigger]);
 
     // fetch incorrect and correct options of selected question
     useEffect(() => {
