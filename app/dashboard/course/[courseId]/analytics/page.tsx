@@ -12,31 +12,9 @@ import {
 import { useParams } from "next/navigation";
 import { ChartConfig } from "@/components/ui/chart";
 import DonutChart from "@/components/ui/DonutChart";
-import { getPastQuestionsWithScore } from "@/services/question";
+import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { useToast } from "@/hooks/use-toast";
-
-const chartData = [
-    { idea: "participated", count: 200, fill: "#CCCCCC" },
-    { idea: "notParticipated", count: 300, fill: "#BAFF7E" },
-];
-const chartConfig = {
-    count: {
-        label: "Count",
-    },
-    participated: {
-        label: "Participated",
-        color: "grey",
-    },
-    notParticipated: {
-        label: "Not Participated",
-        color: "black",
-    },
-} satisfies ChartConfig;
-
-const dataKey = "count";
-const nameKey = "idea";
-const description = "Class Average";
-const descriptionStatistic = 75;
+import { chartConfig, dataKey, description, nameKey } from "@/lib/constants";
 
 export default function Page() {
     const params = useParams();
@@ -44,8 +22,20 @@ export default function Page() {
     const [pastQuestions, setPastQuestions] = useState<
         { type: string; title: string; average: number }[]
     >([]);
+    const [responseStatistics, setResponseStatistics] = useState<{
+        incorrect: number;
+        correct: number;
+    }>({
+        incorrect: 0,
+        correct: 0,
+    });
     const [students, setStudents] = useState();
     const { toast } = useToast();
+
+    const chartData = [
+        { result: "correct", count: responseStatistics.correct, fill: "#BAFF7E" },
+        { result: "incorrect", count: responseStatistics.incorrect, fill: "#CCCCCC" },
+    ];
 
     useEffect(() => {
         const fetchCourseStatistics = async () => {
@@ -64,7 +54,25 @@ export default function Page() {
                     console.error(err);
                     return toast({
                         variant: "destructive",
-                        description: "Unknown error occurred",
+                        description: "Unknown error occurred.",
+                    });
+                });
+            await getResponseStatistics(courseId)
+                .then((res) => {
+                    if (typeof res !== "number" && "error" in res)
+                        return toast({
+                            variant: "destructive",
+                            description: res?.error ?? "Unknown error occurred.",
+                        });
+                    else {
+                        setResponseStatistics(res);
+                    }
+                })
+                .catch((err: unknown) => {
+                    console.error(err);
+                    return toast({
+                        variant: "destructive",
+                        description: "Unknown error occurred.",
                     });
                 });
         };
@@ -85,7 +93,16 @@ export default function Page() {
                         dataKey={dataKey}
                         nameKey={nameKey}
                         description={description}
-                        descriptionStatistic={descriptionStatistic}
+                        descriptionStatistic={
+                            responseStatistics.correct + responseStatistics.incorrect !== 0
+                                ? Math.trunc(
+                                      (responseStatistics.correct /
+                                          (responseStatistics.correct +
+                                              responseStatistics.incorrect)) *
+                                          100,
+                                  )
+                                : 0
+                        }
                     />
                 </div>
                 {/* Past Questions */}

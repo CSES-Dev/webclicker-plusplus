@@ -168,3 +168,41 @@ export async function getPastQuestionsWithScore(courseId: number){
         return { error: "Error fetching past questions." };
     }
 }
+
+export async function getResponseStatistics(courseId: number){
+    try{
+        const data = await prisma.question.findMany({
+            where: {
+            session: {
+                courseId: courseId,
+            },
+            },
+            include: {
+                responses: true,
+                options: true
+            }
+        });
+
+        let correctResponses = 0
+        let incorrectReponses = 0
+        for (let question of data){
+            const correctOptionIds = question.options.filter((option) => option.isCorrect).map((option) => option.id);;
+            
+            question.responses.forEach((response) => {
+                if (correctOptionIds.includes(response.optionId)){
+                    correctResponses++;
+                }
+                else{
+                    incorrectReponses++;
+                }
+            })
+
+        }
+
+        return {incorrect: incorrectReponses, correct: correctResponses};
+    }
+    catch (err){
+        console.error(err);
+        return { error: "Error calculating class average." };
+    }
+}
