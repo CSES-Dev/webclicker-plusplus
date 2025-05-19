@@ -25,15 +25,15 @@ export default function DonutChart({
     descriptionStatistic,
 }: Props) {
     return (
-        <ChartContainer config={chartConfig} className="aspect-square max-h-[270px]">
+        <ChartContainer config={chartConfig} className="aspect-square max-h-[330px]">
             <PieChart>
                 <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
                 <Pie
                     data={chartData}
                     dataKey={dataKey}
                     nameKey={nameKey}
-                    innerRadius={85}
-                    strokeWidth={5}
+                    innerRadius={"65%"}
+                    strokeWidth={15}
                 >
                     <Label
                         content={({ viewBox }) => {

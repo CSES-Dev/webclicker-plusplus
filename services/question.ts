@@ -119,3 +119,52 @@ export async function deleteQuestion(questionId: number) {
         return { error: "Error deleting question." };
     }
 }
+
+export async function getPastQuestionsWithScore(courseId: number){
+    try{
+        const data = await prisma.question.findMany({
+            where: {
+            session: {
+                courseId: courseId,
+            },
+            },
+            orderBy: [
+                {session: {
+                    startTime: 'desc',
+                }},
+                {position: 'desc',}
+            ],
+            take: 2,
+            include: {
+                responses: true,
+                options: true
+            }
+        });
+
+        let pastQuestions = []
+        
+        for (let question of data){
+            const correctOptionIds = question.options.filter((option) => option.isCorrect).map((option) => option.id);;
+            
+            let correctCount = 0;
+            question.responses.forEach((response) => {
+                if (correctOptionIds.includes(response.optionId)){
+                    correctCount++;
+                }
+            })
+
+            pastQuestions.push({
+                type: question.type,
+                title: question.text,
+                average: question.responses.length === 0 ? 0 : Math.trunc((correctCount / question.responses.length) * 100)
+            })
+            
+        }
+        
+        return pastQuestions;
+
+    }catch (err){
+        console.error(err);
+        return { error: "Error fetching past questions." };
+    }
+}
