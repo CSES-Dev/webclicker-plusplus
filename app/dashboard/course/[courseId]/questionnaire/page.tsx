@@ -24,6 +24,10 @@ export default function Page() {
     const router = useRouter();
     const { toast } = useToast();
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
+    const [refreshCalendar, setRefreshCalendar] = useState(false);
+    const handleQuestionUpdate = () => {
+        setRefreshCalendar(prev => !prev);
+    };
 
     useEffect(() => {
         if (isAccessLoading) {
@@ -73,6 +77,7 @@ export default function Page() {
                         defaultDate={new Date(formatDateToISO(new Date()))}
                         courseId={courseId}
                         location="page"
+                        onUpdate={handleQuestionUpdate}
                     />
 
                     {hasActiveSession ? (
@@ -89,7 +94,7 @@ export default function Page() {
                     )}
                 </div>
             </section>
-            <SlidingCalendar courseId={courseId} />
+            <SlidingCalendar courseId={courseId} refreshTrigger={refreshCalendar} />
             <AddInstructorForm />
         </div>
     );
