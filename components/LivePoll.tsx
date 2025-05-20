@@ -1,284 +1,7 @@
-// // app/active-session/[course-session-id]/live-poll/page.tsx
-
-// "use client";
-// import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
-// import { useParams, useRouter } from "next/navigation";
-// import { useCallback, useEffect, useRef, useState } from "react";
-// import AnswerOptions from "@/components/ui/answerOptions";
-// import BackButton from "@/components/ui/backButton";
-// import QuestionCard from "@/components/ui/questionCard";
-// import useAccess from "@/hooks/use-access";
-// import { useToast } from "@/hooks/use-toast";
-
-// type QuestionWithOptions = PrismaQuestion & {
-//     options: PrismaOption[];
-// };
-
-// type fetchCourseSessionQuestionResponse = {
-//     activeQuestionId: number;
-//     totalQuestions: number;
-// };
-
-// export default function LivePoll({ courseSessionId }: { courseSessionId: number }) {
-//     // Extract the course-session-id from the URL
-//     const params = useParams();
-//     const router = useRouter();
-//     const { toast } = useToast();
-
-//     const courseId = parseInt(params.courseId as string);
-//     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "STUDENT" });
-
-//     const [currentQuestion, setCurrentQuestion] = useState<QuestionWithOptions | null>(null);
-//     const [loading, setLoading] = useState(true);
-//     const [error, setError] = useState<string | null>(null);
-//     const [submitting, setSubmitting] = useState(false);
-//     const [questionCount, setQuestionCount] = useState("1");
-
-//     // Use useRef for activeQuestionId to prevent unnecessary re-renders
-//     const activeQuestionIdRef = useRef<number | null>(null);
-
-//     // Unified state for selected values (either single number or array of numbers)
-//     const [selectedValues, setSelectedValues] = useState<number | number[] | null>(null);
-
-//     // Function to fetch active question - use useCallback to memoize
-//     const fetchActiveQuestion = useCallback(async () => {
-//         try {
-//             // First, get the session to get the activeQuestionId
-//             const sessionResponse = await fetch(
-//                 `/api/fetchCourseSessionQuestion?sessionId=${courseSessionId}`,
-//             );
-
-//             if (!sessionResponse.ok) {
-//                 return toast({
-//                     variant: "destructive",
-//                     description: "Failed to fetch course session",
-//                 });
-//             }
-
-//             const sessionData =
-//                 (await sessionResponse.json()) as fetchCourseSessionQuestionResponse;
-//             const newActiveQuestionId = sessionData.activeQuestionId;
-//             // If the active question hasn't changed, don't re-fetch
-//             if (activeQuestionIdRef.current === newActiveQuestionId) {
-//                 return;
-//             }
-//             setLoading(true);
-
-//             // Update the ref
-//             activeQuestionIdRef.current = newActiveQuestionId;
-//             // If active question ID is 0 or null, no question is active
-//             if (!newActiveQuestionId) {
-//                 setError("No active question at this time");
-//                 setLoading(false);
-//                 return;
-//             }
-//             const questionResponse = await fetch(
-//                 `/api/fetchQuestionById?questionId=${String(newActiveQuestionId)}`,
-//             );
-
-//             if (!questionResponse.ok) {
-//                 toast({ variant: "destructive", description: "Failed to fetch question" });
-//                 router.refresh();
-//                 return;
-//             }
-
-//             const questionData = (await questionResponse.json()) as QuestionWithOptions;
-//             setCurrentQuestion(questionData);
-
-//             // Reset selected values based on question type
-//             setSelectedValues(questionData.type === "MCQ" ? null : []);
-
-//             // Use the position directly from the question object
-//             // Add 1 since positions typically start at 0 but display to users starts at 1
-//             const currentNumber = questionData.position + 1;
-
-//             setQuestionCount(String(currentNumber));
-//         } catch (err) {
-//             toast({ variant: "destructive", description: "An error occurre" });
-//             console.error(err);
-//         } finally {
-//             setLoading(false);
-//         }
-//     }, [courseSessionId]); // Only depends on courseSessionId
-
-//     // Initial fetch and polling setup
-//     useEffect(() => {
-//         if (!courseSessionId) return;
-//         if (isAccessLoading) {
-//             return;
-//         }
-//         if (!hasAccess) {
-//             toast({ variant: "destructive", description: "Access denied!" });
-//             router.push("/dashboard");
-//             return;
-//         }
-
-//         let intervalId: NodeJS.Timeout | null = null;
-
-//         // Create an async function to handle the initial fetch
-//         // const initialFetch = async () => {
-//         //     try {
-//         //         // Wait for the initial fetch to complete
-//         //         // await fetchActiveQuestion();
-
-//         //         // Once initial fetch is done, start polling
-//         //         intervalId = setInterval(() => {
-//         //             void fetchActiveQuestion();
-//         //         }, 5000); // Poll every 5 seconds
-//         //     } catch (errorMessage) {
-//         //         console.error("Error in initial fetch:", errorMessage);
-//         //     }
-//         // };
-//         // void initialFetch();
-//         void fetchActiveQuestion();
-
-//         intervalId = setInterval(() => {
-//             void fetchActiveQuestion();
-//         }, 5000);
-//         return () => {
-//             if (intervalId) {
-//                 clearInterval(intervalId);
-//             }
-//         };
-//     }, [isAccessLoading, hasAccess, courseSessionId]); // Dependency on memoized fetchActiveQuestion
-
-//     // Handle loading state
-//     if ((loading && !currentQuestion) || isAccessLoading) {
-//         return (
-//             <div className="min-h-screen flex items-center justify-center">
-//                 <div className="text-center">
-//                     <div className="w-16 h-16 border-4 border-t-custom-background border-opacity-50 rounded-full animate-spin mx-auto mb-4"></div>
-//                     <p>Loading question...</p>
-//                 </div>
-//             </div>
-//         );
-//     }
-
-//     if (error || !currentQuestion) {
-//         return (
-//             <div className="min-h-screen bg-white flex items-center justify-center">
-//                 <div className="text-center p-6">
-//                     <p className="text-red-500 mb-4">
-//                         {error ?? "No active question at this time"}
-//                     </p>
-//                     <BackButton href="/dashboard" />
-//                 </div>
-//             </div>
-//         );
-//     }
-
-//     // Handle answer selection (works for both MCQ and MSQ)
-//     const handleSelectionChange = (value: number | number[]) => {
-//         setSelectedValues(value);
-//     };
-
-//     const handleSubmit = async () => {
-//         if (
-//             !selectedValues ||
-//             (Array.isArray(selectedValues) && selectedValues.length === 0) ||
-//             !currentQuestion
-//         ) {
-//             return;
-//         }
-//         const optionIds = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
-
-//         try {
-//             setSubmitting(true);
-//             const response = await fetch("/api/submitStudentResponse", {
-//                 method: "POST",
-//                 headers: {
-//                     "Content-Type": "application/json",
-//                 },
-//                 body: JSON.stringify({
-//                     questionId: currentQuestion.id,
-//                     optionIds,
-//                 }),
-//             });
-
-//             if (!response.ok) {
-//                 console.error("Failed to save answer");
-//             }
-//         } catch (submitError) {
-//             console.error("Error saving answer:", submitError);
-//         } finally {
-//             setSubmitting(false);
-//         }
-//     };
-
-//     return (
-//         <div className="min-h-screen bg-inherit flex flex-col">
-//             <div className="p-4 sm:p-6 flex flex-col items-center">
-//                 {/* Back Button */}
-//                 <div className="self-start mb-6 mt-2">
-//                     <BackButton href="/dashboard" />
-//                 </div>
-
-//                 {/* Question header and count */}
-//                 <div className="w-full max-w-[330px]">
-//                     <div className="flex justify-between items-center mb-4">
-//                         <h2 className="text-[20px] font-medium">Live Question:</h2>
-//                         <div className="flex items-center">
-//                             <span className="text-lg">Question {questionCount}</span>
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 {/* Loading indicator for refreshing questions */}
-//                 {/* {loading && currentQuestion && (
-//                     <div className="absolute top-4 right-4 flex items-center">
-//                         <div className="w-4 h-4 border-2 border-t-custom-background border-opacity-50 rounded-full animate-spin mr-2"></div>
-//                         <span className="text-xs text-gray-500">Syncing...</span>
-//                     </div>
-//                 )} */}
-
-//                 {/* Question Card */}
-//                 <div className="w-full max-w-md">
-//                     <QuestionCard question={currentQuestion.text} />
-//                 </div>
-
-//                 {/* Answer Options */}
-//                 <AnswerOptions
-//                     options={currentQuestion.options}
-//                     questionType={currentQuestion.type}
-//                     selectedValues={selectedValues}
-//                     onSelectionChange={handleSelectionChange}
-//                 />
-
-//                 {/* Submit Button */}
-//                 <button
-//                     onClick={() => {
-//                         void handleSubmit();
-//                     }}
-//                     disabled={
-//                         !selectedValues ||
-//                         (Array.isArray(selectedValues) && selectedValues.length === 0) ||
-//                         submitting
-//                     }
-//                     className="mt-6 px-6 py-2 bg-custom-background text-white rounded-md hover:bg-opacity-90 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-//                 >
-//                     {submitting ? "Submitting..." : "Submit Answer"}
-//                 </button>
-
-//                 {/* Submission Status */}
-//                 {submitting && (
-//                     <p className="mt-4 text-blue-500 text-[14px]">Saving your answer...</p>
-//                 )}
-
-//                 {/* Footer Message */}
-//                 <p className="mt-6 text-[14px] text-gray-500 text-center">
-//                     Instructor will start the next question shortly...
-//                 </p>
-//             </div>
-//         </div>
-//     );
-// }
-
-// Modified LivePoll.tsx with simplified WebSocket integration
 "use client";
 import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useQuery } from "react-query";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import QuestionCard from "@/components/ui/questionCard";
@@ -296,14 +19,60 @@ type fetchCourseSessionQuestionResponse = {
     totalQuestions: number;
 };
 
-export default function LivePoll({ courseSessionId }: { courseSessionId: number }) {
+// Define proper types for WebSocket messages
+type WebSocketMessageType =
+    | "connected"
+    | "response_saved"
+    | "question_changed"
+    | "response_update"
+    | "error"
+    | "echo"
+    | "binary"
+    | "student_response";
+
+interface WebSocketMessageBase {
+    type: WebSocketMessageType;
+    message?: string;
+}
+
+interface QuestionChangedMessage extends WebSocketMessageBase {
+    type: "question_changed";
+    questionId: number;
+}
+
+interface ResponseSavedMessage extends WebSocketMessageBase {
+    type: "response_saved";
+    message?: string;
+}
+
+interface StudentResponseMessage extends WebSocketMessageBase {
+    type: "student_response";
+    questionId: number;
+    optionIds: number[];
+}
+
+// Union type for all message types
+type WebSocketMessage =
+    | QuestionChangedMessage
+    | ResponseSavedMessage
+    | StudentResponseMessage
+    | WebSocketMessageBase;
+
+export default function LivePoll({
+    courseSessionId,
+}: {
+    courseSessionId: number;
+}): React.JSX.Element {
     // Extract the course-session-id from the URL
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
 
     const courseId = parseInt(params.courseId as string);
-    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "STUDENT" });
+    const { hasAccess: _hasAccess, isLoading: isAccessLoading } = useAccess({
+        courseId,
+        role: "STUDENT",
+    });
 
     const [currentQuestion, setCurrentQuestion] = useState<QuestionWithOptions | null>(null);
     const [loading, setLoading] = useState(true);
@@ -311,7 +80,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
     const [submitting, setSubmitting] = useState(false);
     const [questionCount, setQuestionCount] = useState("1");
     const [isConnected, setIsConnected] = useState(false);
-    const [messages, setMessages] = useState<string[]>([]);
+    const [_messages, setMessages] = useState<string[]>([]);
 
     // Use useRef for activeQuestionId to prevent unnecessary re-renders
     const activeQuestionIdRef = useRef<number | null>(null);
@@ -383,11 +152,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
         } finally {
             setLoading(false);
         }
-    }, [courseSessionId]); // Only depends on courseSessionId
-    // The improved WebSocket connection handling for LivePoll.tsx
-
-    // This is the part that needs to be updated in your LivePoll.tsx file
-    // Replace the entire useEffect that sets up the WebSocket with this code:
+    }, [courseSessionId, toast, router]); // Added dependencies
 
     // Setup WebSocket connection
     useEffect(() => {
@@ -411,8 +176,8 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
         };
 
         ws.onmessage = (event) => {
-            let data;
-            let messageText;
+            let data: WebSocketMessage | null = null;
+            let messageText = "";
 
             // Display the raw message for debugging
             console.log("Raw message received:", event.data);
@@ -422,24 +187,25 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                 if (typeof event.data === "string") {
                     try {
                         // Try to parse as JSON
-                        data = JSON.parse(event.data);
+                        data = JSON.parse(event.data) as WebSocketMessage;
                         messageText = `Received JSON: ${JSON.stringify(data)}`;
                         console.log("Parsed JSON:", data);
 
                         // Process valid JSON message
-                        if (data && data.type) {
-                            // Handle different message types
-                            if (data.type === "question_changed" && data.questionId) {
+                        if (data?.type) {
+                            // Fixed with optional chaining
+                            // Type guard for question_changed
+                            if (data.type === "question_changed" && "questionId" in data) {
                                 // Refresh the question when the instructor changes it
                                 activeQuestionIdRef.current = null; // Force refresh
-                                fetchActiveQuestion();
+                                void fetchActiveQuestion();
                             } else if (data.type === "response_saved") {
-                                toast({ description: data.message || "Response saved" });
+                                toast({ description: data.message ?? "Response saved" }); // Fixed with nullish coalescing
                                 setSubmitting(false); // Reset submitting state on success
                             } else if (data.type === "error") {
                                 toast({
                                     variant: "destructive",
-                                    description: data.message || "Error occurred",
+                                    description: data.message ?? "Error occurred", // Fixed with nullish coalescing
                                 });
                                 setSubmitting(false); // Reset submitting state on error
                             } else if (data.type === "connected") {
@@ -450,16 +216,18 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                                 // We can safely ignore this for the student response flow
                             }
                         }
-                    } catch (e) {
-                        // If it fails to parse as JSON, it's likely a non-JSON text message
-                        console.log("Not valid JSON, treating as text:", e.message);
-
+                    } catch (_) {
+                        // Fixed unused variable
                         // This is from the old server - we need to handle this format
                         const message = event.data;
                         messageText = `Received text: ${message}`;
 
                         // Check if this is a response to our student submission
-                        if (message.includes("student_response") && submitting) {
+                        if (
+                            typeof message === "string" &&
+                            message.includes("student_response") &&
+                            submitting
+                        ) {
                             // This is likely a response to our student submission
                             toast({ description: "Your answer has been recorded" });
                             setSubmitting(false); // Reset submitting state
@@ -467,16 +235,21 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                     }
                 } else {
                     // Handle binary data if needed
-                    data = { type: "binary", message: "Binary data received" };
+                    data = {
+                        type: "binary",
+                        message: "Binary data received",
+                    };
                     messageText = "Received: Binary data";
                     console.log("Received binary data");
                 }
 
                 // Add message to list for debugging
                 setMessages((prev) => [...prev, messageText]);
-            } catch (error) {
-                console.error("Error processing message:", error);
-                setMessages((prev) => [...prev, `Error processing message: ${error}`]);
+            } catch (err: unknown) {
+                // Fixed catch callback variable type
+                const errorStr = err instanceof Error ? err.message : "Unknown error";
+                console.error("Error processing message:", errorStr);
+                setMessages((prev) => [...prev, `Error processing message: ${errorStr}`]);
                 setSubmitting(false); // Reset submitting state on error
             }
         };
@@ -488,21 +261,22 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
             setSubmitting(false); // Reset submitting state when connection closes
         };
 
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
+        ws.onerror = (wsError) => {
+            console.error("WebSocket error:", wsError);
             setMessages((prev) => [...prev, "WebSocket error occurred"]);
             setSubmitting(false); // Reset submitting state on error
         };
 
         // Initial fetch
-        fetchActiveQuestion();
+        void fetchActiveQuestion();
 
         return () => {
             if (ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
         };
-    }, [courseSessionId, fetchActiveQuestion]);
+    }, [courseSessionId, fetchActiveQuestion, toast, submitting]);
+
     // Handle loading state
     if ((loading && !currentQuestion) || isAccessLoading) {
         return (
@@ -525,7 +299,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                     <button
                         onClick={() => {
                             setError(null);
-                            fetchActiveQuestion();
+                            void fetchActiveQuestion();
                         }}
                         className="px-4 py-2 bg-custom-background text-white rounded-md mb-4"
                     >
@@ -538,12 +312,11 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
     }
 
     // Handle answer selection (works for both MCQ and MSQ)
-    const handleSelectionChange = (value: number | number[]) => {
+    const handleSelectionChange = (value: number | number[]): void => {
         setSelectedValues(value);
     };
 
-    // Submit response through WebSocket
-    const handleSubmit = () => {
+    const handleSubmit = (): void => {
         if (
             !selectedValues ||
             (Array.isArray(selectedValues) && selectedValues.length === 0) ||
@@ -555,6 +328,8 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
         }
 
         try {
+            toast({ description: "Your answer has been submitted" });
+
             // Set submitting to true BEFORE we do anything else
             setSubmitting(true);
 
@@ -562,14 +337,11 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
             const optionIds = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
 
             // Create message payload
-            const message = {
+            const message: StudentResponseMessage = {
                 type: "student_response",
                 questionId: currentQuestion.id,
-                optionIds: optionIds,
+                optionIds,
             };
-
-            // Log that we're submitting
-            console.log("Submitting answer:", message);
 
             // Send through WebSocket
             wsRef.current.send(JSON.stringify(message));
@@ -578,7 +350,7 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
             setMessages((prev) => [...prev, `Sent: ${JSON.stringify(message)}`]);
 
             // Also send via API as a fallback - make this async
-            fetch("/api/submitStudentResponse", {
+            void fetch("/api/submitStudentResponse", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -587,26 +359,19 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                     questionId: currentQuestion.id,
                     optionIds,
                 }),
-            })
-                .then((response) => {
-                    // If we don't get a WebSocket response in 2 seconds, reset submitting state
-                    // (This is a fallback in case the WebSocket doesn't respond)
-                    if (!response.ok) {
-                        console.error("Failed to save answer via API");
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error saving answer via API:", error);
-                    // Reset submitting state after API error
-                    setSubmitting(false);
-                });
+            }).catch((apiError) => {
+                console.error("API error:", apiError);
+            });
 
             // Fallback timer in case WebSocket response is never received
             setTimeout(() => {
                 setSubmitting(false);
+                console.log("Fallback timer: Setting submitting state to false"); // Add this log
             }, 3000);
-        } catch (submitError) {
-            console.error("Error submitting answer:", submitError);
+        } catch (submitError: unknown) {
+            // Fixed catch callback variable type
+            const errorStr = submitError instanceof Error ? submitError.message : "Unknown error";
+            console.error("Error submitting answer:", errorStr);
             toast({ variant: "destructive", description: "Failed to submit answer" });
             setSubmitting(false);
         }
@@ -674,6 +439,9 @@ export default function LivePoll({ courseSessionId }: { courseSessionId: number 
                 >
                     {submitting ? "Submitting..." : "Submit Answer"}
                 </button>
+
+                {/* Submission Status - crucial for visual feedback */}
+                {submitting && <p className="mt-4 text-blue-500 text-[14px]">Submitting...</p>}
 
                 {/* Footer Message */}
                 <p className="mt-6 text-[14px] text-gray-500 text-center">

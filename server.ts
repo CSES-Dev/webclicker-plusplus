@@ -1,30 +1,44 @@
+import { createServer } from "http";
+import { parse } from "url";
+import next from "next";
+import { initWebSocketServer } from "./lib/websocket";
 
-import { createServer } from 'http';
-import { parse } from 'url';
-import next from 'next';
-import { initWebSocketServer } from './lib/websocket';
-
-const dev = process.env.NODE_ENV !== 'production';
+const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
-  const server = createServer((req, res) => {
-    const parsedUrl = parse(req.url!, true);
-    
-    // handle  WebSocket  requests
-    if (parsedUrl.pathname === '/ws') {
-      res.writeHead(426);
-      res.end();
-      return;
-    }
-    
-    handle(req, res, parsedUrl);
-  });
+void app
+    .prepare()
+    .then(() => {
+        const server = createServer((req, res) => {
+            // Fix for no-non-null-assertion: Add check for req.url
+            const parsedUrl = req.url ? parse(req.url, true) : null;
 
-  initWebSocketServer(server);
+            // Handle case when parsedUrl is null
+            if (!parsedUrl) {
+                res.writeHead(400);
+                res.end("Bad Request: Missing URL");
+                return;
+            }
 
-  server.listen(3000, () => {
-    console.log('> Ready on http://localhost:3000');
-  });
-}); 
+            // handle WebSocket requests
+            if (parsedUrl.pathname === "/ws") {
+                res.writeHead(426);
+                res.end();
+                return;
+            }
+
+            handle(req, res, parsedUrl);
+        });
+
+        initWebSocketServer(server);
+
+        // Fix for no-floating-promises: Add void operator to indicate promise is intentionally not awaited
+        void server.listen(3000, () => {
+            console.log("> Ready on http://localhost:3000");
+        });
+    })
+    .catch((error) => {
+        console.error("Error preparing Next.js app:", error);
+        process.exit(1);
+    });
