@@ -70,6 +70,7 @@ interface Props {
             choice: string;
         }[];
     };
+    onUpdate?: () => void;
 }
 
 export const AddEditQuestionForm: React.FC<Props> = ({
@@ -77,6 +78,7 @@ export const AddEditQuestionForm: React.FC<Props> = ({
     location,
     defaultDate,
     questionId,
+    onUpdate,
     prevData,
 }: Props) => {
     const form = useForm<z.infer<typeof schema>>({
@@ -112,16 +114,23 @@ export const AddEditQuestionForm: React.FC<Props> = ({
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!prevData) return;
-        prevData.answerChoices = prevData.answerChoices.filter(
-            (answerChoice) => answerChoice.choice !== "",
-        );
-        form.setValue("answerChoices", prevData.answerChoices);
-        prevData.correctAnswers = prevData.correctAnswers.filter(
-            (correctAnswer) => correctAnswer.answer !== "",
-        );
-        form.setValue("correctAnswers", prevData.correctAnswers);
+        if (prevData) {
+            const cleanedPrevData = {
+                ...prevData,
+                answerChoices: prevData.answerChoices.filter((c) => c.choice !== ""),
+                correctAnswers: prevData.correctAnswers.filter((a) => a.answer !== ""),
+            };
+            form.reset(cleanedPrevData);
+        } else {
+            form.reset({
+                question: "",
+                selectedQuestionType: "Multiple Choice",
+                correctAnswers: [{ answer: "" }],
+                answerChoices: [{ choice: "" }],
+            });
+        }
     }, [prevData]);
+    
 
     useEffect(() => {
         if (!defaultDate) return;
@@ -209,6 +218,9 @@ export const AddEditQuestionForm: React.FC<Props> = ({
                     setIsOpen(false);
                     setLoading(false);
                     form.reset();
+                    if (typeof onUpdate === "function") {
+                        onUpdate();
+                    }
                     return toast({
                         description: questionId
                             ? "Question updated successfully"
