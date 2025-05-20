@@ -12,7 +12,14 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { chartConfig, dataKey, description, nameKey, questionTypeMap } from "@/lib/constants";
+import {
+    chartConfig,
+    dataKey,
+    description,
+    nameKey,
+    questionTypeMap,
+    analyticsPages,
+} from "@/lib/constants";
 import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { getStudents } from "@/services/userCourse";
 
@@ -37,6 +44,7 @@ export default function Page() {
             pollScore: number;
         }[]
     >([]);
+    const [page, setPage] = useState<string>("Performance");
     const { toast } = useToast();
 
     const chartData = [
@@ -109,45 +117,68 @@ export default function Page() {
 
     return (
         <div className="w-full flex flex-col">
-            <h1 className="text-2xl font-normal pl-1">Overall Performance</h1>
+            <div className="flex flex-row gap-2 bg-slate-200 h-fit w-fit p-1 rounded-md mb-4">
+                {analyticsPages.map((pageTitle: string) => (
+                    <button
+                        key={pageTitle}
+                        className={`p-2 h-fit px-4 rounded-md transition-colors duration-300 ease-in-out ${
+                            page === pageTitle
+                                ? "bg-white text-[hsl(var(--primary))]"
+                                : "bg-slate-200 text-slate-500"
+                        }`}
+                        onClick={() => setPage(pageTitle)}
+                    >
+                        {pageTitle}
+                    </button>
+                ))}
+                {/* <button className="bg-white p-2 h-fit px-4 rounded-md">Performance</button>
+                <button className="bg-white p-2 h-fit px-4 rounded-md">Attendance</button> */}
+            </div>
             <div className="flex flex-col md:flex-row justify-center md:justify-between items-center md:items-stretch bg-white h-80 max-h-80 w-full px-7 rounded-[20px] border border-[#A5A5A5] mt-4">
-                {/* Donut Chart */}
-                <div className="h-full w-full md:w-1/2 py-auto">
-                    <DonutChart
-                        chartData={chartData}
-                        chartConfig={chartConfig}
-                        dataKey={dataKey}
-                        nameKey={nameKey}
-                        description={description}
-                        descriptionStatistic={
-                            responseStatistics.correct + responseStatistics.incorrect !== 0
-                                ? Math.trunc(
-                                      (responseStatistics.correct /
-                                          (responseStatistics.correct +
-                                              responseStatistics.incorrect)) *
-                                          100,
-                                  )
-                                : 0
-                        }
-                    />
-                </div>
-                {/* Past Questions */}
-                <div className="hidden md:flex flex-col justify-center items-center w-full md:w-1/2 h-full gap-3">
-                    {pastQuestions.map((question, idx) => (
-                        <div
-                            key={idx}
-                            className="h-28 w-full p-4 bg-slate-50/10 shadow-md rounded-lg border border-slate-400"
-                        >
-                            <div className="flex flex-row justify-between">
-                                <p className="text-red-900 bg-[#D9C7C7] rounded-sm p-1 px-2 text-sm">
-                                    {questionTypeMap[question.type]}
-                                </p>
-                                <p className="text-lg font-semibold">{question.average}</p>
-                            </div>
-                            <p className="text-base pt-2">{question.title}</p>
+                {/* Performance page */}
+                {page === "Performance" ? (
+                    <>
+                        <div className="h-full w-full md:w-1/2 py-auto">
+                            {/* Donut Chart */}
+                            <DonutChart
+                                chartData={chartData}
+                                chartConfig={chartConfig}
+                                dataKey={dataKey}
+                                nameKey={nameKey}
+                                description={description}
+                                descriptionStatistic={
+                                    responseStatistics.correct + responseStatistics.incorrect !== 0
+                                        ? Math.trunc(
+                                              (responseStatistics.correct /
+                                                  (responseStatistics.correct +
+                                                      responseStatistics.incorrect)) *
+                                                  100,
+                                          )
+                                        : 0
+                                }
+                            />
                         </div>
-                    ))}
-                </div>
+                        {/* Past Questions */}
+                        <div className="hidden md:flex flex-col justify-center items-center w-full md:w-1/2 h-full gap-3">
+                            {pastQuestions.map((question, idx) => (
+                                <div
+                                    key={idx}
+                                    className="h-28 w-full p-4 bg-slate-50/10 shadow-md rounded-lg border border-slate-400"
+                                >
+                                    <div className="flex flex-row justify-between">
+                                        <p className="text-red-900 bg-[#D9C7C7] rounded-sm p-1 px-2 text-sm">
+                                            {questionTypeMap[question.type]}
+                                        </p>
+                                        <p className="text-lg font-semibold">{question.average}</p>
+                                    </div>
+                                    <p className="text-base pt-2">{question.title}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <div />
+                )}
             </div>
             <div className="flex flex-row justify-between mt-8 pl-1">
                 <h1 className="text-2xl font-normal">Student Data</h1>

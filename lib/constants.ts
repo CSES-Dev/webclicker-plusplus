@@ -36,5 +36,7 @@ export const chartConfig = {
     },
 } satisfies ChartConfig;
 
+export const analyticsPages = ['Performance', 'Attendance']
+
 
 export const DEFAULT_SHOW_RESULTS = false;
