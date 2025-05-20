@@ -96,3 +96,75 @@ export async function addUserToCourseByEmail(
         return { error: "User is already enrolled in this course" };
     }
 }
+
+export async function getStudents(courseId: number) {
+    try{
+        const studentsData = await prisma.user.findMany({
+            where: {
+                courses: {
+                    some: {
+                        courseId,
+                        role: "STUDENT",
+                    },
+                },
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                responses:
+                {
+                    select: {
+                        question: {
+                            select: {
+                                sessionId: true,
+                                options: {
+                                    select: {
+                                        isCorrect: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+            },
+        },
+        });
+        const sessions = await prisma.courseSession.findMany({
+            where: {
+                courseId
+            },
+            select: {
+                id: true,
+            },
+        }).then((res) => res.map((session) => session.id));
+
+        const result = studentsData.map((student) => {
+            const totalSessions = sessions.length;
+            const studentResponses = student.responses.filter((response) => sessions.includes(response.question.sessionId));
+            const attendedSessions = new Set(
+                studentResponses.map((response) => response.question.sessionId)
+            ).size;
+
+            const correctResponses = studentResponses.filter(
+                (response) => response.question.options.some((option) => option.isCorrect)
+            ).length;
+
+            const attendance = totalSessions > 0 ? Math.trunc((attendedSessions / totalSessions) * 100) : 0;
+            const pollScore = studentResponses.length > 0 ? Math.trunc((correctResponses / studentResponses.length) * 100) : 0;
+
+            return {
+                name: String(student.firstName) + ' ' + String(student.lastName),
+                email: student.email,
+                attendance,
+                pollScore
+            };
+        });
+    return result;
+    
+
+    } catch (err){
+        console.error(err);
+        return { error: "Error fetching students." };
+    }
+}

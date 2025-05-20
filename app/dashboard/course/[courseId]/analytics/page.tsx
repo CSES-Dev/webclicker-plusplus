@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { chartConfig, dataKey, description, nameKey, questionTypeMap } from "@/lib/constants";
 import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
+import { getStudents } from "@/services/userCourse";
 
 export default function Page() {
     const params = useParams();
@@ -28,7 +29,14 @@ export default function Page() {
         incorrect: 0,
         correct: 0,
     });
-    const [students, setStudents] = useState();
+    const [students, setStudents] = useState<
+        {
+            name: string;
+            email: string | null;
+            attendance: number;
+            pollScore: number;
+        }[]
+    >([]);
     const { toast } = useToast();
 
     const chartData = [
@@ -75,7 +83,26 @@ export default function Page() {
                     });
                 });
         };
-        const fetchStudentData = async () => {};
+        const fetchStudentData = async () => {
+            await getStudents(courseId)
+                .then((res) => {
+                    if ("error" in res)
+                        return toast({
+                            variant: "destructive",
+                            description: res?.error ?? "Unknown error occurred.",
+                        });
+                    else {
+                        setStudents(res);
+                    }
+                })
+                .catch((err: unknown) => {
+                    console.error(err);
+                    return toast({
+                        variant: "destructive",
+                        description: "Unknown error occurred.",
+                    });
+                });
+        };
         void fetchCourseStatistics();
         void fetchStudentData();
     }, []);
@@ -155,24 +182,49 @@ export default function Page() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {Array.from({ length: 10 })
-                            .keys()
-                            .map((i) => (
-                                <TableRow key={i}>
-                                    <TableCell className="max-w-[200px] truncate">
-                                        <p className="text-base">Student name here</p>
-                                        <p className="text-medium">student@ucsd.edu</p>
-                                    </TableCell>
-                                    <TableCell className="max-w-1/5 truncate">A123456789</TableCell>
-                                    <TableCell className="max-w-1/5 truncate">85%</TableCell>
-                                    <TableCell className="max-w-1/5 truncate">85%</TableCell>
-                                    <TableCell>
-                                        <button className="w-32 h-8 bg-white border border-[#A5A5A5] hover:bg-slate-100 rounded-md">
-                                            View Activity →
-                                        </button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                        {students.map((student, idx) => (
+                            <TableRow key={idx}>
+                                <TableCell className="max-w-[200px] truncate">
+                                    <p className="text-base">{student.name}</p>
+                                    <p className="text-medium">
+                                        {student.email ?? "No email provided"}
+                                    </p>
+                                </TableCell>
+                                <TableCell className="max-w-1/5 truncate">A123456789</TableCell>
+                                <TableCell className="max-w-1/5 truncate">
+                                    <p
+                                        className={`rounded-sm p-1 px-2 w-fit text-sm ${
+                                            student.attendance <= 50
+                                                ? "bg-[#FFA1A1]"
+                                                : student.attendance > 50 &&
+                                                    student.attendance <= 75
+                                                  ? "bg-[#F8ECA1]"
+                                                  : "bg-[#BFF2A6]"
+                                        }`}
+                                    >
+                                        {student.attendance}%
+                                    </p>
+                                </TableCell>
+                                <TableCell className="max-w-1/5 truncate">
+                                    <p
+                                        className={`rounded-sm p-1 px-2 w-fit text-sm ${
+                                            student.pollScore <= 50
+                                                ? "bg-[#FFA1A1]"
+                                                : student.pollScore > 50 && student.pollScore <= 75
+                                                  ? "bg-[#F8ECA1]"
+                                                  : "bg-[#BFF2A6]"
+                                        }`}
+                                    >
+                                        {student.pollScore}%
+                                    </p>
+                                </TableCell>
+                                <TableCell>
+                                    <button className="w-32 h-8 bg-white border border-[#A5A5A5] hover:bg-slate-100 rounded-md">
+                                        View Activity →
+                                    </button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </div>
