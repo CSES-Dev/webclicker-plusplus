@@ -87,6 +87,31 @@ export default function Page() {
                     ) : (
                         <BeginPollDialog />
                     )}
+                    
+                    {hasActiveSession && (
+                    <Button
+                        variant="outline"
+                        className="h-[50px] w-48 text-base sm:text-xl font-normal rounded-xl"
+                        onClick={async () => {
+                        try {
+                            const res = await getCourseSessionByDate(courseId, formatDateToISO(new Date()));
+                            if (!res?.id) {
+                            toast({ variant: "destructive", description: "No session found." });
+                            return;
+                            }
+
+                            const mode = confirm("Export advanced CSV? Click Cancel for basic.") ? "advanced" : "basic";
+                            const downloadUrl = `/api/export/${res.id}?mode=${mode}`;
+                            window.open(downloadUrl, "_blank");
+                        } catch (err) {
+                            toast({ variant: "destructive", description: "Export failed." });
+                            console.error("Export error:", err);
+                        }
+                        }}
+                    >
+                        Export CSV
+                    </Button>
+                    )}
                 </div>
             </section>
             <SlidingCalendar courseId={courseId} />

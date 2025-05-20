@@ -37,6 +37,7 @@
         "date-fns": "^3.6.0",
         "dayjs": "^1.11.13",
         "framer-motion": "^12.4.10",
+        "json2csv": "^6.0.0-alpha.2",
         "lucide-react": "^0.464.0",
         "next": "^15.2.3",
         "next-auth": "^4.24.11",
