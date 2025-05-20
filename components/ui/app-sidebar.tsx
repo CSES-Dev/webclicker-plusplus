@@ -13,10 +13,12 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 import { signOut } from "next-auth/react";
+import { StudentAnalyticsDrawer } from "@/components/StudentAnalyticsDrawer"
 
 export function AppSidebar() {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false); // State to toggle dropdown menu
+    const [open, setOpen] = useState(false);
 
     const links = [
         { name: "Dashboard", href: "/dashboard" },
@@ -104,6 +106,10 @@ export function AppSidebar() {
                             ))}
                         </SidebarMenu>
                     </div>
+                    <div className="p-10">
+                        <Button onClick={() => setOpen(true)}>Open Student Analytics</Button>
+                        {open && <StudentAnalyticsDrawer />}
+                        </div>
                     <Button
                         variant="link"
                         className="text-white no-underline text-xl"
