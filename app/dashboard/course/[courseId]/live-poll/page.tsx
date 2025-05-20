@@ -20,7 +20,6 @@ export default function CourseDetails() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [courseSession, setCourseSession] = useState<CourseSession | null>(null);
-
     const getActiveSession = async () => {
         setCourseSession(null);
         setIsLoading(true);
