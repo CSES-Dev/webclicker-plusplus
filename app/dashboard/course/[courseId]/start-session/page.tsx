@@ -29,7 +29,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
-import { formatDateToISO } from "@/lib/utils";
+import { formatDateToISO, shuffleArray } from "@/lib/utils";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
@@ -53,14 +53,7 @@ export default function StartSession() {
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
 
-    function shuffleArray<T>(array: T[]): T[] {
-        const copy = [...array];
-        for (let i = copy.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy;
-    }
+    
 
     useEffect(() => {
         async function fetchSessionData() {

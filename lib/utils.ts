@@ -31,3 +31,13 @@ export function greetUser(name: string): string {
 export function formatDateToISO(date: Date) {
     return new Date(date.setHours(0, 0, 0, 0)).toISOString();
 }
+
+
+export function shuffleArray<T>(array: T[]): T[] {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
