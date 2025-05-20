@@ -1,7 +1,7 @@
 "use client";
 import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
-import { EyeOff } from "lucide-react";
+import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
@@ -27,18 +27,17 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
 import { ChartData } from "@/models/Chart";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
-import { endCourseSession } from "@/services/courseSession";
+import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
     getCourseSessionByDate,
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
-
-import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 
 export default function StartSession() {
     const params = useParams();
@@ -51,6 +50,7 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
 
@@ -62,6 +62,7 @@ export default function StartSession() {
                 if (session.activeQuestionId !== null) {
                     setActiveQuestionId(session.activeQuestionId);
                 }
+                if (session.paused) setIsPaused(session.paused);
             } else {
                 toast({ description: "No session found" });
                 // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
@@ -218,6 +219,23 @@ export default function StartSession() {
         }
     }, [courseSession, courseId, router, toast]);
 
+    const handlePauseResume = useCallback(
+        async (pauseState: boolean) => {
+            if (!courseSession) return;
+            setIsPaused(pauseState);
+            try {
+                await pauseOrResumeCourseSession(courseSession.id, pauseState);
+            } catch (error) {
+                toast({
+                    variant: "destructive",
+                    description: `Failed to ${pauseState ? "pause" : "resume"} session`,
+                });
+                console.error(error);
+            }
+        },
+        [courseSession, toast],
+    );
+
     const chartConfig: ChartConfig = {
         Votes: {
             label: "Votes",
@@ -364,7 +382,6 @@ export default function StartSession() {
                         &lt; Previous Question
                     </Button>
                 </div>
-
                 <Button
                     onClick={() => {
                         setShowResults((prev) => !prev);
@@ -372,8 +389,28 @@ export default function StartSession() {
                 >
                     {showResults ? "Hide" : "Show"}
                 </Button>
-
                 <div className="flex gap-2">
+                    {isPaused ? (
+                        <button className="w-fit h-10 transition-transform hover:scale-110 cursor-pointer">
+                            <PlayCircleIcon
+                                size={28}
+                                strokeWidth={1.5}
+                                onClick={() => {
+                                    void handlePauseResume(!isPaused);
+                                }}
+                            />
+                        </button>
+                    ) : (
+                        <button className="w-fit h-10 transition-transform hover:scale-110 cursor-pointer">
+                            <PauseCircleIcon
+                                size={28}
+                                strokeWidth={1.5}
+                                onClick={() => {
+                                    void handlePauseResume(!isPaused);
+                                }}
+                            />
+                        </button>
+                    )}
                     <IconQuestionButton
                         onSelect={(selectedType) => {
                             // Only proceed if not currently changing a question
@@ -397,7 +434,7 @@ export default function StartSession() {
                             Next Question &gt;
                         </Button>
                     )}
-                </div>
+                </div>{" "}
             </div>
         </div>
     );
