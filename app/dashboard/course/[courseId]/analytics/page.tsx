@@ -1,6 +1,8 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import DonutChart from "@/components/ui/DonutChart";
 import {
     Table,
     TableBody,
@@ -9,18 +11,15 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { useParams } from "next/navigation";
-import { ChartConfig } from "@/components/ui/chart";
-import DonutChart from "@/components/ui/DonutChart";
-import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { useToast } from "@/hooks/use-toast";
-import { chartConfig, dataKey, description, nameKey } from "@/lib/constants";
+import { chartConfig, dataKey, description, nameKey, questionTypeMap } from "@/lib/constants";
+import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
     const [pastQuestions, setPastQuestions] = useState<
-        { type: string; title: string; average: number }[]
+        { type: keyof typeof questionTypeMap; title: string; average: number }[]
     >([]);
     const [responseStatistics, setResponseStatistics] = useState<{
         incorrect: number;
@@ -77,8 +76,8 @@ export default function Page() {
                 });
         };
         const fetchStudentData = async () => {};
-        fetchCourseStatistics();
-        fetchStudentData();
+        void fetchCourseStatistics();
+        void fetchStudentData();
     }, []);
 
     return (
@@ -114,7 +113,7 @@ export default function Page() {
                         >
                             <div className="flex flex-row justify-between">
                                 <p className="text-red-900 bg-[#D9C7C7] rounded-sm p-1 px-2 text-sm">
-                                    {question.type}
+                                    {questionTypeMap[question.type]}
                                 </p>
                                 <p className="text-lg font-semibold">{question.average}</p>
                             </div>

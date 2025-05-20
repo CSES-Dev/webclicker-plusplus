@@ -125,7 +125,7 @@ export async function getPastQuestionsWithScore(courseId: number){
         const data = await prisma.question.findMany({
             where: {
             session: {
-                courseId: courseId,
+                courseId,
             },
             },
             orderBy: [
@@ -141,9 +141,9 @@ export async function getPastQuestionsWithScore(courseId: number){
             }
         });
 
-        let pastQuestions = []
+        const pastQuestions = []
         
-        for (let question of data){
+        for (const question of data){
             const correctOptionIds = question.options.filter((option) => option.isCorrect).map((option) => option.id);;
             
             let correctCount = 0;
@@ -174,7 +174,7 @@ export async function getResponseStatistics(courseId: number){
         const data = await prisma.question.findMany({
             where: {
             session: {
-                courseId: courseId,
+                courseId,
             },
             },
             include: {
@@ -185,7 +185,7 @@ export async function getResponseStatistics(courseId: number){
 
         let correctResponses = 0
         let incorrectReponses = 0
-        for (let question of data){
+        for (const question of data){
             const correctOptionIds = question.options.filter((option) => option.isCorrect).map((option) => option.id);;
             
             question.responses.forEach((response) => {
