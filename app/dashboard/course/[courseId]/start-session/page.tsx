@@ -115,15 +115,7 @@ export default function StartSession() {
     const shuffledOptions = useMemo(() => {
         return questionData ? shuffleArray(questionData.options) : [];
     }, [activeQuestionId, questionData?.options]);
-    
-    // const chartData: ChartData[] = questionData
-    //     ? questionData.options.map((option: { id: number; text: string }) => ({
-    //           option: option.text,
-    //           Votes: questionData.responses.filter(
-    //               (resp: { optionId: number }) => resp.optionId === option.id,
-    //           ).length,
-    //       }))
-    //     : [];
+
 
     const chartData = questionData ? shuffledOptions.map((option) => ({
         option: option.text,
