@@ -29,12 +29,18 @@ export async function GET(
 
   const sessionDate = session.startTime.toISOString().split("T")[0];
 
-  const basicMap = new Map<string, number>();
+  const userQuestionMap = new Map<string, Set<number>>();
   const advancedRows = [];
 
   for (const res of responses) {
     const email = res.user.email ?? "[unknown]";
-    basicMap.set(email, (basicMap.get(email) || 0) + 1);
+    const questionId = res.question.id;
+
+    if (!userQuestionMap.has(email)) {
+      userQuestionMap.set(email, new Set());
+    }
+
+    userQuestionMap.get(email)!.add(questionId);
 
     advancedRows.push({
       email,
@@ -45,11 +51,13 @@ export async function GET(
     });
   }
 
-  const basicRows = Array.from(basicMap.entries()).map(([email, count]) => ({
-    email,
-    num_questions_answered: count,
-    date_of_session: sessionDate,
-  }));
+  const basicRows = Array.from(userQuestionMap.entries()).map(
+    ([email, questionSet]) => ({
+      email,
+      num_questions_answered: questionSet.size,
+      date_of_session: sessionDate,
+    })
+  );
 
   const csv = parse(mode === "advanced" ? advancedRows : basicRows);
 
