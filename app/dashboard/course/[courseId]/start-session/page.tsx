@@ -116,7 +116,6 @@ export default function StartSession() {
         return questionData ? shuffleArray(questionData.options) : [];
     }, [activeQuestionId, questionData?.options]);
 
-
     const chartData = questionData ? shuffledOptions.map((option) => ({
         option: option.text,
         Votes: questionData.responses.filter(
