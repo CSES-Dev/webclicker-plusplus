@@ -21,9 +21,10 @@ import { formatDateToISO } from "@/lib/utils";
 
 interface Props {
     courseId: number;
+    refreshTrigger?: boolean;
 }
 
-function SlidingCalendar({ courseId }: Props) {
+function SlidingCalendar({ courseId, refreshTrigger }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
@@ -41,9 +42,8 @@ function SlidingCalendar({ courseId }: Props) {
     const { toast } = useToast();
 
     useEffect(() => {
-        const currentDate = dayjs();
+        const currentDate = dayjs().startOf("day");
         setSelectedDate(currentDate);
-        fetchQuestions(currentDate.toDate());
     }, []);
 
     const fetchQuestions = async (date: Date) => {
@@ -65,7 +65,7 @@ function SlidingCalendar({ courseId }: Props) {
         if (selectedDate) {
             fetchQuestions(selectedDate.toDate());
         }
-    }, [selectedDate]);
+    }, [selectedDate, refreshTrigger]);
 
     // fetch incorrect and correct options of selected question
     useEffect(() => {
@@ -253,6 +253,7 @@ function SlidingCalendar({ courseId }: Props) {
                                                             courseId={courseId}
                                                             location="page"
                                                             questionId={question.id}
+                                                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
                                                             prevData={{
                                                                 question: question.text,
                                                                 selectedQuestionType:
@@ -298,6 +299,7 @@ function SlidingCalendar({ courseId }: Props) {
                             courseId={courseId}
                             location="calendar"
                             defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
+                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
                         />
                     </div>
                 )}
