@@ -21,7 +21,6 @@ import { IconQuestionButton } from "@/components/ui/plus-icon-button";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO } from "@/lib/utils";
-import { ChartData } from "@/models/Chart";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession } from "@/services/courseSession";
 import {
@@ -42,7 +41,6 @@ export default function StartSession() {
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
 
-
     function shuffleArray<T>(array: T[]): T[] {
         const copy = [...array];
         for (let i = copy.length - 1; i > 0; i--) {
@@ -51,7 +49,6 @@ export default function StartSession() {
         }
         return copy;
     }
-
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -116,12 +113,12 @@ export default function StartSession() {
         return questionData ? shuffleArray(questionData.options) : [];
     }, [activeQuestionId, questionData?.options]);
 
-    const chartData = questionData ? shuffledOptions.map((option) => ({
-        option: option.text,
-        Votes: questionData.responses.filter(
-            (resp) => resp.optionId === option.id
-        ).length,
-    })) : [];
+    const chartData = questionData
+        ? shuffledOptions.map((option) => ({
+              option: option.text,
+              Votes: questionData.responses.filter((resp) => resp.optionId === option.id).length,
+          }))
+        : [];
 
     const handleNextQuestion = useCallback(async () => {
         if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
