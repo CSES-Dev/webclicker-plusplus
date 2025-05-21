@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { AddEditQuestionForm } from "@/components/AddEditQuestionForm";
 import { AddInstructorForm } from "@/components/AddInstuctorForm";
 import BeginPollDialog from "@/components/BeginPollDialog";
+import PastQuestions from "@/components/ui/PastQuestions";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
 import { Button } from "@/components/ui/button";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
@@ -95,6 +96,7 @@ export default function Page() {
                 </div>
             </section>
             <SlidingCalendar courseId={courseId} refreshTrigger={refreshCalendar} />
+            <PastQuestions courseId={courseId} />
             <AddInstructorForm />
         </div>
     );
