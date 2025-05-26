@@ -132,13 +132,16 @@ export const StudentAnalyticsDrawer = () => {
                 {[...Array(5)].map((_, idx) => (
                     <div key={idx} className="grid grid-cols-3 gap-2">
                         {/* Question */}
-                        <div className="flex flex-col border rounded-md py-10">
-                            <div className="text-lg items-center justify-center text-center">
+                        <div className="flex flex-col justify-between border rounded-md p-4 h-40 relative">
+                            {/* Centered Question Text */}
+                            <div className="flex-grow flex items-center justify-center text-center text-lg px-2">
                                 Who is Ash's partner in Pokémon?
                             </div>
+
+                            {/* Bottom-right Label */}
                             <div className="flex justify-end">
-                                <div className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-1 py-1">
-                                    Multi-Select
+                                <div className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-2 py-1">
+                                Multi-Select
                                 </div>
                             </div>
                         </div>
