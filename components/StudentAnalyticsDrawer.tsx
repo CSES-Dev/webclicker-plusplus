@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { Input } from "./ui/input";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DatePicker } from "@/components/ui/DatePicker";
+import DonutChart from "@/components/ui/DonutChart";
 
 
 export const StudentAnalyticsDrawer = () => {
@@ -40,9 +41,21 @@ export const StudentAnalyticsDrawer = () => {
             <span className="text-lg font-medium">Student's Performance</span>
             <div className="p-4 rounded-md border flex justify-between">
                 <div className="flex justify-between items-center gap-4">
-                    <div className="text-center">
-                        <div className="text-sm font-semibold">Average Poll Score</div>
-                        <div className="text-3xl font-semibold">85</div>
+                    <div className="w-[160px] h-[160px]">
+                        <DonutChart
+                            chartData={[
+                            { name: "Correct", value: 85, fill: "#BFF2A7" },
+                            { name: "Incorrect", value: 15, fill: "#FFFFFF" },
+                            ]}
+                            chartConfig={{
+                            Correct: { label: "Correct", color: "#BFF2A7" },
+                            Incorrect: { label: "Incorrect", color: "#CCCCCC" },
+                            }}
+                            dataKey="value"
+                            nameKey="name"
+                            description="Average Poll Score"
+                            descriptionStatistic={85}
+                        />
                     </div>
                     <div className="grid gap-y-4">
                         <div className="bg-[#E9FFDE] text-center px-4 py-2 rounded-md text-xs border shadow-lg">
@@ -56,9 +69,21 @@ export const StudentAnalyticsDrawer = () => {
                     </div>
                 </div>
                 <div className="flex justify-between items-center gap-4">
-                    <div className="text-center">
-                        <div className="text-sm font-semibold">Attendance</div>
-                        <div className="text-3xl font-semibold">90</div>
+                    <div className="w-[160px] h-[160px]">
+                        <DonutChart
+                            chartData={[
+                            { name: "Attended", value: 90, fill: "#A7F2C2" },
+                            { name: "Missed", value: 10, fill: "#FFFFFF" },
+                            ]}
+                            chartConfig={{
+                            Attended: { label: "Attended", color: "#A7F2C2" },
+                            Missed: { label: "Missed", color: "#E5E7EB" },
+                            }}
+                            dataKey="value"
+                            nameKey="name"
+                            description="Attendance"
+                            descriptionStatistic={90}
+                        />
                     </div>
                     <div className="grid gap-y-4">
                         <div className="text-center px-4 py-2 rounded-md text-xs border shadow-lg">
