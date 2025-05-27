@@ -14,11 +14,51 @@ import { Input } from "./ui/input";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DatePicker } from "@/components/ui/DatePicker";
 import DonutChart from "@/components/ui/DonutChart";
+import { useEffect } from "react";
+import { getStudentAnalytics, getQuestionsAndResponsesForDate } from "@/services/analytics";
 
 
 export const StudentAnalyticsDrawer = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+    const [isOpen, setIsOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date());
+    const courseId = 22 // replace with real course ID
+    const userId = "cm8143diq0000i09nnuzne2jo" // replace with real user ID
+    const [analyticsData, setAnalyticsData] = useState<{
+        fullName: string;
+        attendancePercentage: number;
+        totalCheckIns: number;
+        lastCheckInDate: string | null;
+        mcqScore: number;
+        msqScore: number;
+        averagePollScore: number;
+      } | null>(null);
+
+      useEffect(() => {
+        getStudentAnalytics(courseId, userId)
+          .then(setAnalyticsData)
+          .catch((err) => {
+            console.error("Failed to load analytics", err);
+          });
+      }, []);
+
+      type QuestionForDate = {
+        id: number;
+        text: string;
+        type: "MCQ" | "MSQ";
+        inputtedAnswers: number[];
+        correctAnswers: number[];
+        options: { id: number; text: string }[];
+      };
+      
+      const [questionsForDate, setQuestionsForDate] = useState<QuestionForDate[]>([]);
+
+      useEffect(() => {
+        const fetchQuestions = async () => {
+          const data = await getQuestionsAndResponsesForDate(courseId, userId, selectedDate);
+          setQuestionsForDate(data);
+        };
+        void fetchQuestions();
+      }, [selectedDate]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -33,7 +73,7 @@ export const StudentAnalyticsDrawer = () => {
         {/* Student Name */}
         <div className="bg-[#F2F5FF] w-fit px-10 py-3 rounded-br-md border-b border-r">
           <span className="text-primary text-lg">Student</span>
-          <div className="text-2xl">Kim Taehyung</div>
+          <div className="text-2xl">{analyticsData?.fullName ?? "Loading..."}</div>
         </div>
 
         {/* Performance Summary */}
@@ -44,27 +84,35 @@ export const StudentAnalyticsDrawer = () => {
                     <div className="w-[160px] h-[160px]">
                         <DonutChart
                             chartData={[
-                            { name: "Correct", value: 85, fill: "#BFF2A7" },
-                            { name: "Incorrect", value: 15, fill: "#FFFFFF" },
+                                {
+                                name: "Correct",
+                                value: analyticsData?.averagePollScore ?? 0,
+                                fill: "#BFF2A7",
+                                },
+                                {
+                                name: "Incorrect",
+                                value: 100 - (analyticsData?.averagePollScore ?? 0),
+                                fill: "#FFFFFF",
+                                },
                             ]}
                             chartConfig={{
-                            Correct: { label: "Correct", color: "#BFF2A7" },
-                            Incorrect: { label: "Incorrect", color: "#CCCCCC" },
-                            }}
+                                Correct: { label: "Correct", color: "#BFF2A7" },
+                                Incorrect: { label: "Incorrect", color: "#FFFFFF" },
+                                }}
                             dataKey="value"
                             nameKey="name"
                             description="Average Poll Score"
-                            descriptionStatistic={85}
+                            descriptionStatistic={analyticsData?.averagePollScore ?? 0}
                         />
                     </div>
                     <div className="grid gap-y-4">
                         <div className="bg-[#E9FFDE] text-center px-4 py-2 rounded-md text-xs border shadow-lg">
                             Multiple Choice: 
-                            <div className="text-lg">85%</div>
+                            <div className="text-lg">{analyticsData?.mcqScore ?? "--"}%</div>
                         </div>
                         <div className="bg-[#E9FFDE] text-center px-4 py-2 rounded-md text-xs border shadow-lg">
                             Multi-Select: 
-                            <div className="text-lg">85%</div>
+                            <div className="text-lg">{analyticsData?.msqScore ?? "--"}%</div>
                         </div>
                     </div>
                 </div>
@@ -72,27 +120,35 @@ export const StudentAnalyticsDrawer = () => {
                     <div className="w-[160px] h-[160px]">
                         <DonutChart
                             chartData={[
-                            { name: "Attended", value: 90, fill: "#A7F2C2" },
-                            { name: "Missed", value: 10, fill: "#FFFFFF" },
+                                {
+                                name: "Attended",
+                                value: analyticsData?.attendancePercentage ?? 0,
+                                fill: "#A7F2C2",
+                                },
+                                {
+                                name: "Missed",
+                                value: 100 - (analyticsData?.attendancePercentage ?? 0),
+                                fill: "#FFFFFF",
+                                },
                             ]}
                             chartConfig={{
-                            Attended: { label: "Attended", color: "#A7F2C2" },
-                            Missed: { label: "Missed", color: "#E5E7EB" },
-                            }}
+                                Correct: { label: "Attended", color: "#A7F2C2" },
+                                Incorrect: { label: "Missed", color: "#FFFFFF" },
+                                }}
                             dataKey="value"
                             nameKey="name"
                             description="Attendance"
-                            descriptionStatistic={90}
+                            descriptionStatistic={analyticsData?.attendancePercentage ?? 0}
                         />
                     </div>
                     <div className="grid gap-y-4">
                         <div className="text-center px-4 py-2 rounded-md text-xs border shadow-lg">
                             Last Check-in: 
-                            <div className="text-lg">1/16</div>
+                            <div className="text-lg">{analyticsData?.lastCheckInDate ?? "--"}</div>
                         </div>
                         <div className="text-center px-4 py-2 rounded-md text-xs border shadow-lg">
                             Check-ins: 
-                            <div className="text-lg">5</div>
+                            <div className="text-lg">{analyticsData?.totalCheckIns ?? "--"}</div>
                         </div>
                     </div>
                 </div>
@@ -114,8 +170,10 @@ export const StudentAnalyticsDrawer = () => {
         <div className="flex px-10 gap-2">
             {/* Div A: Date + Vertical Line */}
             <div className="flex items-center gap-2">
-                <span className="text-sm">1/13</span>
-                <div className="w-0.5 h-full bg-primary rounded-full"></div>
+            <span className="text-sm">
+                {format(selectedDate, "M/dd")}
+            </span>                
+            <div className="w-0.5 h-full bg-primary rounded-full"></div>
             </div>
 
             {/* Div B: Questions + Answers */}
@@ -129,34 +187,28 @@ export const StudentAnalyticsDrawer = () => {
 
                 {/* Div 2: Content Rows */}
                 <div className="space-y-2 max-h-72 overflow-y-auto">
-                {[...Array(5)].map((_, idx) => (
+                    {questionsForDate.map((question, idx) => (
                     <div key={idx} className="grid grid-cols-3 gap-2">
-                        {/* Question */}
-                        <div className="flex flex-col justify-between border rounded-md p-4 h-40 relative">
-                            {/* Centered Question Text */}
-                            <div className="flex-grow flex items-center justify-center text-center text-lg px-2">
-                                Who is Ash's partner in Pokémon?
-                            </div>
-
-                            {/* Bottom-right Label */}
-                            <div className="flex justify-end">
-                                <div className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-2 py-1">
-                                Multi-Select
-                                </div>
-                            </div>
+                        <div className="flex flex-col border rounded-md py-10 relative">
+                        <div className="text-lg text-center px-2">{question.text}</div>
+                        <div className="absolute bottom-2 right-2">
+                            <span className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-2 py-1">
+                            {question.type === "MCQ" ? "Multiple Choice" : "Multi-Select"}
+                            </span>
                         </div>
-
-                        {/* Inputted */}
-                        <div className="border rounded-md text-lg flex items-center justify-center text-center">
-                            Pikachu
                         </div>
-
-                        {/* Correct */}
                         <div className="border rounded-md text-lg flex items-center justify-center text-center">
-                            Pikachu
+                        {question.inputtedAnswers
+                            .map((optId) => question.options.find(o => o.id === optId)?.text)
+                            .join(", ") || "—"}
+                        </div>
+                        <div className="border rounded-md text-lg flex items-center justify-center text-center">
+                        {question.correctAnswers
+                            .map((optId) => question.options.find(o => o.id === optId)?.text)
+                            .join(", ")}
                         </div>
                     </div>
-                ))}
+                    ))}
                 </div>
             </div>
         </div>
