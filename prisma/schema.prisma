@@ -90,7 +90,7 @@ model CourseSession {
   startTime        DateTime   @default(now())
   endTime          DateTime?
   activeQuestionId Int?
-  paused           Boolean?    @default(false)
+  paused           Boolean?   @default(false)
   course           Course     @relation(fields: [courseId], references: [id])
   questions        Question[]
 }
