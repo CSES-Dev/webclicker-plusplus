@@ -81,7 +81,7 @@ export const StudentAnalyticsDrawer = () => {
             <span className="text-lg font-medium">Student's Performance</span>
             <div className="p-4 rounded-md border flex justify-between">
                 <div className="flex justify-between items-center gap-4">
-                    <div className="w-[160px] h-[160px]">
+                    <div className="w-[200px] h-[200px]">
                         <DonutChart
                             chartData={[
                                 {
@@ -117,7 +117,7 @@ export const StudentAnalyticsDrawer = () => {
                     </div>
                 </div>
                 <div className="flex justify-between items-center gap-4">
-                    <div className="w-[160px] h-[160px]">
+                    <div className="w-[200px] h-[200px]">
                         <DonutChart
                             chartData={[
                                 {
