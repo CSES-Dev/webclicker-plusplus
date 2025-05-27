@@ -7,6 +7,7 @@ import BackButton from "@/components/ui/backButton";
 import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
+import { useSession } from "next-auth/react";
 
 import { getSessionPauseState } from "@/services/courseSession";
 
@@ -51,6 +52,14 @@ interface StudentResponseMessage extends WebSocketMessageBase {
     optionIds: number[];
 }
 
+// Add new type for response updates
+interface ResponseUpdateMessage extends WebSocketMessageBase {
+    type: "response_update";
+    questionId: number;
+    responseCount: number;
+    optionCounts: Record<number, number>;
+}
+
 // Union type for all message types
 type WebSocketMessage =
     | QuestionChangedMessage
@@ -67,6 +76,7 @@ export default function LivePoll({
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
+    const { data: session } = useSession();
 
     const courseId = parseInt(params.courseId as string);
     const { hasAccess: _hasAccess, isLoading: isAccessLoading } = useAccess({
@@ -156,16 +166,12 @@ export default function LivePoll({
 
     // Setup WebSocket connection
     useEffect(() => {
-        if (!courseSessionId) return;
-
-        // Generate a temporary user ID for testing
-        // In a real app, you would use the authenticated user's ID
-        const tempUserId = `test-user-${Math.floor(Math.random() * 1000)}`;
+        if (!courseSessionId || !session?.user?.id) return;
 
         // Create WebSocket connection
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const ws = new WebSocket(
-            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSessionId}&userId=${tempUserId}`,
+            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSessionId}&userId=${session.user.id}`,
         );
         wsRef.current = ws;
 
@@ -275,7 +281,7 @@ export default function LivePoll({
                 ws.close();
             }
         };
-    }, [courseSessionId, fetchActiveQuestion, toast, submitting]);
+    }, [courseSessionId, session?.user?.id, fetchActiveQuestion, toast, submitting]);
 
     // Handle loading state
     if ((loading && !currentQuestion) || isAccessLoading) {
@@ -387,11 +393,18 @@ export default function LivePoll({
 
                 {/* Connection status */}
                 <div className="w-full max-w-[330px] mb-4">
-                    <div className="flex items-center gap-2">
-                        <div
-                            className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
-                        />
-                        <span>{isConnected ? "Connected" : "Disconnected"}</span>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                            <div
+                                className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+                            />
+                            <span>{isConnected ? "Connected" : "Disconnected"}</span>
+                        </div>
+                        {session?.user && (
+                            <div className="text-sm text-gray-600">
+                                Connected as: {session.user.firstName} {session.user.lastName}
+                            </div>
+                        )}
                     </div>
                 </div>
 

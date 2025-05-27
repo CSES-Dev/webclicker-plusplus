@@ -1,5 +1,6 @@
 import { Server as HttpServer, IncomingMessage } from "http";
 import { WebSocket, WebSocketServer } from "ws";
+import prisma from "./prisma";
 
 // Define connection parameters type
 type ConnectionParams = {
@@ -34,6 +35,7 @@ type ResponseUpdateMessage = {
     type: "response_update";
     questionId: number;
     responseCount: number;
+    optionCounts: Record<number, number>;
 };
 
 type QuestionChangedMessage = {
@@ -70,8 +72,43 @@ type WebSocketMessage =
 // Type for unknown parsed data
 type UnknownData = Record<string, unknown>;
 
-// Store all active connections
-const connections = new Map<string, Map<string, WebSocket>>();
+// Add new type for authenticated connection
+type AuthenticatedConnection = {
+    userId: string;
+    sessionId: string;
+    ws: WebSocket;
+};
+
+// Store all active connections with authentication info
+const connections = new Map<string, Map<string, AuthenticatedConnection>>();
+
+// Function to validate user session
+async function validateUserSession(userId: string, sessionId: string): Promise<boolean> {
+    try {
+        // Check if user exists and has access to the session
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                courses: {
+                    where: {
+                        course: {
+                            sessions: {
+                                some: {
+                                    id: parseInt(sessionId)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        return !!user && user.courses.length > 0;
+    } catch (error) {
+        console.error("Error validating user session:", error);
+        return false;
+    }
+}
 
 // Function declaration moved to fix "used before defined" error
 function broadcastToSession(sessionId: string, message: WebSocketMessage): void {
@@ -91,7 +128,7 @@ function broadcastToSession(sessionId: string, message: WebSocketMessage): void 
 
         for (const connection of sessConnections.values()) {
             try {
-                connection.send(messageStr);
+                connection.ws.send(messageStr);
             } catch (err) {
                 console.error("Error sending broadcast to client:", err);
             }
@@ -108,7 +145,7 @@ function broadcastToSession(sessionId: string, message: WebSocketMessage): void 
 
             for (const connection of sessConnections.values()) {
                 try {
-                    connection.send(fallbackMsg);
+                    connection.ws.send(fallbackMsg);
                 } catch (err) {
                     console.error("Error sending fallback broadcast:", err);
                 }
@@ -121,7 +158,7 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
     const wss = new WebSocketServer({ noServer: true });
 
     // Handle upgrade requests
-    server.on("upgrade", (request: IncomingMessage, socket, head) => {
+    server.on("upgrade", async (request: IncomingMessage, socket, head) => {
         try {
             if (!request.url) {
                 socket.destroy();
@@ -134,14 +171,25 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
             );
 
             if (pathname === "/ws") {
-                // For test endpoint - keep this for backward compatibility
+                // For test endpoint - needed for backward compatibility
                 wss.handleUpgrade(request, socket, head, (ws) => {
                     wss.emit("connection", ws, request);
                 });
             } else if (pathname === "/ws/poll") {
-                // For poll connections
                 const sessionId = searchParams.get("sessionId");
                 const userId = searchParams.get("userId");
+
+                if (!sessionId || !userId) {
+                    socket.destroy();
+                    return;
+                }
+
+                // Validate user session
+                const isValid = await validateUserSession(userId, sessionId);
+                if (!isValid) {
+                    socket.destroy();
+                    return;
+                }
 
                 wss.handleUpgrade(request, socket, head, (ws) => {
                     wss.emit("connection", ws, request, { sessionId, userId });
@@ -161,83 +209,75 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
         (ws: WebSocket, request: IncomingMessage, connectionParams: ConnectionParams = {}) => {
             const { sessionId, userId } = connectionParams;
 
-            // Handle test connections
-            if (!sessionId && !userId) {
-                // FIXED: Always use JSON format for all messages
-                ws.send(
-                    JSON.stringify({
-                        type: "connected",
-                        message: "Connected to WebSocket test server",
-                    } as ConnectedMessage),
-                );
-
-                ws.on("message", (message: Buffer) => {
-                    try {
-                        // Parse the message to see if it's valid JSON
-                        const jsonData = JSON.parse(message.toString()) as UnknownData;
-
-                        // If it is, echo it back with proper JSON response
-                        ws.send(
-                            JSON.stringify({
-                                type: "response_saved",
-                                message: "Your message has been received",
-                                data: jsonData,
-                            } as ResponseSavedMessage),
-                        );
-                    } catch (_parseError) {
-                        // If not valid JSON, still respond with JSON format
-                        ws.send(
-                            JSON.stringify({
-                                type: "response_saved",
-                                message: "Your message has been received",
-                                data: {
-                                    originalMessage: message.toString(),
-                                },
-                            } as ResponseSavedMessage),
-                        );
-                    }
-                });
-
+            if (!sessionId || !userId) {
+                ws.close(1008, "Missing session or user ID");
                 return;
             }
 
-            // Handle poll connections
             console.log(`WebSocket connection: SessionID=${sessionId}, UserID=${userId}`);
 
-            // Store the connection - Check for null/undefined
-            if (sessionId && userId) {
-                if (!connections.has(sessionId)) {
-                    connections.set(sessionId, new Map());
-                }
-                const sessionConnections = connections.get(sessionId);
-                if (sessionConnections) {
-                    sessionConnections.set(userId, ws);
-                }
+            // Store the authenticated connection
+            if (!connections.has(sessionId)) {
+                connections.set(sessionId, new Map());
+            }
+            const sessionConnections = connections.get(sessionId);
+            if (sessionConnections) {
+                sessionConnections.set(userId, {
+                    userId,
+                    sessionId,
+                    ws
+                });
+            }
 
-                // Send connection confirmation
-                ws.send(
-                    JSON.stringify({
-                        type: "connected",
-                        message: "Connected to poll session",
-                    } as ConnectedMessage),
-                );
+            // Send connection confirmation
+            ws.send(
+                JSON.stringify({
+                    type: "connected",
+                    message: "Connected to poll session",
+                } as ConnectedMessage),
+            );
 
-                ws.on("message", (message: Buffer) => {
-                    try {
-                        // Try to parse the message
-                        const data = JSON.parse(message.toString()) as UnknownData;
+            ws.on("message", async (message: Buffer) => {
+                try {
+                    // Try to parse the message
+                    const data = JSON.parse(message.toString()) as UnknownData;
 
-                        // If this is a student response
-                        if (data.type === "student_response") {
-                            // Type checking and extraction
-                            const typedData = data as StudentResponseMessage;
-                            const questionId = typedData.questionId;
-                            const optionIds = typedData.optionIds;
+                    // If this is a student response
+                    if (data.type === "student_response") {
+                        // Type checking and extraction
+                        const typedData = data as StudentResponseMessage;
+                        const questionId = typedData.questionId;
+                        const optionIds = typedData.optionIds;
 
-                            // Validate required fields
-                            if (typeof questionId !== "number" || !Array.isArray(optionIds)) {
-                                throw new Error("Invalid student_response format");
-                            }
+                        // Validate required fields
+                        if (typeof questionId !== "number" || !Array.isArray(optionIds)) {
+                            throw new Error("Invalid student_response format");
+                        }
+
+                        try {
+                            // Save responses to database
+                            await Promise.all(
+                                optionIds.map(optionId =>
+                                    prisma.response.create({
+                                        data: {
+                                            userId,
+                                            questionId,
+                                            optionId,
+                                        }
+                                    })
+                                )
+                            );
+
+                            // Get response counts per option for this question
+                            const responseCounts = await prisma.response.groupBy({
+                                by: ['optionId'],
+                                where: {
+                                    questionId: questionId
+                                },
+                                _count: {
+                                    optionId: true
+                                }
+                            });
 
                             // Single essential log for student response
                             console.log(
@@ -260,61 +300,72 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                             broadcastToSession(sessionId, {
                                 type: "response_update",
                                 questionId,
-                                // We don't have actual counts, but for testing we can just increment
-                                responseCount: Math.floor(Math.random() * 20) + 1, // Random count for testing
+                                responseCount: responseCounts.reduce((acc, curr) => acc + curr._count.optionId, 0),
+                                optionCounts: responseCounts.reduce((acc, curr) => ({
+                                    ...acc,
+                                    [curr.optionId]: curr._count.optionId
+                                }), {})
                             } as ResponseUpdateMessage);
-                        }
-
-                        // If instructor is updating the active question
-                        else if (data.type === "active_question_update") {
-                            // Type checking
-                            const typedData = data as ActiveQuestionUpdateMessage;
-                            const questionId = typedData.questionId;
-
-                            // Validate required fields
-                            if (typeof questionId !== "number") {
-                                throw new Error("Invalid active_question_update format");
-                            }
-
-                            console.log(`Active question updated: QuestionID=${questionId}`);
-
-                            // Broadcast to all clients in this session
-                            broadcastToSession(sessionId, {
-                                type: "question_changed",
-                                questionId,
-                            } as QuestionChangedMessage);
-                        }
-                    } catch (error) {
-                        console.error("Error processing WebSocket message:", error);
-
-                        // Even on error, respond with proper JSON
-                        ws.send(
-                            JSON.stringify({
-                                type: "error",
-                                message: "Invalid message format",
-                            } as ErrorMessage),
-                        );
-                    }
-                });
-
-                ws.on("error", (error) => {
-                    console.error("WebSocket connection error:", error);
-                });
-
-                ws.on("close", () => {
-                    console.log(`WebSocket connection closed: SessionID=${sessionId}`);
-
-                    // Clean up the connection
-                    const localSessionConnections = connections.get(sessionId);
-                    if (localSessionConnections) {
-                        localSessionConnections.delete(userId);
-
-                        if (localSessionConnections.size === 0) {
-                            connections.delete(sessionId);
+                        } catch (error) {
+                            console.error("Error saving response:", error);
+                            ws.send(
+                                JSON.stringify({
+                                    type: "error",
+                                    message: "Failed to save response",
+                                } as ErrorMessage),
+                            );
                         }
                     }
-                });
-            }
+
+                    // If instructor is updating the active question
+                    else if (data.type === "active_question_update") {
+                        // Type checking
+                        const typedData = data as ActiveQuestionUpdateMessage;
+                        const questionId = typedData.questionId;
+
+                        // Validate required fields
+                        if (typeof questionId !== "number") {
+                            throw new Error("Invalid active_question_update format");
+                        }
+
+                        console.log(`Active question updated: QuestionID=${questionId}`);
+
+                        // Broadcast to all clients in this session
+                        broadcastToSession(sessionId, {
+                            type: "question_changed",
+                            questionId,
+                        } as QuestionChangedMessage);
+                    }
+                } catch (error) {
+                    console.error("Error processing WebSocket message:", error);
+
+                    // Even on error, respond with proper JSON
+                    ws.send(
+                        JSON.stringify({
+                            type: "error",
+                            message: "Invalid message format",
+                        } as ErrorMessage),
+                    );
+                }
+            });
+
+            ws.on("error", (error) => {
+                console.error("WebSocket connection error:", error);
+            });
+
+            ws.on("close", () => {
+                console.log(`WebSocket connection closed: SessionID=${sessionId}, UserID=${userId}`);
+
+                // Clean up the connection
+                const localSessionConnections = connections.get(sessionId);
+                if (localSessionConnections) {
+                    localSessionConnections.delete(userId);
+
+                    if (localSessionConnections.size === 0) {
+                        connections.delete(sessionId);
+                    }
+                }
+            });
         },
     );
 

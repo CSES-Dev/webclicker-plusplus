@@ -21,8 +21,8 @@ void app
                 return;
             }
 
-            // handle WebSocket requests
-            if (parsedUrl.pathname === "/ws") {
+            // Let the WebSocket server handle WebSocket requests
+            if (parsedUrl.pathname?.startsWith("/ws")) {
                 res.writeHead(426);
                 res.end();
                 return;
@@ -31,7 +31,8 @@ void app
             handle(req, res, parsedUrl);
         });
 
-        initWebSocketServer(server);
+        // Initialize WebSocket server
+        const wss = initWebSocketServer(server);
 
         // Fix for no-floating-promises: Add void operator to indicate promise is intentionally not awaited
         void server.listen(3000, () => {

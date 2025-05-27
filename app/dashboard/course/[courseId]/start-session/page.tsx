@@ -3,7 +3,7 @@ import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
 import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { LetteredYAxisTick } from "@/components/YAxisTick";
@@ -37,6 +37,8 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
+import prisma from "@/lib/prisma";
+import { useSession } from "next-auth/react";
 
 export default function StartSession() {
     const params = useParams();
@@ -49,6 +51,10 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
+    const [responseCounts, setResponseCounts] = useState<Record<number, number>>({});
+    const [totalResponses, setTotalResponses] = useState(0);
+    const wsRef = useRef<WebSocket | null>(null);
+    const session = useSession();
     const [isPaused, setIsPaused] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
@@ -72,6 +78,79 @@ export default function StartSession() {
         }
         void fetchSessionData();
     }, [courseId, utcDate, router, toast]);
+
+    const { data: questionData } = useQuery<QuestionData | null>(
+        ["question", activeQuestionId],
+        () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
+        { 
+            enabled: !!activeQuestionId,
+            onSuccess: async (data) => {
+                if (data && activeQuestionId) {
+                    // Fetch initial response counts
+                    const responseCounts = await prisma.response.groupBy({
+                        by: ['optionId'],
+                        where: {
+                            questionId: activeQuestionId
+                        },
+                        _count: {
+                            optionId: true
+                        }
+                    });
+
+                    // Update state with initial counts
+                    setResponseCounts(responseCounts.reduce((acc, curr) => ({
+                        ...acc,
+                        [curr.optionId]: curr._count.optionId
+                    }), {}));
+                    setTotalResponses(responseCounts.reduce((acc, curr) => acc + curr._count.optionId, 0));
+                }
+            }
+        }
+    );
+
+    // Setup WebSocket connection
+    useEffect(() => {
+        if (!courseSession || !session.data?.user?.id) return;
+
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const ws = new WebSocket(
+            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSession.id}&userId=${session.data.user.id}`,
+        );
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+            console.log("WebSocket connection established");
+        };
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("Received WebSocket message:", data);
+                
+                if (data.type === "response_update" && data.questionId === activeQuestionId) {
+                    console.log("Updating response counts:", data.optionCounts);
+                    setResponseCounts(data.optionCounts);
+                    setTotalResponses(data.responseCount);
+                }
+            } catch (error) {
+                console.error("Error processing WebSocket message:", error);
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket connection closed");
+        };
+
+        return () => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        };
+    }, [courseSession, activeQuestionId, session.data?.user?.id]);
 
     // fetch session questions
     const {
@@ -102,13 +181,6 @@ export default function StartSession() {
             }
         }
     }, [questions, activeQuestionId, courseSession]);
-
-    // retrieve details of the active question
-    const { data: questionData } = useQuery<QuestionData | null>(
-        ["question", activeQuestionId],
-        () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
-        { refetchInterval: 2000, enabled: !!activeQuestionId },
-    );
 
     const totalQuestions = questions?.length ?? 0;
 
@@ -251,7 +323,6 @@ export default function StartSession() {
     }
 
     const activeQuestion = questions ? questions.find((q) => q.id === activeQuestionId) : null;
-    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
 
     return (
         <div className="flex flex-col items-center p-4">
@@ -279,57 +350,58 @@ export default function StartSession() {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <ChartContainer
-                            config={chartConfig}
-                            className="w-full text-base md:text-lg"
-                        >
-                            <ResponsiveContainer width="100%" height={300}>
+                        {chartData.length > 0 ? (
+                            <ChartContainer
+                                config={chartConfig}
+                                className="w-full text-base md:text-lg"
+                            >
+                                <ResponsiveContainer width="100%" height={300}>
                                 {showResults ? (
-                                    <BarChart
-                                        data={chartData}
-                                        layout="vertical"
-                                        barCategoryGap={20}
-                                        margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
-                                    >
-                                        <XAxis type="number" domain={[0, totalVotes]} hide />
-                                        <YAxis
-                                            dataKey="option"
-                                            type="category"
-                                            tick={<LetteredYAxisTick />}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickMargin={8}
-                                            style={{ fill: "#000" }}
-                                        />
-                                        <ChartTooltip
-                                            cursor={false}
-                                            content={<ChartTooltipContent hideLabel />}
-                                        />
-                                        <Bar
-                                            dataKey="Votes"
-                                            fill="#F3AB7E"
-                                            barSize={30}
-                                            radius={[5, 5, 5, 5]}
-                                            background={{
-                                                fill: "#fff",
-                                                stroke: "#959595",
-                                                strokeWidth: 0.5,
-                                                radius: 5,
-                                            }}
+                                        <BarChart
+                                            data={chartData}
+                                            layout="vertical"
+                                            barCategoryGap={20}
+                                            margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
                                         >
-                                            <LabelList
-                                                dataKey="Votes"
-                                                position="right"
-                                                offset={10}
-                                                formatter={(value: number) => {
-                                                    if (!totalVotes || !value) return "0%";
-                                                    const percent = (value / totalVotes) * 100;
-                                                    return `${percent.toFixed(1)}%`;
-                                                }}
-                                                style={{ fill: "#000", fontSize: 12 }}
+                                            <XAxis type="number" domain={[0, totalVotes]} hide />
+                                            <YAxis
+                                                dataKey="option"
+                                                type="category"
+                                                tick={<LetteredYAxisTick />}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickMargin={8}
+                                                style={{ fill: "#000" }}
                                             />
-                                        </Bar>
-                                    </BarChart>
+                                            <ChartTooltip
+                                                cursor={false}
+                                                content={<ChartTooltipContent hideLabel />}
+                                            />
+                                            <Bar
+                                                dataKey="Votes"
+                                                fill="#F3AB7E"
+                                                barSize={30}
+                                                radius={[5, 5, 5, 5]}
+                                                background={{
+                                                    fill: "#fff",
+                                                    stroke: "#959595",
+                                                    strokeWidth: 0.5,
+                                                    radius: 5,
+                                                }}
+                                            >
+                                                <LabelList
+                                                    dataKey="Votes"
+                                                    position="right"
+                                                    offset={10}
+                                                    formatter={(value: number) => {
+                                                        if (!totalVotes || !value) return "0%";
+                                                        const percent = (value / totalVotes) * 100;
+                                                        return `${percent.toFixed(1)}%`;
+                                                    }}
+                                                    style={{ fill: "#000", fontSize: 12 }}
+                                                />
+                                            </Bar>
+                                        </BarChart>
                                 ) : (
                                     <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
                                         <EyeOff className="w-10 h-10" />
@@ -338,8 +410,13 @@ export default function StartSession() {
                                         </p>
                                     </div>
                                 )}
-                            </ResponsiveContainer>
-                        </ChartContainer>
+                                </ResponsiveContainer>
+                            </ChartContainer>
+                        ) : (
+                            <div className="flex items-center justify-center h-[300px] text-gray-500">
+                                No responses yet
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
