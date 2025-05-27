@@ -22,7 +22,7 @@ export const questionTypeMap = {
 export const dataKey = "count";
 export const nameKey = "result";
 export const description = "Class Average";
-export const chartConfig = {
+export const performanceChartConfig = {
     count: {
         label: "Count",
     },
@@ -36,7 +36,14 @@ export const chartConfig = {
     },
 } satisfies ChartConfig;
 
-export const analyticsPages = ['Performance', 'Attendance']
+export const attendanceChartConfig = {
+    attendance: {
+        label: "Attendance",
+        color: "black",
+    },
+} satisfies ChartConfig;
+
+export const analyticsPages = ['Performance', 'Attendance Rate']
 
 
 export const DEFAULT_SHOW_RESULTS = false;

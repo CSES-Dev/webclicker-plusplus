@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import {
-    chartConfig,
+    performanceChartConfig,
     dataKey,
     description,
     nameKey,
@@ -22,6 +22,7 @@ import {
 } from "@/lib/constants";
 import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { getStudents } from "@/services/userCourse";
+import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
 
 export default function Page() {
     const params = useParams();
@@ -47,7 +48,7 @@ export default function Page() {
     const [page, setPage] = useState<string>("Performance");
     const { toast } = useToast();
 
-    const chartData = [
+    const performanceChartData = [
         { result: "correct", count: responseStatistics.correct, fill: "#BAFF7E" },
         { result: "incorrect", count: responseStatistics.incorrect, fill: "#CCCCCC" },
     ];
@@ -131,18 +132,16 @@ export default function Page() {
                         {pageTitle}
                     </button>
                 ))}
-                {/* <button className="bg-white p-2 h-fit px-4 rounded-md">Performance</button>
-                <button className="bg-white p-2 h-fit px-4 rounded-md">Attendance</button> */}
             </div>
-            <div className="flex flex-col md:flex-row justify-center md:justify-between items-center md:items-stretch bg-white h-80 max-h-80 w-full px-7 rounded-[20px] border border-[#A5A5A5] mt-4">
+            <div className="flex flex-col md:flex-row justify-center md:justify-between items-center md:items-stretch bg-white overflow-auto h-80 max-h-80 w-full rounded-[20px] border border-[#A5A5A5]">
                 {/* Performance page */}
                 {page === "Performance" ? (
                     <>
-                        <div className="h-full w-full md:w-1/2 py-auto">
+                        <div className="h-full w-full md:w-1/2 py-auto px-7">
                             {/* Donut Chart */}
                             <DonutChart
-                                chartData={chartData}
-                                chartConfig={chartConfig}
+                                chartData={performanceChartData}
+                                chartConfig={performanceChartConfig}
                                 dataKey={dataKey}
                                 nameKey={nameKey}
                                 description={description}
@@ -159,7 +158,7 @@ export default function Page() {
                             />
                         </div>
                         {/* Past Questions */}
-                        <div className="hidden md:flex flex-col justify-center items-center w-full md:w-1/2 h-full gap-3">
+                        <div className="hidden md:flex flex-col justify-center items-center w-full md:w-1/2 h-full gap-3 pr-5">
                             {pastQuestions.map((question, idx) => (
                                 <div
                                     key={idx}
@@ -177,7 +176,7 @@ export default function Page() {
                         </div>
                     </>
                 ) : (
-                    <div />
+                    <AttendanceLineChart courseId={courseId} />
                 )}
             </div>
             <div className="flex flex-row justify-between mt-8 pl-1">

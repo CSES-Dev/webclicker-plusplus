@@ -168,3 +168,71 @@ export async function getStudents(courseId: number) {
         return { error: "Error fetching students." };
     }
 }
+
+export async function getAttendanceByDay(courseId: number, date: Date) {
+    try{
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const sessions = await prisma.courseSession.findMany({
+            where: {
+                courseId,
+                startTime: {
+                    gte: startOfDay,
+                    lte: endOfDay,
+                },
+            },
+            select: {
+                id: true,
+            },
+        }).then((res) => res.map((session) => session.id));
+
+        const totalStudents = await prisma.user.count(
+            {
+                where: {
+                    courses: {
+                        some: {
+                            courseId,
+                            role: "STUDENT",
+                        },
+                    },
+                },
+            }
+        )
+
+        if (sessions.length === 0 || totalStudents === 0) {
+            return 0;
+        }
+
+        const attendedStudents = await prisma.response.findMany({
+            where: {
+                question: {
+                    sessionId: {
+                        in: sessions,
+                    },
+                },
+                user: {
+                    courses: {
+                        some: {
+                            courseId,
+                            role: 'STUDENT',
+                        },
+                    },
+                },
+            },
+            distinct: ['userId'],
+            select: {
+                userId: true,
+            },
+        });
+        
+        return Math.trunc((attendedStudents.length / totalStudents) * 100);
+    } catch (err){
+        console.error(err);
+        return { error: "Error calculating attendance rate." };
+    }
+}
+        
