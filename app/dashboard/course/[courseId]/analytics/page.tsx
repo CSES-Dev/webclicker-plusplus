@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DonutChart from "@/components/ui/DonutChart";
 import {
     Table,
@@ -46,6 +46,7 @@ export default function Page() {
         }[]
     >([]);
     const [page, setPage] = useState<string>("Performance");
+    const [studentQuery, setStudentQuery] = useState<string | undefined>(undefined);
     const { toast } = useToast();
 
     const performanceChartData = [
@@ -92,8 +93,12 @@ export default function Page() {
                     });
                 });
         };
+        void fetchCourseStatistics();
+    }, []);
+
+    useEffect(() => {
         const fetchStudentData = async () => {
-            await getStudents(courseId)
+            await getStudents(courseId, studentQuery)
                 .then((res) => {
                     if ("error" in res)
                         return toast({
@@ -112,10 +117,8 @@ export default function Page() {
                     });
                 });
         };
-        void fetchCourseStatistics();
         void fetchStudentData();
-    }, []);
-
+    }, [studentQuery]);
     return (
         <div className="w-full flex flex-col">
             <div className="flex flex-row gap-2 bg-slate-200 h-fit w-fit p-1 rounded-md mb-4">
@@ -193,9 +196,6 @@ export default function Page() {
                             <TableHead key={"name"} className="w-1/5">
                                 Student
                             </TableHead>
-                            <TableHead key={"id"} className="w-1/5">
-                                Identification
-                            </TableHead>
                             <TableHead key={"attendance"} className="w-1/5">
                                 Attendance
                             </TableHead>
@@ -204,6 +204,7 @@ export default function Page() {
                             </TableHead>
                             <TableHead key={"activity"} className="w-1/5">
                                 <input
+                                    onChange={(e) => setStudentQuery(e.target.value)}
                                     type="text"
                                     placeholder="Search student..."
                                     className="h-8 w-[12vw] px-3 bg-white text-black border border-slate-300 rounded-lg focus:outline-none"
@@ -220,7 +221,6 @@ export default function Page() {
                                         {student.email ?? "No email provided"}
                                     </p>
                                 </TableCell>
-                                <TableCell className="max-w-1/5 truncate">A123456789</TableCell>
                                 <TableCell className="max-w-1/5 truncate">
                                     <p
                                         className={`rounded-sm p-1 px-2 w-fit text-sm ${

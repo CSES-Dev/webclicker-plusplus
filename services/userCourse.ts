@@ -97,7 +97,7 @@ export async function addUserToCourseByEmail(
     }
 }
 
-export async function getStudents(courseId: number) {
+export async function getStudents(courseId: number, query: string | undefined) {
     try{
         const studentsData = await prisma.user.findMany({
             where: {
@@ -107,6 +107,30 @@ export async function getStudents(courseId: number) {
                         role: "STUDENT",
                     },
                 },
+                ...(query
+                    ? {
+                          OR: [
+                              {
+                                  email: {
+                                      contains: query,
+                                      mode: "insensitive",
+                                  },
+                              },
+                              {
+                                  firstName: {
+                                      contains: query,
+                                      mode: "insensitive",
+                                  },
+                              },
+                              {
+                                  lastName: {
+                                      contains: query,
+                                      mode: "insensitive",
+                                  },
+                              },
+                          ],
+                      }
+                    : {}),
             },
             select: {
                 id: true,
