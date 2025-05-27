@@ -135,4 +135,5 @@ enum Role {
 enum QuestionType {
   MCQ
   MSQ
+  TF
 }

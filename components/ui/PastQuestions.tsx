@@ -22,6 +22,7 @@ function PastQuestions({ courseId }: Props) {
       type: "TF",
       score: 100,
       studentAnswer: "True",
+      date: "2023-10-15",
     },
     {
       id: 2,
@@ -29,6 +30,7 @@ function PastQuestions({ courseId }: Props) {
       type: "MSQ",
       score: 50,
       studentAnswer: "UCSD, UCI",
+      date: "2023-11-02",
     },
     {
       id: 3,
@@ -36,6 +38,7 @@ function PastQuestions({ courseId }: Props) {
       type: "MCQ",
       score: 0,
       studentAnswer: "5",
+      date: "2023-12-10",
     },
   ];
 
@@ -50,7 +53,7 @@ function PastQuestions({ courseId }: Props) {
       <div className="w-full max-w-screen-xl bg-white rounded-[20px] border border-[#A5A5A5] overflow-hidden">
         {/* Filter row */}
         <div className="grid grid-cols-12 items-center p-6 bg-[#F2F5FF] border-b border-[#D9D9D9]">
-          <div className="col-span-7 flex items-center space-x-4">
+          <div className="col-span-6 flex items-center space-x-4">
             <span className="text-sm font-medium text-[#434343]">
               Question Type:
             </span>
@@ -65,7 +68,10 @@ function PastQuestions({ courseId }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-3 flex justify-center">
+          <div className="col-span-2 flex justify-center">
+            <span className="text-sm font-medium text-[#434343]">Date</span>
+          </div>
+          <div className="col-span-2 flex justify-center">
             <span className="text-sm font-medium text-[#434343]">Score</span>
           </div>
           <div className="col-span-2"></div>
@@ -76,18 +82,25 @@ function PastQuestions({ courseId }: Props) {
           {mockQuestions.map((question) => (
             <div key={question.id} className="grid grid-cols-12 items-center p-6">
               {/* Question column */}
-              <div className="col-span-7">
+              <div className="col-span-6">
                 <span className="text-xs font-medium text-[#18328D] bg-[#E6EAF1] px-2 py-1 rounded">
                   {questionTypeMap[question.type as keyof typeof questionTypeMap]}
                 </span>
-                <p className="mt-2 text-base font-normal text-black">
+                <p className="mt-2 text-xl font-normal text-[#1F1F1F]">
                   {question.text}
                 </p>
               </div>
 
+              {/* Date column */}
+              <div className="col-span-2 flex justify-center">
+                <span className="text-base font-normal text-[#1F1F1F]">
+                  {question.date}
+                </span>
+              </div>
+
               {/* Score column */}
-              <div className="col-span-3 flex justify-center">
-                <span className="text-2xl font-medium text-[#18328D]">
+              <div className="col-span-2 flex justify-center">
+                <span className="text-base font-semibold text-[#2D9B62]">
                   {question.score}
                 </span>
               </div>

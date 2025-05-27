@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 const prismaQuestionTypes = {
     "Multiple Choice": QuestionType.MCQ,
     "Select All": QuestionType.MSQ,
+    "True/False": QuestionType.TF,
 };
 
 export async function addQuestionWithOptions(
