@@ -78,7 +78,7 @@ export default function Page() {
             toast({
                 title: "Success",
                 description:
-                    role === "LECTURER"
+                    courses.find((c) => c.id === currentCourseId)?.role === "LECTURER"
                         ? "Course deleted successfully"
                         : "Successfully left course",
             });
@@ -188,7 +188,7 @@ export default function Page() {
                     <DeleteAlertDialogHeader>
                         <DeleteAlertDialogTitle>Are you sure?</DeleteAlertDialogTitle>
                         <DeleteAlertDialogDescription>
-                            {role === "LECTURER"
+                            {courses.find((c) => c.id === currentCourseId)?.role === "LECTURER"
                                 ? "This will permanently delete the course and all its data."
                                 : "This will remove you from the course."}
                         </DeleteAlertDialogDescription>
@@ -205,7 +205,7 @@ export default function Page() {
                         >
                             {isDeleting
                                 ? "Processing..."
-                                : role === "LECTURER"
+                                : courses.find((c) => c.id === currentCourseId)?.role === "LECTURER"
                                   ? "Delete Course"
                                   : "Leave Course"}
                         </DeleteAlertDialogAction>
