@@ -32,8 +32,8 @@ interface AddEditCourseFormProps {
     defaultValues?: z.infer<typeof schema>;
     onSuccess?: () => void;
     children?: React.ReactNode;
-    isOpen?: boolean;
-    onOpenChange?: (open: boolean) => void;
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
 }
 
 export const AddEditCourseForm = ({
@@ -42,41 +42,26 @@ export const AddEditCourseForm = ({
     defaultValues,
     onSuccess,
     children,
-    isOpen: controlledOpen,
-    onOpenChange: controlledOnOpenChange,
+    isOpen,
+    onOpenChange,
 }: AddEditCourseFormProps) => {
     const session = useSession();
     const { toast } = useToast();
     const user = session?.data?.user ?? { id: "", firstName: "" };
     const [loading, setLoading] = useState(false);
 
-    const [internalOpen, setInternalOpen] = useState(false);
-    const isOpen = controlledOpen ?? internalOpen;
-    const setIsOpen = controlledOnOpenChange ?? setInternalOpen;
-
-    const memoizedDefaultValues = useMemo(() => {
-        return (
-            defaultValues ?? {
-                title: "",
-                color: colorOptions[0],
-                days: [],
-                startTime: "",
-                endTime: "",
-            }
-        );
-    }, [defaultValues]);
-
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
-        defaultValues: memoizedDefaultValues,
+        defaultValues: defaultValues ?? {
+            title: "",
+            color: colorOptions[0],
+            days: [],
+            startTime: "",
+            endTime: "",
+        },
     });
 
-    useEffect(() => {
-        if (isOpen && defaultValues) {
-            form.reset(defaultValues);
-        }
-    }, [isOpen, defaultValues, form]);
 
     const handleSubmit = async (values: z.infer<typeof schema>) => {
         const { title, color, days, endTime, startTime } = values;
@@ -103,7 +88,7 @@ export const AddEditCourseForm = ({
             }
 
             form.reset(mode === "add" ? undefined : values);
-            setIsOpen(false);
+            onOpenChange?.(false);
             onSuccess?.();
 
             toast({
@@ -281,7 +266,15 @@ export const AddEditCourseForm = ({
     );
 
     return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <Sheet
+            open={isOpen}
+            onOpenChange={(open) => {
+                if (!open) {
+                    form.reset();
+                }
+                onOpenChange(open);
+            }}
+        >
             {mode === "edit" ? null : children ? (
                 <SheetTrigger asChild>{children}</SheetTrigger>
             ) : (

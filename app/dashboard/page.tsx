@@ -32,6 +32,7 @@ export default function Page() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [currentCourseId, setCurrentCourseId] = useState<number | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
     const { toast } = useToast();
 
     const user = session?.data?.user ?? { id: "", firstName: "" };
@@ -124,6 +125,8 @@ export default function Page() {
                         {role === "LECTURER" ? (
                             <AddEditCourseForm
                                 mode="add"
+                                isOpen={isAddCourseOpen}
+                                onOpenChange={setIsAddCourseOpen}
                                 onSuccess={() => {
                                     void fetchCourses();
                                 }}

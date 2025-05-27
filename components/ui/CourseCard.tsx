@@ -176,7 +176,7 @@ export default function CourseCard({
         mode="edit"
         courseId={id}
         isOpen={isEditOpen}
-        onOpenChange={(open) => !open && handleEditClose()}
+        onOpenChange={(open: boolean) => !open && handleEditClose()}
         defaultValues={{
           title,
           color,
