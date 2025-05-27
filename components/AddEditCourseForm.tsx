@@ -150,60 +150,49 @@ export const AddEditCourseForm = ({
                         <FormField
                             control={form.control}
                             name="days"
-                            render={({ field: { value = [], onChange } }) => {
-                                const filteredValue = value.filter(
-                                    (day): day is (typeof daysOptions)[number] =>
-                                        typeof day === "string" &&
-                                        daysOptions.includes(day as (typeof daysOptions)[number]),
-                                );
-                                const orderedValue = [...filteredValue].sort(
-                                    (a, b) => daysOptions.indexOf(a) - daysOptions.indexOf(b),
-                                );
-
-                                if (JSON.stringify(filteredValue) !== JSON.stringify(value)) {
-                                    onChange(orderedValue);
-                                }
-
-                                return (
-                                    <div>
-                                        <FormLabel className="block font-normal text-xl mb-2">
-                                            Days of the Week:
-                                        </FormLabel>
-                                        <div className="flex gap-5 flex-wrap">
-                                            {daysOptions.map((day) => (
-                                                <button
-                                                    key={day}
-                                                    type="button"
-                                                    className={`w-11 h-11 rounded-full border border-[hsl(var(--input-border))] ${
-                                                        orderedValue.includes(day)
-                                                            ? "bg-[hsl(var(--primary))] text-[hsl(var(--secondary))]"
-                                                            : "bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"
-                                                    }`}
-                                                    onClick={() => {
-                                                        let updated;
-                                                        if (orderedValue.includes(day)) {
-                                                            updated = orderedValue.filter(
-                                                                (d) => d !== day,
-                                                            );
-                                                        } else {
-                                                            updated = [...orderedValue, day];
-                                                        }
-                                                        updated.sort(
-                                                            (a, b) =>
-                                                                daysOptions.indexOf(a) -
-                                                                daysOptions.indexOf(b),
+                            render={({ field }) => (
+                                <div>
+                                    <FormLabel className="block font-normal text-xl mb-2">
+                                        Days of the Week:
+                                    </FormLabel>
+                                    <div className="flex gap-5 flex-wrap">
+                                        {daysOptions.map((day) => (
+                                            <button
+                                                key={day}
+                                                type="button"
+                                                className={`w-11 h-11 rounded-full border border-[hsl(var(--input-border))] ${
+                                                    field.value?.includes(day)
+                                                        ? "bg-[hsl(var(--primary))] text-[hsl(var(--secondary))]"
+                                                        : "bg-[hsl(var(--secondary))] text-[hsl(var(--primary))]"
+                                                }`}
+                                                onClick={() => {
+                                                    let updated: string[];
+                                                    if (field.value?.includes(day)) {
+                                                        updated = field.value.filter(
+                                                            (d) => d !== day,
                                                         );
-                                                        onChange(updated);
-                                                    }}
-                                                >
-                                                    {day}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <FormMessage className="mt-2" />
+                                                    } else {
+                                                        updated = [...(field.value || []), day];
+                                                    }
+                                                    const orderedUpdated = updated.sort(
+                                                        (a, b) =>
+                                                            daysOptions.indexOf(
+                                                                a as (typeof daysOptions)[number],
+                                                            ) -
+                                                            daysOptions.indexOf(
+                                                                b as (typeof daysOptions)[number],
+                                                            ),
+                                                    );
+                                                    field.onChange(orderedUpdated);
+                                                }}
+                                            >
+                                                {day}
+                                            </button>
+                                        ))}
                                     </div>
-                                );
-                            }}
+                                    <FormMessage className="mt-2" />
+                                </div>
+                            )}
                         />
                         <FormField
                             control={form.control}

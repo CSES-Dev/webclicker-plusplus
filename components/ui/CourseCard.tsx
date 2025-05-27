@@ -11,10 +11,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AddEditCourseForm } from "@/components/AddEditCourseForm";
+import { dayLabels } from "@/lib/constants";
 
 export type CourseCardProps = {
   color: string;
-  days: ("M" | "T" | "W" | "Th" | "F")[];
+  days: string[];
   title: string;
   timeStart: string;
   timeEnd: string;
@@ -40,10 +41,17 @@ export default function CourseCard({
   const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
+  const shortDays = days
+    .map((fullDay) => {
+      const entry = Object.entries(dayLabels).find(([, label]) => label === fullDay);
+      return entry ? entry[0] : undefined;
+    })
+    .filter(Boolean) as ("M" | "T" | "W" | "Th" | "F")[];
+
   const handleCardClick = () => {
     if (!isEditOpen) {
       router.push(
-        role === "LECTURER" 
+        role === "LECTURER"
           ? `/dashboard/course/${id}/questionnaire`
           : `/dashboard/course/${id}/live-poll`
       );
@@ -111,7 +119,7 @@ export default function CourseCard({
   const MenuDropdown = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button 
+        <button
           className="absolute top-2 right-2 z-10 p-1 rounded-full hover:bg-gray-200 focus:outline-none"
           onClick={(e) => e.stopPropagation()}
         >
@@ -120,7 +128,12 @@ export default function CourseCard({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="z-50">
         {role === "LECTURER" && (
-          <DropdownMenuItem onSelect={(event) => { event.preventDefault(); handleEdit(event as unknown as React.MouseEvent); }}>
+          <DropdownMenuItem
+            onSelect={(event) => {
+              event.preventDefault();
+              handleEdit(event as unknown as React.MouseEvent);
+            }}
+          >
             <Edit className="mr-2 h-4 w-4" />
             <span>Edit</span>
           </DropdownMenuItem>
@@ -138,8 +151,8 @@ export default function CourseCard({
       {/* Mobile View */}
       <div className="md:hidden relative w-80 h-40 border border-black rounded-xl shadow-lg">
         <MenuDropdown />
-        <button 
-          onClick={handleCardClick} 
+        <button
+          onClick={handleCardClick}
           className="w-full h-full text-left"
           disabled={isEditOpen}
         >
@@ -150,8 +163,8 @@ export default function CourseCard({
       {/* Desktop View */}
       <div className="hidden md:flex relative w-80 h-56 rounded-md shadow-lg">
         <MenuDropdown />
-        <button 
-          onClick={handleCardClick} 
+        <button
+          onClick={handleCardClick}
           className="w-full h-full text-left"
           disabled={isEditOpen}
         >
@@ -167,7 +180,7 @@ export default function CourseCard({
         defaultValues={{
           title,
           color,
-          days,
+          days: shortDays,
           startTime: timeStart,
           endTime: timeEnd,
         }}
