@@ -98,7 +98,7 @@ export async function addUserToCourseByEmail(
 }
 
 export async function getStudents(courseId: number, query: string | undefined) {
-    try{
+    try {
         const studentsData = await prisma.user.findMany({
             where: {
                 courses: {
@@ -137,8 +137,7 @@ export async function getStudents(courseId: number, query: string | undefined) {
                 firstName: true,
                 lastName: true,
                 email: true,
-                responses:
-                {
+                responses: {
                     select: {
                         question: {
                             select: {
@@ -151,81 +150,87 @@ export async function getStudents(courseId: number, query: string | undefined) {
                             },
                         },
                     },
+                },
             },
-        },
         });
-        const sessions = await prisma.courseSession.findMany({
-            where: {
-                courseId
-            },
-            select: {
-                id: true,
-            },
-        }).then((res) => res.map((session) => session.id));
+        const sessions = await prisma.courseSession
+            .findMany({
+                where: {
+                    courseId,
+                },
+                select: {
+                    id: true,
+                },
+            })
+            .then((res) => res.map((session) => session.id));
 
         const result = studentsData.map((student) => {
             const totalSessions = sessions.length;
-            const studentResponses = student.responses.filter((response) => sessions.includes(response.question.sessionId));
+            const studentResponses = student.responses.filter((response) =>
+                sessions.includes(response.question.sessionId),
+            );
             const attendedSessions = new Set(
-                studentResponses.map((response) => response.question.sessionId)
+                studentResponses.map((response) => response.question.sessionId),
             ).size;
 
-            const correctResponses = studentResponses.filter(
-                (response) => response.question.options.some((option) => option.isCorrect)
+            const correctResponses = studentResponses.filter((response) =>
+                response.question.options.some((option) => option.isCorrect),
             ).length;
 
-            const attendance = totalSessions > 0 ? Math.trunc((attendedSessions / totalSessions) * 100) : 0;
-            const pollScore = studentResponses.length > 0 ? Math.trunc((correctResponses / studentResponses.length) * 100) : 0;
+            const attendance =
+                totalSessions > 0 ? Math.trunc((attendedSessions / totalSessions) * 100) : 0;
+            const pollScore =
+                studentResponses.length > 0
+                    ? Math.trunc((correctResponses / studentResponses.length) * 100)
+                    : 0;
 
             return {
-                name: String(student.firstName) + ' ' + String(student.lastName),
+                name: String(student.firstName) + " " + String(student.lastName),
                 email: student.email,
                 attendance,
-                pollScore
+                pollScore,
             };
         });
-    return result;
-    
-
-    } catch (err){
+        return result;
+    } catch (err) {
         console.error(err);
         return { error: "Error fetching students." };
     }
 }
 
 export async function getAttendanceByDay(courseId: number, date: Date) {
-    try{
+    try {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
 
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 
-        const sessions = await prisma.courseSession.findMany({
-            where: {
-                courseId,
-                startTime: {
-                    gte: startOfDay,
-                    lte: endOfDay,
-                },
-            },
-            select: {
-                id: true,
-            },
-        }).then((res) => res.map((session) => session.id));
-
-        const totalStudents = await prisma.user.count(
-            {
+        const sessions = await prisma.courseSession
+            .findMany({
                 where: {
-                    courses: {
-                        some: {
-                            courseId,
-                            role: "STUDENT",
-                        },
+                    courseId,
+                    startTime: {
+                        gte: startOfDay,
+                        lte: endOfDay,
                     },
                 },
-            }
-        )
+                select: {
+                    id: true,
+                },
+            })
+            .then((res) => res.map((session) => session.id));
+
+        const totalStudents = await prisma.user.count({
+            where: {
+                courses: {
+                    some: {
+                        courseId,
+                        role: "STUDENT",
+                    },
+                },
+            },
+        });
 
         if (sessions.length === 0 || totalStudents === 0) {
             return 0;
@@ -242,21 +247,20 @@ export async function getAttendanceByDay(courseId: number, date: Date) {
                     courses: {
                         some: {
                             courseId,
-                            role: 'STUDENT',
+                            role: "STUDENT",
                         },
                     },
                 },
             },
-            distinct: ['userId'],
+            distinct: ["userId"],
             select: {
                 userId: true,
             },
         });
-        
+
         return Math.trunc((attendedStudents.length / totalStudents) * 100);
-    } catch (err){
+    } catch (err) {
         console.error(err);
         return { error: "Error calculating attendance rate." };
     }
 }
-        

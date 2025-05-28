@@ -2,7 +2,9 @@
 
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
 import DonutChart from "@/components/ui/DonutChart";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import {
     Table,
     TableBody,
@@ -14,17 +16,15 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import {
-    performanceChartConfig,
+    analyticsPages,
     dataKey,
     description,
     nameKey,
+    performanceChartConfig,
     questionTypeMap,
-    analyticsPages,
 } from "@/lib/constants";
 import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { getStudents } from "@/services/userCourse";
-import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
-import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 
 export default function Page() {
     const params = useParams();
@@ -133,7 +133,9 @@ export default function Page() {
                                 ? "bg-white text-[#1441DB]"
                                 : "bg-slate-200 text-slate-500"
                         }`}
-                        onClick={() => setPage(pageTitle)}
+                        onClick={() => {
+                            setPage(pageTitle);
+                        }}
                     >
                         {pageTitle}
                     </button>
@@ -194,7 +196,7 @@ export default function Page() {
             {/* Student Data Table */}
             <div className="bg-white h-72 w-full rounded-[20px] border border-[#A5A5A5] mt-4 overflow-y-auto">
                 <Table className="relative rounded-[20px] w-full">
-                    {students?.length == 0 && <TableCaption>No students enrolled</TableCaption>}
+                    {students?.length === 0 && <TableCaption>No students enrolled</TableCaption>}
                     <TableHeader className="h-14">
                         <TableRow>
                             <TableHead key={"name"} className="pl-6 w-4/12">
@@ -208,7 +210,9 @@ export default function Page() {
                             </TableHead>
                             <TableHead key={"activity"} className="w-1/2 pr-6">
                                 <input
-                                    onChange={(e) => setStudentQuery(e.target.value)}
+                                    onChange={(e) => {
+                                        setStudentQuery(e.target.value);
+                                    }}
                                     type="text"
                                     placeholder="Search student..."
                                     className="h-8 w-full md:max-w-[12vw] px-3 bg-white text-black border border-slate-300 rounded-lg focus:outline-none"

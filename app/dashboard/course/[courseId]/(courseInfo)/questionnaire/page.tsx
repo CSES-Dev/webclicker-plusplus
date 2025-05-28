@@ -11,13 +11,11 @@ import { Button } from "@/components/ui/button";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
-import { getCourseWithId } from "@/services/course";
 import { getCourseSessionByDate } from "@/services/session";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
-    const [courseInfo, setCourseInfo] = useState<{ name: string; code: string }>();
     const [hasActiveSession, setHasActiveSession] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -28,11 +26,10 @@ export default function Page() {
     };
 
     useEffect(() => {
-        const getCourseName = async () => {
+        const getCourseInfo = async () => {
             setHasActiveSession(false);
             setIsLoading(true);
             try {
-                const course = await getCourseWithId(courseId);
                 const courseSession = await getCourseSessionByDate(
                     courseId,
                     formatDateToISO(new Date()),
@@ -40,7 +37,6 @@ export default function Page() {
                 if (courseSession?.activeQuestionId) {
                     setHasActiveSession(true);
                 }
-                setCourseInfo({ name: course.title, code: course.code });
             } catch (error) {
                 toast({ variant: "destructive", description: "Could not get course information." });
                 console.error("Failed to fetch course:", error);
@@ -49,7 +45,7 @@ export default function Page() {
                 setIsLoading(false);
             }
         };
-        void getCourseName();
+        void getCourseInfo();
     }, [courseId]);
 
     if (isLoading) {

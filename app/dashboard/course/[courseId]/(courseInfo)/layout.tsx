@@ -1,12 +1,12 @@
 "use client";
 
+import { useParams, usePathname, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { coursePages } from "@/lib/constants";
 import { getCourseWithId } from "@/services/course";
-import { useParams, usePathname, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
 
 export default function CourseInfoLayout({
     children,
@@ -52,7 +52,7 @@ export default function CourseInfoLayout({
                 });
             }
         };
-        fetchCourseName();
+        void fetchCourseName();
     }, [isAccessLoading, hasAccess, courseId]);
 
     if (isAccessLoading || !hasAccess) {

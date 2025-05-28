@@ -120,88 +120,92 @@ export async function deleteQuestion(questionId: number) {
     }
 }
 
-export async function getPastQuestionsWithScore(courseId: number){
-    try{
+export async function getPastQuestionsWithScore(courseId: number) {
+    try {
         const data = await prisma.question.findMany({
             where: {
-            session: {
-                courseId,
-            },
+                session: {
+                    courseId,
+                },
             },
             orderBy: [
-                {session: {
-                    startTime: 'desc',
-                }},
-                {position: 'desc',}
+                {
+                    session: {
+                        startTime: "desc",
+                    },
+                },
+                { position: "desc" },
             ],
             take: 2,
             include: {
                 responses: true,
-                options: true
-            }
+                options: true,
+            },
         });
 
-        const pastQuestions = []
-        
-        for (const question of data){
-            const correctOptionIds = question.options.filter((option) => option.isCorrect).map((option) => option.id);;
-            
+        const pastQuestions = [];
+
+        for (const question of data) {
+            const correctOptionIds = question.options
+                .filter((option) => option.isCorrect)
+                .map((option) => option.id);
+
             let correctCount = 0;
             question.responses.forEach((response) => {
-                if (correctOptionIds.includes(response.optionId)){
+                if (correctOptionIds.includes(response.optionId)) {
                     correctCount++;
                 }
-            })
+            });
 
             pastQuestions.push({
                 type: question.type,
                 title: question.text,
-                average: question.responses.length === 0 ? 0 : Math.trunc((correctCount / question.responses.length) * 100)
-            })
-            
+                average:
+                    question.responses.length === 0
+                        ? 0
+                        : Math.trunc((correctCount / question.responses.length) * 100),
+            });
         }
-        
-        return pastQuestions;
 
-    }catch (err){
+        return pastQuestions;
+    } catch (err) {
         console.error(err);
         return { error: "Error fetching past questions." };
     }
 }
 
-export async function getResponseStatistics(courseId: number){
-    try{
+export async function getResponseStatistics(courseId: number) {
+    try {
         const data = await prisma.question.findMany({
             where: {
-            session: {
-                courseId,
-            },
+                session: {
+                    courseId,
+                },
             },
             include: {
                 responses: true,
-                options: true
-            }
+                options: true,
+            },
         });
 
-        let correctResponses = 0
-        let incorrectReponses = 0
-        for (const question of data){
-            const correctOptionIds = question.options.filter((option) => option.isCorrect).map((option) => option.id);;
-            
+        let correctResponses = 0;
+        let incorrectReponses = 0;
+        for (const question of data) {
+            const correctOptionIds = question.options
+                .filter((option) => option.isCorrect)
+                .map((option) => option.id);
+
             question.responses.forEach((response) => {
-                if (correctOptionIds.includes(response.optionId)){
+                if (correctOptionIds.includes(response.optionId)) {
                     correctResponses++;
-                }
-                else{
+                } else {
                     incorrectReponses++;
                 }
-            })
-
+            });
         }
 
-        return {incorrect: incorrectReponses, correct: correctResponses};
-    }
-    catch (err){
+        return { incorrect: incorrectReponses, correct: correctResponses };
+    } catch (err) {
         console.error(err);
         return { error: "Error calculating class average." };
     }
