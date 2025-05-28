@@ -8,6 +8,8 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import DonutChart from "@/components/ui/DonutChart";
 import { Button } from "@/components/ui/button";
 import { getQuestionsAndResponsesForDate, getStudentAnalytics } from "@/services/analytics";
+import { useToast } from "@/hooks/use-toast";
+
 
 type Props = {
     studentId: string;
@@ -15,6 +17,7 @@ type Props = {
 };
 
 export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
+    const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [analyticsData, setAnalyticsData] = useState<{
@@ -32,6 +35,11 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
             .then(setAnalyticsData)
             .catch((err) => {
                 console.error("Failed to load analytics", err);
+                toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to load analytics",
+                });
             });
     }, []);
 
