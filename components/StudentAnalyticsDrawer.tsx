@@ -169,49 +169,57 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
             </div>
         </div>
 
-        <div className="flex px-10 gap-2">
+        <div className="flex px-10 gap-2 min-h-[334px]">
             {/* Div A: Date + Vertical Line */}
             <div className="flex items-center gap-2">
-            <span className="text-sm">
-                {format(selectedDate, "M/dd")}
-            </span>                
+                <span className="text-sm">
+                    {format(selectedDate, "M/dd")}
+                </span>                
             <div className="w-0.5 h-full bg-primary rounded-full"></div>
             </div>
 
             {/* Div B: Questions + Answers */}
             <div className="flex-1 space-y-2">
-                {/* Div 1: Header Row */}
-                <div className="grid grid-cols-3 gap-2">
-                    <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Question:</div>
-                    <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Inputted:</div>
-                    <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Correct Answer:</div>
-                </div>
+                {questionsForDate.length === 0 ? (
+                    <div className="flex items-center justify-center h-full border rounded-md bg-muted text-muted-foreground text-lg">
+                        No questions for this day
+                    </div>
+                ) : (
+                    <div className="flex-1 space-y-2">
+                        {/* Div 1: Header Row */}
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Question:</div>
+                            <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Inputted:</div>
+                            <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Correct Answer:</div>
+                        </div>
 
-                {/* Div 2: Content Rows */}
-                <div className="space-y-2 max-h-72 overflow-y-auto">
-                    {questionsForDate.map((question, idx) => (
-                    <div key={idx} className="grid grid-cols-3 gap-2">
-                        <div className="flex flex-col border rounded-md py-10 relative">
-                        <div className="text-lg text-center px-2">{question.text}</div>
-                        <div className="absolute bottom-2 right-2">
-                            <span className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-2 py-1">
-                            {question.type === "MCQ" ? "Multiple Choice" : "Multi-Select"}
-                            </span>
-                        </div>
-                        </div>
-                        <div className="border rounded-md text-lg flex items-center justify-center text-center">
-                        {question.inputtedAnswers
-                            .map((optId) => question.options.find(o => o.id === optId)?.text)
-                            .join(", ") || "—"}
-                        </div>
-                        <div className="border rounded-md text-lg flex items-center justify-center text-center">
-                        {question.correctAnswers
-                            .map((optId) => question.options.find(o => o.id === optId)?.text)
-                            .join(", ")}
+                        {/* Div 2: Content Rows */}
+                        <div className="space-y-2 max-h-72 overflow-y-auto">
+                            {questionsForDate.map((question, idx) => (
+                            <div key={idx} className="grid grid-cols-3 gap-2">
+                                <div className="flex flex-col border rounded-md py-10 relative">
+                                <div className="text-lg text-center px-2">{question.text}</div>
+                                <div className="absolute bottom-2 right-2">
+                                    <span className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-2 py-1">
+                                    {question.type === "MCQ" ? "Multiple Choice" : "Multi-Select"}
+                                    </span>
+                                </div>
+                                </div>
+                                <div className="border rounded-md text-lg flex items-center justify-center text-center">
+                                {question.inputtedAnswers
+                                    .map((optId) => question.options.find(o => o.id === optId)?.text)
+                                    .join(", ") || "—"}
+                                </div>
+                                <div className="border rounded-md text-lg flex items-center justify-center text-center">
+                                {question.correctAnswers
+                                    .map((optId) => question.options.find(o => o.id === optId)?.text)
+                                    .join(", ")}
+                                </div>
+                            </div>
+                            ))}
                         </div>
                     </div>
-                    ))}
-                </div>
+                )} 
             </div>
         </div>
       </SheetContent>
