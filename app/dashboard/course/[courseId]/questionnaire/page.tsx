@@ -26,7 +26,7 @@ export default function Page() {
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
     const [refreshCalendar, setRefreshCalendar] = useState(false);
     const handleQuestionUpdate = () => {
-        setRefreshCalendar(prev => !prev);
+        setRefreshCalendar((prev) => !prev);
     };
 
     useEffect(() => {

@@ -115,7 +115,7 @@ type UpdateCourseParams = {
 
 export async function updateCourse(
     courseId: number,
-    data: UpdateCourseParams
+    data: UpdateCourseParams,
 ): Promise<Course | { error: string }> {
     try {
         // First update the course details
@@ -148,10 +148,8 @@ export async function updateCourse(
         return updatedCourse;
     } catch (error) {
         console.error("Error updating course:", error);
-        return { 
-            error: error instanceof Error 
-                ? error.message 
-                : "Failed to update course" 
+        return {
+            error: error instanceof Error ? error.message : "Failed to update course",
         };
     }
 }

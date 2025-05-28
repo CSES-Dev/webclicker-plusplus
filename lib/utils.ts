@@ -32,7 +32,6 @@ export function formatDateToISO(date: Date) {
     return new Date(date.setHours(0, 0, 0, 0)).toISOString();
 }
 
-
 export function shuffleArray<T>(array: T[]): T[] {
     const copy = [...array];
     for (let i = copy.length - 1; i > 0; i--) {

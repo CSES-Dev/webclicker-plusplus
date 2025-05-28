@@ -17,6 +17,7 @@ import { signOut } from "next-auth/react";
 export function AppSidebar() {
     const pathname = usePathname();
     const [isMenuOpen, setIsMenuOpen] = useState(false); // State to toggle dropdown menu
+    const [open, setOpen] = useState(false);
 
     const links = [
         { name: "Dashboard", href: "/dashboard" },
