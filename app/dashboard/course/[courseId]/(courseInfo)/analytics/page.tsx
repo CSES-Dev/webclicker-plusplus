@@ -6,6 +6,7 @@ import DonutChart from "@/components/ui/DonutChart";
 import {
     Table,
     TableBody,
+    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
@@ -24,7 +25,6 @@ import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/que
 import { getStudents } from "@/services/userCourse";
 import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
-import { set } from "date-fns";
 
 export default function Page() {
     const params = useParams();
@@ -134,7 +134,7 @@ export default function Page() {
                         key={pageTitle}
                         className={`p-2 h-fit px-4 rounded-md transition-colors duration-300 ease-in-out ${
                             page === pageTitle
-                                ? "bg-white text-[hsl(var(--primary))]"
+                                ? "bg-white text-[#1441DB]"
                                 : "bg-slate-200 text-slate-500"
                         }`}
                         onClick={() => setPage(pageTitle)}
@@ -143,11 +143,11 @@ export default function Page() {
                     </button>
                 ))}
             </div>
-            <div className="flex flex-col md:flex-row justify-center md:justify-between items-center md:items-stretch bg-white overflow-auto h-80 max-h-80 w-full rounded-[20px] border border-[#A5A5A5]">
+            <div className="flex flex-col md:flex-row justify-center md:justify-between items-center md:items-stretch bg-white overflow-auto h-96 max-h-96 w-full rounded-[20px] border border-[#A5A5A5]">
                 {/* Performance page */}
                 {page === "Performance" ? (
                     <>
-                        <div className="h-full w-full md:w-1/2 py-auto px-7">
+                        <div className="max-h-full w-full md:w-1/2 flex my-6 ml-8">
                             {/* Donut Chart */}
                             <DonutChart
                                 chartData={performanceChartData}
@@ -196,25 +196,26 @@ export default function Page() {
                 </button>
             </div>
             {/* Student Data Table */}
-            <div className="bg-white h-72 w-full rounded-[20px] border border-[#A5A5A5] mt-4 px-3 pt-2 overflow-y-auto">
+            <div className="bg-white h-72 w-full rounded-[20px] border border-[#A5A5A5] mt-4 overflow-y-auto">
                 <Table className="relative rounded-[20px] w-full">
+                    {students?.length == 0 && <TableCaption>No students enrolled</TableCaption>}
                     <TableHeader className="h-14">
                         <TableRow>
-                            <TableHead key={"name"} className="w-1/5">
+                            <TableHead key={"name"} className="pl-6 w-4/12">
                                 Student
                             </TableHead>
-                            <TableHead key={"attendance"} className="w-1/5">
+                            <TableHead key={"attendance"} className="w-2/12">
                                 Attendance
                             </TableHead>
-                            <TableHead key={"score"} className="w-1/5">
+                            <TableHead key={"score"} className="w-3/12">
                                 Poll Score
                             </TableHead>
-                            <TableHead key={"activity"} className="w-1/5">
+                            <TableHead key={"activity"} className="w-1/2 pr-6">
                                 <input
                                     onChange={(e) => setStudentQuery(e.target.value)}
                                     type="text"
                                     placeholder="Search student..."
-                                    className="h-8 w-[12vw] px-3 bg-white text-black border border-slate-300 rounded-lg focus:outline-none"
+                                    className="h-8 w-full md:max-w-[12vw] px-3 bg-white text-black border border-slate-300 rounded-lg focus:outline-none"
                                 />
                             </TableHead>
                         </TableRow>
@@ -222,13 +223,13 @@ export default function Page() {
                     <TableBody>
                         {students.map((student, idx) => (
                             <TableRow key={idx}>
-                                <TableCell className="max-w-[200px] truncate">
+                                <TableCell className="max-w-1/3 pl-6 truncate">
                                     <p className="text-base">{student.name}</p>
                                     <p className="text-medium">
                                         {student.email ?? "No email provided"}
                                     </p>
                                 </TableCell>
-                                <TableCell className="max-w-1/5 truncate">
+                                <TableCell className="max-w-1/6 truncate">
                                     <p
                                         className={`rounded-sm p-1 px-2 w-fit text-sm ${
                                             student.attendance <= 50
@@ -242,7 +243,7 @@ export default function Page() {
                                         {student.attendance}%
                                     </p>
                                 </TableCell>
-                                <TableCell className="max-w-1/5 truncate">
+                                <TableCell className="max-w-1/4 truncate">
                                     <p
                                         className={`rounded-sm p-1 px-2 w-fit text-sm ${
                                             student.pollScore <= 50
@@ -256,9 +257,11 @@ export default function Page() {
                                     </p>
                                 </TableCell>
                                 <TableCell>
-                                    <button className="w-32 h-8 bg-white border border-[#A5A5A5] hover:bg-slate-100 rounded-md">
-                                        View Activity →
-                                    </button>
+                                    <div className="w-1/2 pr-6">
+                                        <button className="w-32 h-8 bg-white border border-[#A5A5A5] hover:bg-slate-100 rounded-md">
+                                            View Activity →
+                                        </button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         ))}

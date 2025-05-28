@@ -5,7 +5,7 @@ import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { coursePages } from "@/lib/constants";
 import { getCourseWithId } from "@/services/course";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 export default function CourseInfoLayout({
@@ -15,10 +15,14 @@ export default function CourseInfoLayout({
 }>) {
     const router = useRouter();
     const params = useParams();
+    const path = usePathname();
     const courseId = parseInt(params.courseId as string);
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
     const { toast } = useToast();
-    const [courseName, setCourseName] = useState<string>("");
+    const [courseInfo, setCourseInfo] = useState<{ name: string; code: string }>({
+        name: "",
+        code: "",
+    });
 
     useEffect(() => {
         if (isAccessLoading) {
@@ -38,7 +42,7 @@ export default function CourseInfoLayout({
                         description: "Unable to fetch course information",
                     });
                 } else {
-                    setCourseName(res.title);
+                    setCourseInfo({ name: res.title, code: res.code });
                 }
             } catch (err) {
                 console.error(err);
@@ -57,8 +61,8 @@ export default function CourseInfoLayout({
 
     return (
         <>
-            <h1 className="text-2xl font-normal">{courseName}</h1>
-            <div className="border-b border-gray-200 flex flex-row gap-4 my-6">
+            <h1 className="text-2xl font-normal">{`${courseInfo?.name} (${courseInfo?.code})`} </h1>
+            <div className="border-b border-gray-200 flex flex-row gap-4 mt-6 mb-4">
                 {coursePages.map((tab) => (
                     <button
                         key={tab}
@@ -69,13 +73,15 @@ export default function CourseInfoLayout({
                                 router.push(`/dashboard/course/${courseId}/questionnaire`);
                             }
                         }}
-                        className={`pb-2 text-base font-medium text-slate-600`}
+                        className={`pb-2 text-base font-medium ${
+                            path.includes(tab.toLowerCase()) ? "text-[#1441DB]" : "text-slate-600"
+                        }`}
                     >
                         {tab}
                     </button>
                 ))}
             </div>
-            <main className="flex-1 p-8 bg-gray-50 overflow-y-auto">{children}</main>
+            <main className="flex-1 bg-gray-50 overflow-y-auto">{children}</main>
         </>
     );
 }

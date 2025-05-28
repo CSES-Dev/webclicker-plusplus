@@ -63,7 +63,7 @@ export default function AttendanceLineChart({ courseId }: Props) {
             >
                 Previous
             </button>
-            <ChartContainer config={attendanceChartConfig} className="w-full h-72">
+            <ChartContainer config={attendanceChartConfig} className="w-full h-80">
                 <ResponsiveContainer width="100%" height={"250px"}>
                     <LineChart
                         data={chartData}
@@ -82,6 +82,7 @@ export default function AttendanceLineChart({ courseId }: Props) {
                             tickFormatter={(value) => `${value}`}
                         />
                         <YAxis
+                            domain={[0, 100]}
                             tick={{ fontSize: 14 }}
                             tickLine={false}
                             axisLine={false}
@@ -90,10 +91,12 @@ export default function AttendanceLineChart({ courseId }: Props) {
                         />
                         <Line
                             dataKey="attendance"
-                            type="basis"
+                            type="linear"
                             stroke="#3ce0d5"
                             strokeWidth={2}
-                            dot={false}
+                            dot={{
+                                fill: "#3ce0d5",
+                            }}
                         />
                     </LineChart>
                 </ResponsiveContainer>

@@ -59,9 +59,6 @@ export default function Page() {
     return (
         <div className="w-full mx-auto flex flex-col gap-8 justify-center items-center">
             <section className="w-full flex flex-col items-start">
-                <h1 className="text-2xl font-normal">
-                    {`${courseInfo?.name} (${courseInfo?.code})`}{" "}
-                </h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
                     <AddEditQuestionForm
                         defaultDate={new Date(formatDateToISO(new Date()))}
