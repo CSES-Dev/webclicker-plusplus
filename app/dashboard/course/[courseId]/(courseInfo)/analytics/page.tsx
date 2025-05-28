@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
 import DonutChart from "@/components/ui/DonutChart";
 import {
     Table,
@@ -19,20 +19,17 @@ import {
     nameKey,
     questionTypeMap,
     analyticsPages,
-    coursePages,
 } from "@/lib/constants";
 import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { getStudents } from "@/services/userCourse";
 import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
-import useAccess from "@/hooks/use-access";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
-import { getCourseWithId } from "@/services/course";
+import { set } from "date-fns";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
-    const [courseName, setCourseName] = useState<string>("");
-    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
+    const [isLoading, setIsLoading] = useState(true);
     const [pastQuestions, setPastQuestions] = useState<
         { type: keyof typeof questionTypeMap; title: string; average: number }[]
     >([]);
@@ -54,7 +51,6 @@ export default function Page() {
     const [page, setPage] = useState<string>("Performance");
     const [studentQuery, setStudentQuery] = useState<string | undefined>(undefined);
     const { toast } = useToast();
-    const router = useRouter();
 
     const performanceChartData = [
         { result: "correct", count: responseStatistics.correct, fill: "#BAFF7E" },
@@ -62,39 +58,9 @@ export default function Page() {
     ];
 
     useEffect(() => {
-        if (isAccessLoading) {
-            return;
-        }
-        if (!isAccessLoading && !hasAccess) {
-            toast({ variant: "destructive", description: "Access denied!" });
-            router.push("/dashboard");
-            return;
-        }
-    }, [isAccessLoading, hasAccess]);
-
-    useEffect(() => {
-        const fetchCourseName = async () => {
-            try {
-                const res = await getCourseWithId(courseId);
-                if ("error" in res) {
-                    return toast({
-                        variant: "destructive",
-                        description: "Unable to fetch course information",
-                    });
-                } else {
-                    setCourseName(res.title);
-                }
-            } catch (err) {
-                console.error(err);
-                toast({
-                    variant: "destructive",
-                    description: "Unknown error occurred.",
-                });
-            }
-        };
-
         const fetchCourseStatistics = async () => {
             try {
+                setIsLoading(true);
                 const pastQuestionsRes = await getPastQuestionsWithScore(courseId);
                 if ("error" in pastQuestionsRes) {
                     return toast({
@@ -120,15 +86,17 @@ export default function Page() {
                     variant: "destructive",
                     description: "Unknown error occurred.",
                 });
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        void fetchCourseName();
         void fetchCourseStatistics();
     }, []);
 
     useEffect(() => {
         const fetchStudentData = async () => {
+            setIsLoading(true);
             await getStudents(courseId, studentQuery)
                 .then((res) => {
                     if ("error" in res)
@@ -146,35 +114,20 @@ export default function Page() {
                         variant: "destructive",
                         description: "Unknown error occurred.",
                     });
+                })
+                .finally(() => {
+                    setIsLoading(false);
                 });
         };
         void fetchStudentData();
     }, [studentQuery]);
 
-    if (isAccessLoading || !hasAccess) {
+    if (isLoading) {
         return <GlobalLoadingSpinner />;
     }
 
     return (
         <div className="w-full flex flex-col">
-            <h1 className="text-2xl font-normal">{courseName}</h1>
-            <div className="border-b border-gray-200 flex flex-row gap-4 my-6">
-                {coursePages.map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => {
-                            if (tab === "Analytics") {
-                                router.push(`/dashboard/course/${courseId}/analytics`);
-                            } else {
-                                router.push(`/dashboard/course/${courseId}/questionnaire`);
-                            }
-                        }}
-                        className={`pb-2 text-base font-medium text-slate-600`}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
             <div className="flex flex-row gap-2 bg-slate-200 h-fit w-fit p-1 rounded-md mb-4">
                 {analyticsPages.map((pageTitle: string) => (
                     <button

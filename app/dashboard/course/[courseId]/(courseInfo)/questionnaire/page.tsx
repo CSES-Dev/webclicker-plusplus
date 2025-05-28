@@ -9,7 +9,6 @@ import BeginPollDialog from "@/components/BeginPollDialog";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
 import { Button } from "@/components/ui/button";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
-import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
 import { getCourseWithId } from "@/services/course";
@@ -23,21 +22,12 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const { toast } = useToast();
-    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
     const [refreshCalendar, setRefreshCalendar] = useState(false);
     const handleQuestionUpdate = () => {
-        setRefreshCalendar(prev => !prev);
+        setRefreshCalendar((prev) => !prev);
     };
 
     useEffect(() => {
-        if (isAccessLoading) {
-            return;
-        }
-        if (!isAccessLoading && !hasAccess) {
-            toast({ variant: "destructive", description: "Access denied!" });
-            router.push("/dashboard");
-            return;
-        }
         const getCourseName = async () => {
             setHasActiveSession(false);
             setIsLoading(true);
@@ -60,9 +50,9 @@ export default function Page() {
             }
         };
         void getCourseName();
-    }, [courseId, hasAccess, isAccessLoading]);
+    }, [courseId]);
 
-    if (isAccessLoading || !hasAccess || isLoading) {
+    if (isLoading) {
         return <GlobalLoadingSpinner />;
     }
 
