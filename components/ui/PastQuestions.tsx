@@ -1,124 +1,178 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
-import { Question } from "@prisma/client";
+import { Question, QuestionType } from "@prisma/client";
 import { questionTypeMap } from "@/lib/constants";
+import Link from "next/link";
+
+const questionTypeStyles = {
+    [QuestionType.MCQ]: {
+        bgColor: "#FFFED3",
+        textColor: "#58560B",
+        borderColor: "#58570B",
+        label: "Multiple Choice",
+    },
+    [QuestionType.MSQ]: {
+        bgColor: "#EBCFFF",
+        textColor: "#602E84",
+        borderColor: "#602E84",
+        label: "Select-All",
+    },
+};
+
+interface PastQuestion extends Question {
+    session: { startTime: Date };
+    options: { id: number; text: string; isCorrect: boolean }[];
+    responses: {
+        optionId: number;
+        user: { firstName: string; lastName?: string };
+    }[];
+}
 
 interface Props {
-  courseId: number;
+    courseId: number;
 }
 
 function PastQuestions({ courseId }: Props) {
-  const mockQuestions = [
-    {
-      id: 1,
-      text: "Is San Diego the best city in Cali?",
-      type: "TF",
-      score: 100,
-      studentAnswer: "True",
-      date: "2023-10-15",
-    },
-    {
-      id: 2,
-      text: "Which of these are UC schools?",
-      type: "MSQ",
-      score: 50,
-      studentAnswer: "UCSD, UCI",
-      date: "2023-11-02",
-    },
-    {
-      id: 3,
-      text: "What is 2 + 2?",
-      type: "MCQ",
-      score: 0,
-      studentAnswer: "5",
-      date: "2023-12-10",
-    },
-  ];
+    const [questions, setQuestions] = useState<PastQuestion[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filterType, setFilterType] = useState<QuestionType | "ALL">("ALL");
 
-  return (
-    <div className="flex flex-col items-center space-y-4 w-full">
-      <section className="w-full max-w-screen-xl flex justify-between items-center">
-        <h1 className="font-medium text-2xl sm:text-4xl text-black">
-          Past Questions
-        </h1>
-      </section>
+    useEffect(() => {
+        const fetchPastQuestions = async () => {
+            try {
+                const response = await fetch(`/api/courses/${courseId}/past-questions`);
+                if (!response.ok) throw new Error("Failed to fetch questions");
+                const data = await response.json();
+                setQuestions(data);
+            } catch (error) {
+                console.error("Error fetching past questions:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-      <div className="w-full max-w-screen-xl bg-white rounded-[20px] border border-[#A5A5A5] overflow-hidden">
-        {/* Filter row */}
-        <div className="grid grid-cols-12 items-center p-6 bg-[#F2F5FF] border-b border-[#D9D9D9]">
-          <div className="col-span-6 flex items-center space-x-4">
-            <span className="text-sm font-medium text-[#434343]">
-              Question Type:
-            </span>
-            <Select>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Multiple Choice" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="MCQ">Multiple Choice</SelectItem>
-                <SelectItem value="MSQ">Select All</SelectItem>
-                <SelectItem value="TF">True/False</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-2 flex justify-center">
-            <span className="text-sm font-medium text-[#434343]">Date</span>
-          </div>
-          <div className="col-span-2 flex justify-center">
-            <span className="text-sm font-medium text-[#434343]">Score</span>
-          </div>
-          <div className="col-span-2"></div>
-        </div>
+        fetchPastQuestions();
+    }, [courseId]);
 
-        {/* Questions table */}
-        <div className="divide-y divide-[#D9D9D9]">
-          {mockQuestions.map((question) => (
-            <div key={question.id} className="grid grid-cols-12 items-center p-6">
-              {/* Question column */}
-              <div className="col-span-6">
-                <span className="text-xs font-medium text-[#18328D] bg-[#E6EAF1] px-2 py-1 rounded">
-                  {questionTypeMap[question.type as keyof typeof questionTypeMap]}
-                </span>
-                <p className="mt-2 text-xl font-normal text-[#1F1F1F]">
-                  {question.text}
-                </p>
-              </div>
+    const filteredQuestions = questions.filter(
+        (question) => filterType === "ALL" || question.type === filterType,
+    );
 
-              {/* Date column */}
-              <div className="col-span-2 flex justify-center">
-                <span className="text-base font-normal text-[#1F1F1F]">
-                  {question.date}
-                </span>
-              </div>
+    const calculateScore = (question: PastQuestion) => {
+        if (question.responses.length === 0) return 0;
 
-              {/* Score column */}
-              <div className="col-span-2 flex justify-center">
-                <span className="text-base font-semibold text-[#2D9B62]">
-                  {question.score}
-                </span>
-              </div>
+        const correctResponses = question.responses.filter((response) => {
+            const option = question.options.find((opt) => opt.id === response.optionId);
+            return option?.isCorrect;
+        });
 
-              {/* Student Answer column */}
-              <div className="col-span-2">
-                <div className="p-3 bg-[#F5F5F5] rounded-lg border border-[#D9D9D9]">
-                  <p className="text-sm font-normal text-black truncate">
-                    {question.studentAnswer}
-                  </p>
-                </div>
-              </div>
+        return Math.round((correctResponses.length / question.responses.length) * 100);
+    };
+
+    const formatDate = (date: Date) => {
+        return new Date(date).toLocaleDateString("en-US");
+    };
+
+    if (loading) {
+        return <div className="flex justify-center py-8">Loading past questions...</div>;
+    }
+
+    return (
+        <div className="flex flex-col items-center space-y-4 w-full">
+            <section className="w-full max-w-screen-xl flex justify-between items-center">
+                <h1 className="font-medium text-2xl sm:text-4xl text-[#414141]">Past Questions</h1>
+            </section>
+
+            <div className="w-full max-w-screen-xl bg-white rounded-[20px] border border-[#A5A5A5] overflow-hidden">
+                {/* Filter row */}
+                <section className="grid grid-cols-12 items-center p-6 bg-[#F2F5FF] border-b border-[#D9D9D9]">
+                    <div className="col-span-6 flex items-center space-x-4">
+                        <span className="text-xl font-normal text-[#414141]">Question Type:</span>
+                        <Select
+                            value={filterType}
+                            onValueChange={(value) => setFilterType(value as QuestionType | "ALL")}
+                        >
+                            <SelectTrigger className="w-[180px] text-lg text-black font-medium">
+                                <SelectValue placeholder="All" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">All</SelectItem>
+                                <SelectItem value={QuestionType.MCQ}>Multiple Choice</SelectItem>
+                                <SelectItem value={QuestionType.MSQ}>Select-All</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="col-span-2 flex justify-center">
+                        <span className="text-xl font-medium text-[#414141]">Date</span>
+                    </div>
+                    <div className="col-span-2 flex justify-center">
+                        <span className="text-xl font-medium text-[#414141]">Avg. Score</span>
+                    </div>
+                    <div className="col-span-2"></div>
+                </section>
+
+                {/* Questions table */}
+                <section className="divide-y divide-[#D9D9D9]">
+                    {filteredQuestions.length === 0 ? (
+                        <div className="p-6 text-center text-gray-500">No past questions found</div>
+                    ) : (
+                        filteredQuestions.map((question) => (
+                            <div key={question.id} className="grid grid-cols-12 items-center p-6">
+                                {/* Question column */}
+                                <div className="col-span-6">
+                                    <span
+                                        className="text-xl font-normal px-2 py-1 rounded border"
+                                        style={{
+                                            backgroundColor:
+                                                questionTypeStyles[question.type].bgColor,
+                                            color: questionTypeStyles[question.type].textColor,
+                                            borderColor:
+                                                questionTypeStyles[question.type].borderColor,
+                                        }}
+                                    >
+                                        {questionTypeStyles[question.type].label}
+                                    </span>
+                                    <p className="mt-2 text-2xl font-normal text-[#1F1F1F]">
+                                        {question.text}
+                                    </p>
+                                </div>
+
+                                {/* Date column */}
+                                <div className="col-span-2 flex justify-center">
+                                    <span className="text-xl font-normal text-[#1F1F1F]">
+                                        {formatDate(question.session.startTime)}
+                                    </span>
+                                </div>
+
+                                {/* Score column */}
+                                <div className="col-span-2 flex justify-center">
+                                    <span className="text-xl font-semibold text-[#2D9B62]">
+                                        {calculateScore(question)}%
+                                    </span>
+                                </div>
+
+                                {/* Student Answers column */}
+                                <div className="col-span-2 flex justify-end">
+                                    <Link
+                                        href={`/dashboard/course/${courseId}/questionnaire/${question.id}/responses`}
+                                        className="px-4 py-2 text-black rounded-md border border-[#A5A5A5]"
+                                    >
+                                        Student Answers &rarr;
+                                    </Link>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </section>
             </div>
-          ))}
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default PastQuestions;
