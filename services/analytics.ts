@@ -66,7 +66,7 @@ export async function getStudentAnalytics(courseId: number, userId: string) {
       }
     }
     if (studentAnswered) {
-      checkInDatesSet.add(dayjs(session.startTime).format("YYYY-MM-DD"));
+      checkInDatesSet.add(dayjs(session.startTime).format("MM/DD"));
     }
   }
 
