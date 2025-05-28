@@ -91,7 +91,7 @@ export default function AttendanceLineChart({ courseId }: Props) {
                         <Line
                             dataKey="attendance"
                             type="basis"
-                            stroke="black"
+                            stroke="#3ce0d5"
                             strokeWidth={2}
                             dot={false}
                         />

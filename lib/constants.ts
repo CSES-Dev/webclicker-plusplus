@@ -44,6 +44,7 @@ export const attendanceChartConfig = {
 } satisfies ChartConfig;
 
 export const analyticsPages = ['Performance', 'Attendance Rate']
+export const coursePages = ['Questionnaire', 'Analytics']
 
 
 export const DEFAULT_SHOW_RESULTS = false;
