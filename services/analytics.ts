@@ -1,127 +1,139 @@
 "use server";
-import prisma from "@/lib/prisma";
 import dayjs from "dayjs";
+import prisma from "@/lib/prisma";
 
 export async function getStudentAnalytics(courseId: number, userId: string) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { firstName: true, lastName: true },
-  });
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true },
+    });
 
-  if (!user) throw new Error("User not found");
+    if (!user) throw new Error("User not found");
 
-  const fullName = `${user.firstName} ${user.lastName ?? ""}`.trim();
+    const fullName = `${user.firstName} ${user.lastName ?? ""}`.trim();
 
-  const sessions = await prisma.courseSession.findMany({
-    where: { courseId },
-    include: {
-      questions: {
+    const sessions = await prisma.courseSession.findMany({
+        where: { courseId },
         include: {
-          options: true,
-          responses: {
-            where: { userId },
-          },
+            questions: {
+                include: {
+                    options: true,
+                    responses: {
+                        where: { userId },
+                    },
+                },
+            },
         },
-      },
-    },
-  });
+    });
 
-  const sessionDates = sessions.map((s) => dayjs(s.startTime).format("YYYY-MM-DD"));
-  const allDatesSet = new Set(sessionDates);
+    const sessionDates = sessions.map((s) => dayjs(s.startTime).format("YYYY-MM-DD"));
+    const allDatesSet = new Set(sessionDates);
 
-  const checkInDatesSet = new Set<string>();
-  let mcqTotal = 0, mcqCorrect = 0;
-  let msqTotal = 0, msqCorrect = 0;
+    const checkInDatesSet = new Set<string>();
+    let mcqTotal = 0,
+        mcqCorrect = 0;
+    let msqTotal = 0,
+        msqCorrect = 0;
 
-  for (const session of sessions) {
-    let studentAnswered = false;
-    for (const question of session.questions) {
-      const isMCQ = question.type === "MCQ";
-      const isMSQ = question.type === "MSQ";
+    for (const session of sessions) {
+        let studentAnswered = false;
+        for (const question of session.questions) {
+            const isMCQ = question.type === "MCQ";
+            const isMSQ = question.type === "MSQ";
 
-      const correctOptions = question.options.filter((o) => o.isCorrect);
-      const studentResponses = question.responses;
+            const correctOptions = question.options.filter((o) => o.isCorrect);
+            const studentResponses = question.responses;
 
-      if (studentResponses.length > 0) {
-        studentAnswered = true;
-        if (isMCQ) {
-          mcqTotal++;
-          if (studentResponses[0]?.optionId === correctOptions[0]?.id) {
-            mcqCorrect++;
-          }
-        } else if (isMSQ) {
-          msqTotal++;
-          const selected = new Set(studentResponses.map((r) => r.optionId));
-          const expected = new Set(correctOptions.map((o) => o.id));
+            if (studentResponses.length > 0) {
+                studentAnswered = true;
+                if (isMCQ) {
+                    mcqTotal++;
+                    if (studentResponses[0]?.optionId === correctOptions[0]?.id) {
+                        mcqCorrect++;
+                    }
+                } else if (isMSQ) {
+                    msqTotal++;
+                    const selected = new Set(studentResponses.map((r) => r.optionId));
+                    const expected = new Set(correctOptions.map((o) => o.id));
 
-          const matched =
-            selected.size === expected.size &&
-            [...selected].every((id) => expected.has(id));
+                    const matched =
+                        selected.size === expected.size &&
+                        [...selected].every((id) => expected.has(id));
 
-          if (matched) msqCorrect++;
+                    if (matched) msqCorrect++;
+                }
+            }
         }
-      }
+        if (studentAnswered) {
+            checkInDatesSet.add(dayjs(session.startTime).format("MM/DD"));
+        }
     }
-    if (studentAnswered) {
-      checkInDatesSet.add(dayjs(session.startTime).format("MM/DD"));
-    }
-  }
 
-  const totalSessions = allDatesSet.size;
-  const attendedSessions = checkInDatesSet.size;
-  const lastCheckIn = [...checkInDatesSet].sort().pop();
+    const totalSessions = allDatesSet.size;
+    const attendedSessions = checkInDatesSet.size;
+    const lastCheckIn = [...checkInDatesSet].sort().pop();
 
-  const mcqScore = mcqTotal ? Math.round((mcqCorrect / mcqTotal) * 100) : 0;
-  const msqScore = msqTotal ? Math.round((msqCorrect / msqTotal) * 100) : 0;
-  const averagePollScore = Math.round((mcqScore + msqScore) / 2);
+    const mcqScore = mcqTotal ? Math.round((mcqCorrect / mcqTotal) * 100) : 0;
+    const msqScore = msqTotal ? Math.round((msqCorrect / msqTotal) * 100) : 0;
+    const averagePollScore = Math.round((mcqScore + msqScore) / 2);
 
-  return {
-    fullName,
-    attendancePercentage: totalSessions ? Math.round((attendedSessions / totalSessions) * 100) : 0,
-    totalCheckIns: attendedSessions,
-    lastCheckInDate: lastCheckIn ?? null,
-    mcqScore,
-    msqScore,
-    averagePollScore,
-  };
+    return {
+        fullName,
+        attendancePercentage: totalSessions
+            ? Math.round((attendedSessions / totalSessions) * 100)
+            : 0,
+        totalCheckIns: attendedSessions,
+        lastCheckInDate: lastCheckIn ?? null,
+        mcqScore,
+        msqScore,
+        averagePollScore,
+    };
 }
 
-export async function getQuestionsAndResponsesForDate(courseId: number, studentId: string, date: Date) {
+export async function getQuestionsAndResponsesForDate(
+    courseId: number,
+    studentId: string,
+    date: Date,
+) {
     try {
-      const sessions = await prisma.courseSession.findMany({
-        where: {
-          courseId,
-          startTime: {
-            gte: new Date(date.setHours(0, 0, 0, 0)),
-            lt: new Date(date.setHours(23, 59, 59, 999)),
-          },
-        },
-        include: {
-          questions: {
-            include: {
-              options: true,
-              responses: {
-                where: {
-                  userId: studentId,
+        const sessions = await prisma.courseSession.findMany({
+            where: {
+                courseId,
+                startTime: {
+                    gte: new Date(date.setHours(0, 0, 0, 0)),
+                    lt: new Date(date.setHours(23, 59, 59, 999)),
                 },
-              },
             },
-          },
-        },
-      });
-  
-      const questions = sessions.flatMap(session => session.questions).map(question => ({
-        id: question.id,
-        text: question.text,
-        type: question.type,
-        inputtedAnswers: question.responses.map(r => r.optionId),
-        correctAnswers: question.options.filter(opt => opt.isCorrect).map(opt => opt.id),
-        options: question.options.map(opt => ({ id: opt.id, text: opt.text })),
-      }));
-  
-      return questions;
+            include: {
+                questions: {
+                    include: {
+                        options: true,
+                        responses: {
+                            where: {
+                                userId: studentId,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        const questions = sessions
+            .flatMap((session) => session.questions)
+            .map((question) => ({
+                id: question.id,
+                text: question.text,
+                type: question.type,
+                inputtedAnswers: question.responses.map((r) => r.optionId),
+                correctAnswers: question.options
+                    .filter((opt) => opt.isCorrect)
+                    .map((opt) => opt.id),
+                options: question.options.map((opt) => ({ id: opt.id, text: opt.text })),
+            }));
+
+        return questions;
     } catch (error) {
-      console.error("Failed to get questions and responses:", error);
-      return [];
+        console.error("Failed to get questions and responses:", error);
+        return [];
     }
-  }
+}

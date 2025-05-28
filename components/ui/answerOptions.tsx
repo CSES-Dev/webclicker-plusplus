@@ -16,7 +16,6 @@ interface AnswerOptionsProps {
     onSelectionChange: (value: number | number[]) => void;
 }
 
-
 const AnswerOptions: React.FC<AnswerOptionsProps> = ({
     options,
     questionType,
