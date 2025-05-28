@@ -17,12 +17,14 @@ import DonutChart from "@/components/ui/DonutChart";
 import { useEffect } from "react";
 import { getStudentAnalytics, getQuestionsAndResponsesForDate } from "@/services/analytics";
 
+type Props = {
+    studentId: string;
+    courseId: number;
+  };
 
-export const StudentAnalyticsDrawer = () => {
+export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
-    const courseId = 22 // replace with real course ID
-    const userId = "cm8143diq0000i09nnuzne2jo" // replace with real user ID
     const [analyticsData, setAnalyticsData] = useState<{
         fullName: string;
         attendancePercentage: number;
@@ -34,7 +36,7 @@ export const StudentAnalyticsDrawer = () => {
       } | null>(null);
 
       useEffect(() => {
-        getStudentAnalytics(courseId, userId)
+        getStudentAnalytics(courseId, studentId)
           .then(setAnalyticsData)
           .catch((err) => {
             console.error("Failed to load analytics", err);
@@ -54,7 +56,7 @@ export const StudentAnalyticsDrawer = () => {
 
       useEffect(() => {
         const fetchQuestions = async () => {
-          const data = await getQuestionsAndResponsesForDate(courseId, userId, selectedDate);
+          const data = await getQuestionsAndResponsesForDate(courseId, studentId, selectedDate);
           setQuestionsForDate(data);
         };
         void fetchQuestions();

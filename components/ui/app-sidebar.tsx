@@ -108,7 +108,7 @@ export function AppSidebar() {
                     </div>
                     <div className="p-10">
                         <Button onClick={() => setOpen(true)}>Open Student Analytics</Button>
-                        {open && <StudentAnalyticsDrawer />}
+                        {open && <StudentAnalyticsDrawer studentId="cm8143diq0000i09nnuzne2jo" courseId={22}/>}
                         </div>
                     <Button
                         variant="link"
