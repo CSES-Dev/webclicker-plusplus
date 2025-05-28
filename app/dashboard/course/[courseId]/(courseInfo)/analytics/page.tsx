@@ -96,7 +96,6 @@ export default function Page() {
 
     useEffect(() => {
         const fetchStudentData = async () => {
-            setIsLoading(true);
             await getStudents(courseId, studentQuery)
                 .then((res) => {
                     if ("error" in res)
@@ -114,9 +113,6 @@ export default function Page() {
                         variant: "destructive",
                         description: "Unknown error occurred.",
                     });
-                })
-                .finally(() => {
-                    setIsLoading(false);
                 });
         };
         void fetchStudentData();

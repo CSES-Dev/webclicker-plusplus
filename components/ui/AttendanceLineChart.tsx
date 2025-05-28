@@ -5,13 +5,15 @@ import dayjs from "dayjs";
 import { attendanceChartConfig } from "@/lib/constants";
 import { getAttendanceByDay } from "@/services/userCourse";
 import { useToast } from "@/hooks/use-toast";
+import useDebounce from "@/hooks/use-debounce";
 
 interface Props {
     courseId: number;
 }
 
 export default function AttendanceLineChart({ courseId }: Props) {
-    const [weekStart, setWeekStart] = useState(dayjs().startOf("week").toDate());
+    const [weekStart, setWeekStart] = useState<Date>(dayjs().startOf("week").toDate());
+    let debouncedWeekStart = useDebounce(weekStart, 200);
     const [chartData, setChartData] = useState<{ date: string; attendance: number }[]>();
     const { toast } = useToast();
 
@@ -46,14 +48,14 @@ export default function AttendanceLineChart({ courseId }: Props) {
             }
             setChartData(week);
         };
-        fetchWeekData(weekStart);
-    }, [weekStart]);
+        fetchWeekData(debouncedWeekStart);
+    }, [debouncedWeekStart]);
 
     const handleNextWeek = () => {
-        setWeekStart((prev) => dayjs(prev).add(7, "day").toDate());
+        setWeekStart(dayjs(weekStart).add(7, "day").toDate());
     };
     const handlePrevWeek = () => {
-        setWeekStart((prev) => dayjs(prev).subtract(7, "day").toDate());
+        setWeekStart(dayjs(weekStart).subtract(7, "day").toDate());
     };
     return (
         <div className="flex flex-row justify-center items-end px-auto w-full p-3">
