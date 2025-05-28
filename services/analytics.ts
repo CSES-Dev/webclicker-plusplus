@@ -1,10 +1,8 @@
-// File: services/analytics.ts
 "use server";
 import prisma from "@/lib/prisma";
 import dayjs from "dayjs";
 
 export async function getStudentAnalytics(courseId: number, userId: string) {
-  // Get user's full name
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { firstName: true, lastName: true },
@@ -14,7 +12,6 @@ export async function getStudentAnalytics(courseId: number, userId: string) {
 
   const fullName = `${user.firstName} ${user.lastName ?? ""}`.trim();
 
-  // Get all course sessions for this course
   const sessions = await prisma.courseSession.findMany({
     where: { courseId },
     include: {

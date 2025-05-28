@@ -72,13 +72,11 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
             <SheetTitle>Student Analytics</SheetTitle>
         </VisuallyHidden>
 
-        {/* Student Name */}
         <div className="bg-[#F2F5FF] w-fit px-10 py-3 rounded-br-md border-b border-r">
           <span className="text-primary text-lg">Student</span>
           <div className="text-2xl">{analyticsData?.fullName ?? "Loading..."}</div>
         </div>
 
-        {/* Performance Summary */}
         <div className="px-10 py-3">
             <span className="text-lg font-medium">Student's Performance</span>
             <div className="p-4 rounded-md border flex justify-between">
@@ -157,7 +155,6 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
             </div>
         </div>
 
-        {/* Date Selector */}
         <div className="px-10 flex justify-end">
             <div className="w-fit">
                 <DatePicker
@@ -170,7 +167,6 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
         </div>
 
         <div className="flex px-10 gap-2 min-h-[334px]">
-            {/* Div A: Date + Vertical Line */}
             <div className="flex items-center gap-2">
                 <span className="text-sm">
                     {format(selectedDate, "M/dd")}
@@ -178,7 +174,6 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
             <div className="w-0.5 h-full bg-primary rounded-full"></div>
             </div>
 
-            {/* Div B: Questions + Answers */}
             <div className="flex-1 space-y-2">
                 {questionsForDate.length === 0 ? (
                     <div className="flex items-center justify-center h-full border rounded-md bg-muted text-muted-foreground text-lg">
@@ -186,14 +181,12 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
                     </div>
                 ) : (
                     <div className="flex-1 space-y-2">
-                        {/* Div 1: Header Row */}
                         <div className="grid grid-cols-3 gap-2">
                             <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Question:</div>
                             <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Inputted:</div>
                             <div className="border bg-[#F2F5FF] text-center rounded-md py-1 text-lg">Correct Answer:</div>
                         </div>
 
-                        {/* Div 2: Content Rows */}
                         <div className="space-y-2 max-h-72 overflow-y-auto">
                             {questionsForDate.map((question, idx) => (
                             <div key={idx} className="grid grid-cols-3 gap-2">
