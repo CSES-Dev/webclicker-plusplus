@@ -34,6 +34,8 @@ export default function DonutChart({
                     nameKey={nameKey}
                     innerRadius={"65%"}
                     strokeWidth={15}
+                    startAngle={90}
+                    endAngle={-270}
                 >
                     <Label
                         content={({ viewBox }) => {
