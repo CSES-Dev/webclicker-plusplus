@@ -33,8 +33,12 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     useEffect(() => {
         getStudentAnalytics(courseId, studentId)
             .then(setAnalyticsData)
-            .catch((err) => {
-                console.error("Failed to load analytics", err);
+            .catch ((err: unknown) =>  {
+                if (err instanceof Error) {
+                    console.error("Failed to load analytics", err);
+                } else {
+                    console.error("Unknown error occurred");
+                }
                 toast({
                     variant: "destructive",
                     title: "Error",
