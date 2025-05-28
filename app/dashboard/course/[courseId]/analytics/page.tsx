@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import DonutChart from "@/components/ui/DonutChart";
 import {
@@ -23,10 +23,13 @@ import {
 import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
 import { getStudents } from "@/services/userCourse";
 import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
+import useAccess from "@/hooks/use-access";
+import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
+    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
     const [pastQuestions, setPastQuestions] = useState<
         { type: keyof typeof questionTypeMap; title: string; average: number }[]
     >([]);
@@ -48,11 +51,23 @@ export default function Page() {
     const [page, setPage] = useState<string>("Performance");
     const [studentQuery, setStudentQuery] = useState<string | undefined>(undefined);
     const { toast } = useToast();
+    const router = useRouter();
 
     const performanceChartData = [
         { result: "correct", count: responseStatistics.correct, fill: "#BAFF7E" },
         { result: "incorrect", count: responseStatistics.incorrect, fill: "#CCCCCC" },
     ];
+
+    useEffect(() => {
+        if (isAccessLoading) {
+            return;
+        }
+        if (!isAccessLoading && !hasAccess) {
+            toast({ variant: "destructive", description: "Access denied!" });
+            router.push("/dashboard");
+            return;
+        }
+    }, [isAccessLoading, hasAccess]);
 
     useEffect(() => {
         const fetchCourseStatistics = async () => {
@@ -119,6 +134,11 @@ export default function Page() {
         };
         void fetchStudentData();
     }, [studentQuery]);
+
+    if (isAccessLoading || !hasAccess) {
+        return <GlobalLoadingSpinner />;
+    }
+
     return (
         <div className="w-full flex flex-col">
             <div className="flex flex-row gap-2 bg-slate-200 h-fit w-fit p-1 rounded-md mb-4">
