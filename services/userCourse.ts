@@ -1,7 +1,7 @@
 "use server";
 import { Role } from "@prisma/client";
-import prisma from "@/lib/prisma";
 import { getSessionIdsByDate } from "./session";
+import prisma from "@/lib/prisma";
 
 export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({
@@ -154,17 +154,16 @@ export async function getStudents(courseId: number, query: string | undefined) {
                 },
             },
         });
-        
-        return students;
 
+        return students;
     } catch (err) {
         console.error(err);
         return { error: "Error fetching students." };
     }
 }
 
-export async function getStudentCount(courseId: number){
-    try{
+export async function getStudentCount(courseId: number) {
+    try {
         const totalStudents = await prisma.user.count({
             where: {
                 courses: {
@@ -177,21 +176,21 @@ export async function getStudentCount(courseId: number){
         });
 
         return totalStudents;
-
     } catch (err) {
+        console.error(err);
         return { error: "Error fetching student information" };
     }
 }
 
-export async function getAttendanceCount(courseId: number, date: Date){
+export async function getAttendanceCount(courseId: number, date: Date) {
     try {
         const sessionIds = await getSessionIdsByDate(courseId, date);
 
-        if ('error' in sessionIds){
-            throw Error;
+        if ("error" in sessionIds) {
+            throw Error();
         }
 
-        if (sessionIds.length === 0){
+        if (sessionIds.length === 0) {
             return 0;
         }
 
@@ -218,8 +217,8 @@ export async function getAttendanceCount(courseId: number, date: Date){
         });
 
         return attendedStudents.length;
-
     } catch (err) {
+        console.error(err);
         return { error: "Error fetching student information" };
     }
 }

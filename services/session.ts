@@ -95,39 +95,39 @@ export async function getQuestionById(questionId: number) {
     }
 }
 
-export async function getAllSessionIds(courseId: number){
+export async function getAllSessionIds(courseId: number) {
     try {
-        const sessions = await prisma.courseSession
-            .findMany({
-                where: {
-                    courseId,
-                },
-                select: {
-                    id: true,
-                },
-            })
-        
+        const sessions = await prisma.courseSession.findMany({
+            where: {
+                courseId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
         return sessions.map((session) => session.id);
     } catch (error) {
-        return {error: "Error fetching sessions"}
-    }   
+        console.error(error);
+        return { error: "Error fetching sessions" };
+    }
 }
 
-export async function getSessionIdsByDate(courseId: number, date: Date){
-    try{
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
+export async function getSessionIdsByDate(courseId: number, date: Date) {
+    try {
+        const dayStart = new Date(date);
+        dayStart.setHours(0, 0, 0, 0);
 
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
 
         const sessions = await prisma.courseSession
             .findMany({
                 where: {
                     courseId,
                     startTime: {
-                        gte: startOfDay,
-                        lte: endOfDay,
+                        gte: dayStart,
+                        lte: dayEnd,
                     },
                 },
                 select: {
@@ -138,6 +138,7 @@ export async function getSessionIdsByDate(courseId: number, date: Date){
 
         return sessions;
     } catch (error) {
-        return {error: "Error fetching session information"}
+        console.error(error);
+        return { error: "Error fetching session information" };
     }
 }

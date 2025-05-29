@@ -1,8 +1,8 @@
 import { clsx } from "clsx";
 import type { ClassValue } from "clsx";
+import dayjs from "dayjs";
 import { twMerge } from "tailwind-merge";
 import { QuestionWithResponesAndOptions, Response, Student } from "./constants";
-import dayjs from "dayjs";
 import { getAttendanceCount, getStudentCount } from "@/services/userCourse";
 /**
  * A utility function that merges tailwind classes with conditional classes combining functionalities of twMerge and clsx.
@@ -146,44 +146,29 @@ export function calculateDayAttendance(attendanceCount: number, totalStudentsCou
 
 export async function calculateWeekAttendance(start: Date, courseId: number) {
     try {
-        const week: { date: string; attendance: number }[] = [];
-
-        for (let i = 0; i < 7; i++) {
-            // calculate day
+        const promises = Array.from({ length: 7 }).map(async (_, i) => {
             const day = dayjs(start).add(i, "day");
+            try {
+                const studentCount = await getStudentCount(courseId);
+                if (typeof studentCount !== "number") {
+                    throw Error();
+                }
+                const attendanceCount = await getAttendanceCount(courseId, day.toDate());
+                if (typeof attendanceCount !== "number") {
+                    throw Error();
+                }
+                const attendance = calculateDayAttendance(attendanceCount, studentCount);
+                return { date: day.format("M/D"), attendance };
+            } catch (err) {
+                console.error(err);
+                throw Error();
+            }
+        });
 
-            // calculate attendance as number of students attended / total number of students
-            await getStudentCount(courseId)
-                .then((studentCount) => {
-                    if (typeof studentCount !== "number" && "error" in studentCount) {
-                        return { error: studentCount?.error ?? "Unknown error occurred." };
-                    } else {
-                        getAttendanceCount(courseId, day.toDate()).then((attendanceCount) => {
-                            if (typeof attendanceCount !== "number" && "error" in attendanceCount) {
-                                return {
-                                    error: attendanceCount?.error ?? "Unknown error occurred.",
-                                };
-                            } else {
-                                let attendance = calculateDayAttendance(
-                                    attendanceCount,
-                                    studentCount,
-                                );
-                                week.push({
-                                    date: day.format("M/D"),
-                                    attendance,
-                                });
-                            }
-                        });
-                    }
-                })
-                .catch((err: unknown) => {
-                    console.error(err);
-                    return { error: "Unknown error occurred." };
-                });
-        }
-
-        return week;
-    } catch (err) {
+        const weekData = await Promise.all(promises);
+        return weekData;
+    } catch (err: unknown) {
+        console.error(err);
         return { error: "Error calculating attendance" };
     }
 }

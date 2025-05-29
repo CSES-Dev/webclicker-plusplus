@@ -1,5 +1,5 @@
-import { ChartConfig } from "@/components/ui/chart";
 import { $Enums } from "@prisma/client";
+import { ChartConfig } from "@/components/ui/chart";
 
 export const questionTypes = ["Multiple Choice", "Select All"] as const;
 export const colorOptions = ["#ED9D9D", "#F3AB7E", "#EEF583", "#94ED79", "#8E87F2"];
@@ -68,7 +68,7 @@ export type QuestionWithResponesAndOptions = {
     type: $Enums.QuestionType;
     sessionId: number;
     position: number;
-}
+};
 
 export type Response = {
     options: {
@@ -82,8 +82,8 @@ export type Response = {
         questionId: number;
         userId: string;
         answeredAt: Date;
-    }[]
-}
+    }[];
+};
 
 export type Student = {
     id: string;
@@ -98,4 +98,4 @@ export type Student = {
     email: string | null;
     firstName: string;
     lastName: string | null;
-}
+};

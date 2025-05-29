@@ -23,14 +23,14 @@ import {
     performanceChartConfig,
     questionTypeMap,
 } from "@/lib/constants";
-import { getLimitedPastQuestions, getResponses } from "@/services/question";
-import { getStudents } from "@/services/userCourse";
 import {
     getIncorrectAndCorrectResponseCounts,
     getQuestionsWithAverageScore,
     getStudentsWithScores,
 } from "@/lib/utils";
+import { getLimitedPastQuestions, getResponses } from "@/services/question";
 import { getAllSessionIds } from "@/services/session";
+import { getStudents } from "@/services/userCourse";
 
 export default function Page() {
     const params = useParams();
@@ -102,12 +102,12 @@ export default function Page() {
 
     useEffect(() => {
         const fetchStudentData = async () => {
-            const students = await getStudents(courseId, studentQuery)
-                .then(async (students) => {
-                    if ("error" in students)
+            await getStudents(courseId, studentQuery)
+                .then(async (studentData) => {
+                    if ("error" in studentData)
                         return toast({
                             variant: "destructive",
-                            description: students?.error ?? "Unknown error occurred.",
+                            description: studentData?.error ?? "Unknown error occurred.",
                         });
                     else {
                         await getAllSessionIds(courseId).then((sessions) => {
@@ -117,7 +117,7 @@ export default function Page() {
                                     description: sessions?.error ?? "Unknown error occurred.",
                                 });
                             } else {
-                                setStudents(getStudentsWithScores(students, sessions));
+                                setStudents(getStudentsWithScores(studentData, sessions));
                                 setStudents([]);
                             }
                         });
