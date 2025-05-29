@@ -118,7 +118,6 @@ export default function Page() {
                                 });
                             } else {
                                 setStudents(getStudentsWithScores(studentData, sessions));
-                                setStudents([]);
                             }
                         });
                     }
