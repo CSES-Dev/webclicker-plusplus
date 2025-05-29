@@ -53,8 +53,6 @@ export default function StartSession() {
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
 
-    
-
     useEffect(() => {
         async function fetchSessionData() {
             const session = await getCourseSessionByDate(courseId, utcDate);

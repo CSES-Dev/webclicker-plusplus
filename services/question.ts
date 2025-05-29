@@ -119,3 +119,54 @@ export async function deleteQuestion(questionId: number) {
         return { error: "Error deleting question." };
     }
 }
+
+export async function getLimitedPastQuestions(courseId: number, limit: number) {
+    try {
+        const questions = await prisma.question.findMany({
+            where: {
+                session: {
+                    courseId,
+                },
+            },
+            orderBy: [
+                {
+                    session: {
+                        startTime: "desc",
+                    },
+                },
+                { position: "desc" },
+            ],
+            take: limit,
+            include: {
+                responses: true,
+                options: true,
+            },
+        });
+
+        return questions;
+    } catch (err) {
+        console.error(err);
+        return { error: "Error fetching past questions." };
+    }
+}
+
+export async function getResponses(courseId: number) {
+    try {
+        const responses = await prisma.question.findMany({
+            where: {
+                session: {
+                    courseId,
+                },
+            },
+            include: {
+                responses: true,
+                options: true,
+            },
+        });
+
+        return responses;
+    } catch (err) {
+        console.error(err);
+        return { error: "Error calculating class average." };
+    }
+}

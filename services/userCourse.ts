@@ -1,5 +1,6 @@
 "use server";
 import { Role } from "@prisma/client";
+import { getSessionIdsByDate } from "./session";
 import prisma from "@/lib/prisma";
 
 export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
@@ -94,5 +95,130 @@ export async function addUserToCourseByEmail(
         });
     } else {
         return { error: "User is already enrolled in this course" };
+    }
+}
+
+export async function getStudents(courseId: number, query: string | undefined) {
+    try {
+        const students = await prisma.user.findMany({
+            where: {
+                courses: {
+                    some: {
+                        courseId,
+                        role: "STUDENT",
+                    },
+                },
+                ...(query
+                    ? {
+                          OR: [
+                              {
+                                  email: {
+                                      contains: query,
+                                      mode: "insensitive",
+                                  },
+                              },
+                              {
+                                  firstName: {
+                                      contains: query,
+                                      mode: "insensitive",
+                                  },
+                              },
+                              {
+                                  lastName: {
+                                      contains: query,
+                                      mode: "insensitive",
+                                  },
+                              },
+                          ],
+                      }
+                    : {}),
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                responses: {
+                    select: {
+                        question: {
+                            select: {
+                                sessionId: true,
+                                options: {
+                                    select: {
+                                        isCorrect: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        return students;
+    } catch (err) {
+        console.error(err);
+        return { error: "Error fetching students." };
+    }
+}
+
+export async function getStudentCount(courseId: number) {
+    try {
+        const totalStudents = await prisma.user.count({
+            where: {
+                courses: {
+                    some: {
+                        courseId,
+                        role: "STUDENT",
+                    },
+                },
+            },
+        });
+
+        return totalStudents;
+    } catch (err) {
+        console.error(err);
+        return { error: "Error fetching student information" };
+    }
+}
+
+export async function getAttendanceCount(courseId: number, date: Date) {
+    try {
+        const sessionIds = await getSessionIdsByDate(courseId, date);
+
+        if ("error" in sessionIds) {
+            throw Error();
+        }
+
+        if (sessionIds.length === 0) {
+            return 0;
+        }
+
+        const attendedStudents = await prisma.response.findMany({
+            where: {
+                question: {
+                    sessionId: {
+                        in: sessionIds,
+                    },
+                },
+                user: {
+                    courses: {
+                        some: {
+                            courseId,
+                            role: "STUDENT",
+                        },
+                    },
+                },
+            },
+            distinct: ["userId"],
+            select: {
+                userId: true,
+            },
+        });
+
+        return attendedStudents.length;
+    } catch (err) {
+        console.error(err);
+        return { error: "Error fetching student information" };
     }
 }
