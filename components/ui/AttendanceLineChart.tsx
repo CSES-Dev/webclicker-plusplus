@@ -3,7 +3,7 @@ import { ChartContainer } from "@/components/ui/chart";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import dayjs from "dayjs";
 import { attendanceChartConfig } from "@/lib/constants";
-import { getAttendanceByDay } from "@/services/userCourse";
+import { calculateWeekAttendance } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import useDebounce from "@/hooks/use-debounce";
 
@@ -19,34 +19,21 @@ export default function AttendanceLineChart({ courseId }: Props) {
 
     useEffect(() => {
         const fetchWeekData = async (start: Date) => {
-            const week: { date: string; attendance: number }[] = [];
-            for (let i = 0; i < 7; i++) {
-                const day = dayjs(start).add(i, "day");
-                let attendance = 0;
-                await getAttendanceByDay(courseId, day.toDate())
-                    .then((res) => {
-                        if (typeof res !== "number" && "error" in res) {
-                            return toast({
-                                variant: "destructive",
-                                description: res?.error ?? "Unknown error occurred.",
-                            });
-                        } else {
-                            attendance = Number(res);
-                        }
-                    })
-                    .catch((err: unknown) => {
-                        console.error(err);
-                        return toast({
+            await calculateWeekAttendance(start, courseId)
+                .then((res) => {
+                    if (res && "error" in res) {
+                        toast({
                             variant: "destructive",
-                            description: "Unknown error occurred.",
+                            description: res.error ?? "Unknown error occurred",
                         });
-                    });
-                week.push({
-                    date: day.format("M/D"),
-                    attendance,
+                    } else {
+                        setChartData(res);
+                    }
+                })
+                .catch((err: unknown) => {
+                    console.error(err);
+                    toast({ variant: "destructive", description: "Unknown error occurred" });
                 });
-            }
-            setChartData(week);
         };
         fetchWeekData(debouncedWeekStart);
     }, [debouncedWeekStart]);

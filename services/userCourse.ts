@@ -1,6 +1,7 @@
 "use server";
 import { Role } from "@prisma/client";
 import prisma from "@/lib/prisma";
+import { getSessionIdsByDate } from "./session";
 
 export async function addUserToCourse(courseId: number, userId: string, role: Role = "STUDENT") {
     const existingUser = await prisma.userCourse.findFirst({
@@ -99,7 +100,7 @@ export async function addUserToCourseByEmail(
 
 export async function getStudents(courseId: number, query: string | undefined) {
     try {
-        const studentsData = await prisma.user.findMany({
+        const students = await prisma.user.findMany({
             where: {
                 courses: {
                     some: {
@@ -153,74 +154,17 @@ export async function getStudents(courseId: number, query: string | undefined) {
                 },
             },
         });
-        const sessions = await prisma.courseSession
-            .findMany({
-                where: {
-                    courseId,
-                },
-                select: {
-                    id: true,
-                },
-            })
-            .then((res) => res.map((session) => session.id));
+        
+        return students;
 
-        const result = studentsData.map((student) => {
-            const totalSessions = sessions.length;
-            const studentResponses = student.responses.filter((response) =>
-                sessions.includes(response.question.sessionId),
-            );
-            const attendedSessions = new Set(
-                studentResponses.map((response) => response.question.sessionId),
-            ).size;
-
-            const correctResponses = studentResponses.filter((response) =>
-                response.question.options.some((option) => option.isCorrect),
-            ).length;
-
-            const attendance =
-                totalSessions > 0 ? Math.trunc((attendedSessions / totalSessions) * 100) : 0;
-            const pollScore =
-                studentResponses.length > 0
-                    ? Math.trunc((correctResponses / studentResponses.length) * 100)
-                    : 0;
-
-            return {
-                name: String(student.firstName) + " " + String(student.lastName),
-                email: student.email,
-                attendance,
-                pollScore,
-            };
-        });
-        return result;
     } catch (err) {
         console.error(err);
         return { error: "Error fetching students." };
     }
 }
 
-export async function getAttendanceByDay(courseId: number, date: Date) {
-    try {
-        const startOfDay = new Date(date);
-        startOfDay.setHours(0, 0, 0, 0);
-
-        const endOfDay = new Date(date);
-        endOfDay.setHours(23, 59, 59, 999);
-
-        const sessions = await prisma.courseSession
-            .findMany({
-                where: {
-                    courseId,
-                    startTime: {
-                        gte: startOfDay,
-                        lte: endOfDay,
-                    },
-                },
-                select: {
-                    id: true,
-                },
-            })
-            .then((res) => res.map((session) => session.id));
-
+export async function getStudentCount(courseId: number){
+    try{
         const totalStudents = await prisma.user.count({
             where: {
                 courses: {
@@ -232,7 +176,22 @@ export async function getAttendanceByDay(courseId: number, date: Date) {
             },
         });
 
-        if (sessions.length === 0 || totalStudents === 0) {
+        return totalStudents;
+
+    } catch (err) {
+        return { error: "Error fetching student information" };
+    }
+}
+
+export async function getAttendanceCount(courseId: number, date: Date){
+    try {
+        const sessionIds = await getSessionIdsByDate(courseId, date);
+
+        if ('error' in sessionIds){
+            throw Error;
+        }
+
+        if (sessionIds.length === 0){
             return 0;
         }
 
@@ -240,7 +199,7 @@ export async function getAttendanceByDay(courseId: number, date: Date) {
             where: {
                 question: {
                     sessionId: {
-                        in: sessions,
+                        in: sessionIds,
                     },
                 },
                 user: {
@@ -258,9 +217,9 @@ export async function getAttendanceByDay(courseId: number, date: Date) {
             },
         });
 
-        return Math.trunc((attendedStudents.length / totalStudents) * 100);
+        return attendedStudents.length;
+
     } catch (err) {
-        console.error(err);
-        return { error: "Error calculating attendance rate." };
+        return { error: "Error fetching student information" };
     }
 }

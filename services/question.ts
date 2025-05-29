@@ -120,9 +120,9 @@ export async function deleteQuestion(questionId: number) {
     }
 }
 
-export async function getPastQuestionsWithScore(courseId: number) {
+export async function getLimitedPastQuestions(courseId: number, limit: number) {
     try {
-        const data = await prisma.question.findMany({
+        const questions = await prisma.question.findMany({
             where: {
                 session: {
                     courseId,
@@ -136,47 +136,23 @@ export async function getPastQuestionsWithScore(courseId: number) {
                 },
                 { position: "desc" },
             ],
-            take: 2,
+            take: limit,
             include: {
                 responses: true,
                 options: true,
             },
         });
 
-        const pastQuestions = [];
-
-        for (const question of data) {
-            const correctOptionIds = question.options
-                .filter((option) => option.isCorrect)
-                .map((option) => option.id);
-
-            let correctCount = 0;
-            question.responses.forEach((response) => {
-                if (correctOptionIds.includes(response.optionId)) {
-                    correctCount++;
-                }
-            });
-
-            pastQuestions.push({
-                type: question.type,
-                title: question.text,
-                average:
-                    question.responses.length === 0
-                        ? 0
-                        : Math.trunc((correctCount / question.responses.length) * 100),
-            });
-        }
-
-        return pastQuestions;
+        return questions;
     } catch (err) {
         console.error(err);
         return { error: "Error fetching past questions." };
     }
 }
 
-export async function getResponseStatistics(courseId: number) {
+export async function getResponses(courseId: number) {
     try {
-        const data = await prisma.question.findMany({
+        const responses = await prisma.question.findMany({
             where: {
                 session: {
                     courseId,
@@ -188,23 +164,7 @@ export async function getResponseStatistics(courseId: number) {
             },
         });
 
-        let correctResponses = 0;
-        let incorrectReponses = 0;
-        for (const question of data) {
-            const correctOptionIds = question.options
-                .filter((option) => option.isCorrect)
-                .map((option) => option.id);
-
-            question.responses.forEach((response) => {
-                if (correctOptionIds.includes(response.optionId)) {
-                    correctResponses++;
-                } else {
-                    incorrectReponses++;
-                }
-            });
-        }
-
-        return { incorrect: incorrectReponses, correct: correctResponses };
+        return responses;
     } catch (err) {
         console.error(err);
         return { error: "Error calculating class average." };

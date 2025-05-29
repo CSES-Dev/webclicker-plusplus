@@ -94,3 +94,50 @@ export async function getQuestionById(questionId: number) {
         throw error;
     }
 }
+
+export async function getAllSessionIds(courseId: number){
+    try {
+        const sessions = await prisma.courseSession
+            .findMany({
+                where: {
+                    courseId,
+                },
+                select: {
+                    id: true,
+                },
+            })
+        
+        return sessions.map((session) => session.id);
+    } catch (error) {
+        return {error: "Error fetching sessions"}
+    }   
+}
+
+export async function getSessionIdsByDate(courseId: number, date: Date){
+    try{
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const sessions = await prisma.courseSession
+            .findMany({
+                where: {
+                    courseId,
+                    startTime: {
+                        gte: startOfDay,
+                        lte: endOfDay,
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            })
+            .then((res) => res.map((session) => session.id));
+
+        return sessions;
+    } catch (error) {
+        return {error: "Error fetching session information"}
+    }
+}

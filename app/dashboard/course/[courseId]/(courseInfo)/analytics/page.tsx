@@ -23,8 +23,14 @@ import {
     performanceChartConfig,
     questionTypeMap,
 } from "@/lib/constants";
-import { getPastQuestionsWithScore, getResponseStatistics } from "@/services/question";
+import { getLimitedPastQuestions, getResponses } from "@/services/question";
 import { getStudents } from "@/services/userCourse";
+import {
+    getIncorrectAndCorrectResponseCounts,
+    getQuestionsWithAverageScore,
+    getStudentsWithScores,
+} from "@/lib/utils";
+import { getAllSessionIds } from "@/services/session";
 
 export default function Page() {
     const params = useParams();
@@ -61,24 +67,24 @@ export default function Page() {
         const fetchCourseStatistics = async () => {
             try {
                 setIsLoading(true);
-                const pastQuestionsRes = await getPastQuestionsWithScore(courseId);
+                const pastQuestionsRes = await getLimitedPastQuestions(courseId, 2);
                 if ("error" in pastQuestionsRes) {
                     return toast({
                         variant: "destructive",
                         description: pastQuestionsRes?.error ?? "Unknown error occurred.",
                     });
                 } else {
-                    setPastQuestions(pastQuestionsRes);
+                    setPastQuestions(getQuestionsWithAverageScore(pastQuestionsRes));
                 }
 
-                const statsRes = await getResponseStatistics(courseId);
-                if (typeof statsRes !== "number" && "error" in statsRes) {
+                const responses = await getResponses(courseId);
+                if (!responses || (typeof responses !== "number" && "error" in responses)) {
                     return toast({
                         variant: "destructive",
-                        description: statsRes?.error ?? "Unknown error occurred.",
+                        description: responses?.error ?? "Unknown error occurred.",
                     });
-                } else {
-                    setResponseStatistics(statsRes);
+                } else if (responses) {
+                    setResponseStatistics(getIncorrectAndCorrectResponseCounts(responses));
                 }
             } catch (err) {
                 console.error(err);
@@ -96,15 +102,24 @@ export default function Page() {
 
     useEffect(() => {
         const fetchStudentData = async () => {
-            await getStudents(courseId, studentQuery)
-                .then((res) => {
-                    if ("error" in res)
+            const students = await getStudents(courseId, studentQuery)
+                .then(async (students) => {
+                    if ("error" in students)
                         return toast({
                             variant: "destructive",
-                            description: res?.error ?? "Unknown error occurred.",
+                            description: students?.error ?? "Unknown error occurred.",
                         });
                     else {
-                        setStudents(res);
+                        await getAllSessionIds(courseId).then((sessions) => {
+                            if ("error" in sessions) {
+                                return toast({
+                                    variant: "destructive",
+                                    description: sessions?.error ?? "Unknown error occurred.",
+                                });
+                            } else {
+                                setStudents(getStudentsWithScores(students, sessions));
+                            }
+                        });
                     }
                 })
                 .catch((err: unknown) => {
@@ -145,7 +160,7 @@ export default function Page() {
                 {/* Performance page */}
                 {page === "Performance" ? (
                     <>
-                        <div className="max-h-full w-full md:w-1/2 flex my-6 ml-8">
+                        <div className="max-h-full md:max-w-1/2 flex my-6 mx-auto">
                             {/* Donut Chart */}
                             <DonutChart
                                 chartData={performanceChartData}
@@ -166,11 +181,11 @@ export default function Page() {
                             />
                         </div>
                         {/* Past Questions */}
-                        <div className="hidden md:flex flex-col justify-center items-center w-full md:w-1/2 h-full gap-3 pr-5">
+                        <div className="hidden md:flex flex-col justify-center items-center w-full md:min-w-[22vw] md:max-w-1/2 h-full gap-3 pr-5">
                             {pastQuestions.map((question, idx) => (
                                 <div
                                     key={idx}
-                                    className="h-28 w-full p-4 bg-slate-50/10 shadow-md rounded-lg border border-slate-400"
+                                    className="min-h-28 h-fit w-full p-4 bg-slate-50/10 shadow-md rounded-lg border border-slate-400"
                                 >
                                     <div className="flex flex-row justify-between">
                                         <p className="text-red-900 bg-[#D9C7C7] rounded-sm p-1 px-2 text-sm">
