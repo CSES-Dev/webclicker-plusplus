@@ -118,6 +118,7 @@ export default function Page() {
                                 });
                             } else {
                                 setStudents(getStudentsWithScores(students, sessions));
+                                setStudents([]);
                             }
                         });
                     }
@@ -209,8 +210,8 @@ export default function Page() {
                 </button>
             </div>
             {/* Student Data Table */}
-            <div className="bg-white h-72 w-full rounded-[20px] border border-[#A5A5A5] mt-4 overflow-y-auto">
-                <Table className="relative rounded-[20px] w-full">
+            <div className="bg-white h-fit max-h-96 rounded-[20px] border border-[#A5A5A5] mt-4 overflow-y-auto">
+                <Table className="relative rounded-[20px] w-full mb-5">
                     {students?.length === 0 && <TableCaption>No students enrolled</TableCaption>}
                     <TableHeader className="h-14">
                         <TableRow>
