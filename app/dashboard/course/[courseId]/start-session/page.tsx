@@ -55,10 +55,6 @@ export default function StartSession() {
     const wsRef = useRef<WebSocket | null>(null);
     const session = useSession();
     const [isPaused, setIsPaused] = useState(false);
-    const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
-    const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
-
-    
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -190,7 +186,17 @@ export default function StartSession() {
                 if (!response.ok) {
                     toast({ variant: "destructive", description: "Error updating question" });
                     console.error("Failed to update active question in DB", response);
-                    return false;
+                } else {
+                    // Notify all students of the question change
+                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                        wsRef.current.send(JSON.stringify({
+                            type: "active_question_update",
+                            questionId: nextQuestionID,
+                            courseSessionId: courseSession.id,
+                        }));
+                    } else {
+                        console.warn("WebSocket not open, cannot send active_question_update");
+                    }
                 }
                 return true;
             } catch (err: unknown) {
@@ -279,6 +285,7 @@ export default function StartSession() {
             setIsPaused(pauseState);
             try {
                 await pauseOrResumeCourseSession(courseSession.id, pauseState);
+                wsRef.current?.send(JSON.stringify({ type: "pause_poll", paused: pauseState }));
             } catch (error) {
                 toast({
                     variant: "destructive",

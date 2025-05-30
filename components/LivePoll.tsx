@@ -29,7 +29,8 @@ type WebSocketMessageType =
     | "error"
     | "echo"
     | "binary"
-    | "student_response";
+    | "student_response"
+    | "poll_paused";
 
 interface WebSocketMessageBase {
     type: WebSocketMessageType;
@@ -60,11 +61,17 @@ interface ResponseUpdateMessage extends WebSocketMessageBase {
     optionCounts: Record<number, number>;
 }
 
+interface PollPausedMessage extends WebSocketMessageBase {
+    type: "poll_paused";
+    paused: boolean;
+}
+
 // Union type for all message types
 type WebSocketMessage =
     | QuestionChangedMessage
     | ResponseSavedMessage
     | StudentResponseMessage
+    | PollPausedMessage
     | WebSocketMessageBase;
 
 export default function LivePoll({
@@ -91,6 +98,7 @@ export default function LivePoll({
     const [questionCount, setQuestionCount] = useState("1");
     const [isConnected, setIsConnected] = useState(false);
     const [_messages, setMessages] = useState<string[]>([]);
+    const [isPaused, setIsPaused] = useState(false);
 
     // Use useRef for activeQuestionId to prevent unnecessary re-renders
     const activeQuestionIdRef = useRef<number | null>(null);
@@ -220,6 +228,10 @@ export default function LivePoll({
                                     console.log("WebSocket connection confirmed:", data.message);
                                 } else if (data.type === "echo") {
                                     console.log("Server echo:", data.message);
+                                } else if (data.type === "poll_paused") {
+                                    if ('paused' in data) {
+                                        setIsPaused(data.paused);
+                                    }
                                 }
                             }
                         } catch (_) {
@@ -436,7 +448,7 @@ export default function LivePoll({
                 <button
                     onClick={handleSubmit}
                     disabled={
-                        submitting ||
+                        isPaused ||
                         !selectedValues ||
                         (Array.isArray(selectedValues) && selectedValues.length === 0) ||
                         submitting ||
@@ -451,11 +463,13 @@ export default function LivePoll({
                             : "bg-blue-600 hover:bg-blue-700"
                     }`}
                 >
-                    {submitting ? "Submitting..." : "Submit Answer"}
+                    {submitting ? "Submitting..." : isPaused ? "Poll Paused" : "Submit Answer"}
                 </button>
 
                 {/* Submission Status - crucial for visual feedback */}
                 {submitting && <p className="mt-4 text-blue-500 text-[14px]">Submitting...</p>}
+
+                {isPaused && <p className="mt-4 text-red-500 text-[14px]">Poll is currently paused.</p>}
 
                 {/* Footer Message */}
                 <p className="mt-6 text-[14px] text-gray-500 text-center">

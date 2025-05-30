@@ -58,6 +58,11 @@ type TextMessage = {
     message: string;
 };
 
+type PausePollMessage = {
+    type: "pause_poll";
+    paused: boolean;
+};
+
 type WebSocketMessage =
     | StudentResponseMessage
     | ActiveQuestionUpdateMessage
@@ -66,7 +71,9 @@ type WebSocketMessage =
     | QuestionChangedMessage
     | ConnectedMessage
     | ErrorMessage
-    | TextMessage;
+    | TextMessage
+    | PausePollMessage
+    | { type: "poll_paused"; paused: boolean };
 
 type UnknownData = Record<string, unknown>;
 
@@ -225,6 +232,9 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                         type: "question_changed",
                         questionId,
                     } as QuestionChangedMessage);
+                } else if (data.type === "pause_poll") {
+                    const { paused } = data as PausePollMessage;
+                    broadcastToSession(sessionId, { type: "poll_paused", paused });
                 }
             } catch (err) {
                 console.error("WS message error:", err);
