@@ -55,6 +55,9 @@ export default function StartSession() {
     const wsRef = useRef<WebSocket | null>(null);
     const session = useSession();
     const [isPaused, setIsPaused] = useState(false);
+    const [isChangingQuestion, setIsChangingQuestion] = useState(false);
+    const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
+
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -64,7 +67,6 @@ export default function StartSession() {
                 if (session.activeQuestionId !== null) {
                     setActiveQuestionId(session.activeQuestionId);
                 }
-                if (session.paused) setIsPaused(session.paused);
             } else {
                 toast({ description: "No session found" });
                 // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
@@ -98,7 +100,6 @@ export default function StartSession() {
             try {
                 const data = JSON.parse(event.data);
                 console.log("Received WebSocket message:", data);
-
                 if (data.type === "response_update" && data.questionId === activeQuestionId) {
                     console.log("Updating response counts:", data.optionCounts);
                     setResponseCounts(data.optionCounts);
@@ -122,7 +123,7 @@ export default function StartSession() {
                 ws.close();
             }
         };
-    }, [courseSession, activeQuestionId, session.data?.user?.id]);
+    }, [courseSession, session.data?.user?.id]);
 
     // fetch session questions
     const {
@@ -174,59 +175,59 @@ export default function StartSession() {
 
     const handleNextQuestion = useCallback(async () => {
         if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
+            setIsChangingQuestion(true);
             const nextQuestionID = questions[activeIndex + 1].id;
             setActiveQuestionId(nextQuestionID);
             try {
-                const response = await fetch(`/api/session/${sessionId}/activeQuestion`, {
+                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ activeQuestionId: questionId }),
+                    body: JSON.stringify({ activeQuestionId: nextQuestionID }),
                 });
-
-                if (!response.ok) {
-                    toast({ variant: "destructive", description: "Error updating question" });
-                    console.error("Failed to update active question in DB", response);
-                } else {
-                    // Notify all students of the question change
+                if (response.ok) {
                     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
                         wsRef.current.send(JSON.stringify({
                             type: "active_question_update",
                             questionId: nextQuestionID,
                             courseSessionId: courseSession.id,
                         }));
-                    } else {
-                        console.warn("WebSocket not open, cannot send active_question_update");
+                        console.log("Sent active_question_update via WebSocket (next)");
                     }
                 }
-                return true;
-            } catch (err: unknown) {
+            } catch (err) {
                 toast({ variant: "destructive", description: "Error updating question" });
-                console.error("Error updating active question:", err);
-                return false;
             }
-        },
-        [toast],
-    );
-
-    const handleNextQuestion = useCallback(async () => {
-        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
-            setIsChangingQuestion(true);
-            const nextQuestionID = questions[activeIndex + 1].id;
-            setActiveQuestionId(nextQuestionID);
-            await updateActiveQuestion(nextQuestionID, String(courseSession.id));
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession]);
+    }, [activeIndex, questions, totalQuestions, courseSession, toast]);
 
     const handlePreviousQuestion = useCallback(async () => {
         if (questions && activeIndex > 0 && courseSession) {
             setIsChangingQuestion(true);
             const prevQuestionID = questions[activeIndex - 1].id;
             setActiveQuestionId(prevQuestionID);
-            await updateActiveQuestion(prevQuestionID, String(courseSession.id));
+            try {
+                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ activeQuestionId: prevQuestionID }),
+                });
+                if (response.ok) {
+                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                        wsRef.current.send(JSON.stringify({
+                            type: "active_question_update",
+                            questionId: prevQuestionID,
+                            courseSessionId: courseSession.id,
+                        }));
+                        console.log("Sent active_question_update via WebSocket (prev)");
+                    }
+                }
+            } catch (err) {
+                toast({ variant: "destructive", description: "Error updating question" });
+            }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, courseSession]);
+    }, [activeIndex, questions, courseSession, toast]);
 
     const handleQuestionSelect = useCallback(
         async (questionId: string) => {
@@ -234,11 +235,29 @@ export default function StartSession() {
                 setIsChangingQuestion(true);
                 const selectedQuestionId = parseInt(questionId);
                 setActiveQuestionId(selectedQuestionId);
-                await updateActiveQuestion(selectedQuestionId, String(courseSession.id));
+                try {
+                    const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
+                    });
+                    if (response.ok) {
+                        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                            wsRef.current.send(JSON.stringify({
+                                type: "active_question_update",
+                                questionId: selectedQuestionId,
+                                courseSessionId: courseSession.id,
+                            }));
+                            console.log("Sent active_question_update via WebSocket (select)");
+                        }
+                    }
+                } catch (err) {
+                    toast({ variant: "destructive", description: "Error updating question" });
+                }
                 setIsChangingQuestion(false);
             }
         },
-        [courseSession],
+        [courseSession, toast],
     );
 
     const handleAddWildcard = useCallback(
@@ -464,9 +483,7 @@ export default function StartSession() {
                     </Button>
                 </div>
                 <Button
-                    onClick={() => {
-                        setShowResults((prev) => !prev);
-                    }}
+                    onClick={() => setShowResults((prev: boolean) => !prev)}
                 >
                     {showResults ? "Hide" : "Show"}
                 </Button>

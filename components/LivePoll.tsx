@@ -404,23 +404,6 @@ export default function LivePoll({
                     <BackButton href="/dashboard" />
                 </div>
 
-                {/* Connection status */}
-                <div className="w-full max-w-[330px] mb-4">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                            <div
-                                className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
-                            />
-                            <span>{isConnected ? "Connected" : "Disconnected"}</span>
-                        </div>
-                        {session?.user && (
-                            <div className="text-sm text-gray-600">
-                                Connected as: {session.user.firstName} {session.user.lastName}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
                 {/* Question header and count */}
                 <div className="w-full max-w-[330px]">
                     <div className="flex justify-between items-center mb-4">
