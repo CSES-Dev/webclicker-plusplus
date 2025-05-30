@@ -3,7 +3,8 @@ import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
 import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { useSession } from "next-auth/react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { LetteredYAxisTick } from "@/components/YAxisTick";
@@ -37,8 +38,6 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
-import prisma from "@/lib/prisma";
-import { useSession } from "next-auth/react";
 
 export default function StartSession() {
     const params = useParams();
@@ -82,30 +81,7 @@ export default function StartSession() {
     const { data: questionData } = useQuery<QuestionData | null>(
         ["question", activeQuestionId],
         () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
-        { 
-            enabled: !!activeQuestionId,
-            onSuccess: async (data) => {
-                if (data && activeQuestionId) {
-                    // Fetch initial response counts
-                    const responseCounts = await prisma.response.groupBy({
-                        by: ['optionId'],
-                        where: {
-                            questionId: activeQuestionId
-                        },
-                        _count: {
-                            optionId: true
-                        }
-                    });
-
-                    // Update state with initial counts
-                    setResponseCounts(responseCounts.reduce((acc, curr) => ({
-                        ...acc,
-                        [curr.optionId]: curr._count.optionId
-                    }), {}));
-                    setTotalResponses(responseCounts.reduce((acc, curr) => acc + curr._count.optionId, 0));
-                }
-            }
-        }
+        { enabled: !!activeQuestionId },
     );
 
     // Setup WebSocket connection
@@ -126,7 +102,7 @@ export default function StartSession() {
             try {
                 const data = JSON.parse(event.data);
                 console.log("Received WebSocket message:", data);
-                
+
                 if (data.type === "response_update" && data.questionId === activeQuestionId) {
                     console.log("Updating response counts:", data.optionCounts);
                     setResponseCounts(data.optionCounts);
@@ -187,20 +163,23 @@ export default function StartSession() {
     const activeIndex = questions ? questions.findIndex((q) => q.id === activeQuestionId) : -1;
     const isLastQuestion = activeIndex === totalQuestions - 1;
 
-    const shuffledOptions = useMemo(() => {
-        return questionData ? shuffleArray(questionData.options) : [];
-    }, [activeQuestionId, questionData?.options]);
+    // Update chart data to use WebSocket updates
+    const shuffledOptions = useMemo(
+    () => questionData ? shuffleArray(questionData.options) : [],
+    [activeQuestionId, questionData?.options]
+    );
 
-    const chartData = questionData
-        ? shuffledOptions.map((option) => ({
-              option: option.text,
-              Votes: questionData.responses.filter((resp) => resp.optionId === option.id).length,
-          }))
-        : [];
+    const chartData = shuffledOptions.map(option => ({
+    option: option.text,
+    Votes: responseCounts?.[option.id] || 0,
+}));
 
-    // Create a reusable function for updating the active question
-    const updateActiveQuestion = useCallback(
-        async (questionId: number, sessionId: string) => {
+    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
+
+    const handleNextQuestion = useCallback(async () => {
+        if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
+            const nextQuestionID = questions[activeIndex + 1].id;
+            setActiveQuestionId(nextQuestionID);
             try {
                 const response = await fetch(`/api/session/${sessionId}/activeQuestion`, {
                     method: "PATCH",
@@ -317,6 +296,21 @@ export default function StartSession() {
             color: "hsl(var(--chart-1))",
         },
     };
+
+    // Updates chart if professor window refreshes
+    useEffect(() => {
+        if (!activeQuestionId) return;
+
+        fetch(`/api/getResponseCounts?questionId=${activeQuestionId}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setResponseCounts(data.optionCounts || {});
+                setTotalResponses(data.responseCount || 0);
+            })
+            .catch((err) => {
+                console.error("Failed to fetch response counts:", err);
+            });
+    }, [activeQuestionId]);
 
     if (!courseSession || questionsLoading) {
         return <GlobalLoadingSpinner />;
