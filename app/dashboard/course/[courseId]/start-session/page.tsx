@@ -39,6 +39,18 @@ import {
     getQuestionsForSession,
 } from "@/services/session";
 
+interface WebSocketMessage {
+    type: string;
+    questionId?: number;
+    optionCounts?: Record<number, number>;
+    responseCount?: number;
+}
+
+interface ResponseCountsData {
+    optionCounts?: Record<number, number>;
+    responseCount?: number;
+}
+
 export default function StartSession() {
     const params = useParams();
     const router = useRouter();
@@ -51,9 +63,9 @@ export default function StartSession() {
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
     const [responseCounts, setResponseCounts] = useState<Record<number, number>>({});
-    const [totalResponses, setTotalResponses] = useState(0);
+    const [_totalResponses, setTotalResponses] = useState(0);
     const wsRef = useRef<WebSocket | null>(null);
-    const session = useSession();
+    const sessionData = useSession();
     const [isPaused, setIsPaused] = useState(false);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
@@ -61,11 +73,11 @@ export default function StartSession() {
 
     useEffect(() => {
         async function fetchSessionData() {
-            const session = await getCourseSessionByDate(courseId, utcDate);
-            if (session) {
-                setCourseSession({ id: session.id, activeQuestionId: session.activeQuestionId });
-                if (session.activeQuestionId !== null) {
-                    setActiveQuestionId(session.activeQuestionId);
+            const sessionResult = await getCourseSessionByDate(courseId, utcDate);
+            if (sessionResult) {
+                setCourseSession({ id: sessionResult.id, activeQuestionId: sessionResult.activeQuestionId });
+                if (sessionResult.activeQuestionId !== null) {
+                    setActiveQuestionId(sessionResult.activeQuestionId);
                 }
             } else {
                 toast({ description: "No session found" });
@@ -84,11 +96,11 @@ export default function StartSession() {
 
     // Setup WebSocket connection
     useEffect(() => {
-        if (!courseSession || !session.data?.user?.id) return;
+        if (!courseSession || !sessionData.data?.user?.id) return;
 
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const ws = new WebSocket(
-            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSession.id}&userId=${session.data.user.id}`,
+            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSession.id}&userId=${sessionData.data.user.id}`,
         );
         wsRef.current = ws;
 
@@ -98,12 +110,16 @@ export default function StartSession() {
 
         ws.onmessage = (event) => {
             try {
-                const data = JSON.parse(event.data);
+                const data = JSON.parse(event.data as string) as WebSocketMessage;
                 console.log("Received WebSocket message:", data);
                 if (data.type === "response_update" && data.questionId === activeQuestionId) {
                     console.log("Updating response counts:", data.optionCounts);
-                    setResponseCounts(data.optionCounts);
-                    setTotalResponses(data.responseCount);
+                    if (data.optionCounts) {
+                        setResponseCounts(data.optionCounts);
+                    }
+                    if (data.responseCount) {
+                        setTotalResponses(data.responseCount);
+                    }
                 }
             } catch (error) {
                 console.error("Error processing WebSocket message:", error);
@@ -123,7 +139,7 @@ export default function StartSession() {
                 ws.close();
             }
         };
-    }, [courseSession, session.data?.user?.id]);
+    }, [courseSession, sessionData.data?.user?.id]);
 
     // fetch session questions
     const {
@@ -148,8 +164,8 @@ export default function StartSession() {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ activeQuestionId: questions[0].id }),
-                }).catch((err: unknown) => {
-                    console.error("Error updating active question:", err);
+                }).catch((error: unknown) => {
+                    console.error("Error updating active question:", error);
                 });
             }
         }
@@ -194,7 +210,7 @@ export default function StartSession() {
                         console.log("Sent active_question_update via WebSocket (next)");
                     }
                 }
-            } catch (err) {
+            } catch (_error) {
                 toast({ variant: "destructive", description: "Error updating question" });
             }
             setIsChangingQuestion(false);
@@ -222,7 +238,7 @@ export default function StartSession() {
                         console.log("Sent active_question_update via WebSocket (prev)");
                     }
                 }
-            } catch (err) {
+            } catch (_error) {
                 toast({ variant: "destructive", description: "Error updating question" });
             }
             setIsChangingQuestion(false);
@@ -251,7 +267,7 @@ export default function StartSession() {
                             console.log("Sent active_question_update via WebSocket (select)");
                         }
                     }
-                } catch (err) {
+                } catch (_error) {
                     toast({ variant: "destructive", description: "Error updating question" });
                 }
                 setIsChangingQuestion(false);
@@ -329,12 +345,16 @@ export default function StartSession() {
 
         fetch(`/api/getResponseCounts?questionId=${activeQuestionId}`)
             .then((res) => res.json())
-            .then((data) => {
-                setResponseCounts(data.optionCounts || {});
-                setTotalResponses(data.responseCount || 0);
+            .then((data: ResponseCountsData) => {
+                if (data.optionCounts) {
+                    setResponseCounts(data.optionCounts);
+                }
+                if (data.responseCount) {
+                    setTotalResponses(data.responseCount);
+                }
             })
-            .catch((err) => {
-                console.error("Failed to fetch response counts:", err);
+            .catch((error: unknown) => {
+                console.error("Failed to fetch response counts:", error);
             });
     }, [activeQuestionId]);
 
@@ -483,8 +503,9 @@ export default function StartSession() {
                     </Button>
                 </div>
                 <Button
-                    onClick={() => setShowResults((prev: boolean) => !prev)}
-                >
+                    onClick={() => {
+                        setShowResults((prev: boolean) => !prev);
+                    }}                >
                     {showResults ? "Hide" : "Show"}
                 </Button>
                 <div className="flex gap-2">
@@ -526,7 +547,9 @@ export default function StartSession() {
                         </Button>
                     ) : (
                         <Button
-                            onClick={() => void handleNextQuestion()}
+                            onClick={() => {
+                                void handleNextQuestion();
+                            }}
                             disabled={isAddingQuestion || isChangingQuestion}
                         >
                             Next Question &gt;

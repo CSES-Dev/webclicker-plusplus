@@ -28,18 +28,18 @@ void app
                 return;
             }
 
-            handle(req, res, parsedUrl);
+            void handle(req, res, parsedUrl);
         });
 
         // Initialize WebSocket server
-        const wss = initWebSocketServer(server);
+        const _wss = initWebSocketServer(server);
 
         // Fix for no-floating-promises: Add void operator to indicate promise is intentionally not awaited
         void server.listen(3000, () => {
             console.log("> Ready on http://localhost:3000");
         });
     })
-    .catch((error) => {
+    .catch((error: unknown) => {
         console.error("Error preparing Next.js app:", error);
         process.exit(1);
     });

@@ -13,24 +13,24 @@ export default function TestWebSocket() {
 
         socket.onopen = () => {
             console.log("Connected to WebSocket");
-            setMessages((prev) => [...prev, "Connected to WebSocket"]);
+            setMessages((prev: string[]) => [...prev, "Connected to WebSocket"]);
             setIsConnected(true);
         };
 
         socket.onmessage = (event) => {
             console.log("Received:", event.data);
-            setMessages((prev) => [...prev, event.data]);
+            setMessages((prev: string[]) => [...prev, String(event.data)]);
         };
 
         socket.onclose = () => {
             console.log("Disconnected from WebSocket");
-            setMessages((prev) => [...prev, "Disconnected from WebSocket"]);
+            setMessages((prev: string[]) => [...prev, "Disconnected from WebSocket"]);
             setIsConnected(false);
         };
 
         socket.onerror = (error) => {
             console.error("WebSocket error:", error);
-            setMessages((prev) => [...prev, "WebSocket error occurred"]);
+            setMessages((prev: string[]) => [...prev, "WebSocket error occurred"]);
         };
 
         setWs(socket);

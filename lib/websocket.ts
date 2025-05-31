@@ -125,30 +125,32 @@ function broadcastToSession(sessionId: string, message: WebSocketMessage): void 
 export function initWebSocketServer(server: HttpServer): WebSocketServer {
     const wss = new WebSocketServer({ noServer: true });
 
-    server.on("upgrade", async (req, socket, head) => {
-        try {
-            if (!req.url) return socket.destroy();
-            const { pathname, searchParams } = new URL(req.url, `http://${req.headers.host}`);
+    server.on("upgrade", (req, socket, head) => {
+        void (async () => {
+            try {
+                if (!req.url) return socket.destroy();
+                const { pathname, searchParams } = new URL(req.url, `http://${req.headers.host}`);
 
-            if (pathname === "/ws/poll") {
-                const sessionId = searchParams.get("sessionId");
-                const userId = searchParams.get("userId");
-                if (!sessionId || !userId) return socket.destroy();
+                if (pathname === "/ws/poll") {
+                    const sessionId = searchParams.get("sessionId");
+                    const userId = searchParams.get("userId");
+                    if (!sessionId || !userId) return socket.destroy();
 
-                if (!(await validateUserSession(userId, sessionId))) {
-                    return socket.destroy();
+                    if (!(await validateUserSession(userId, sessionId))) {
+                        return socket.destroy();
+                    }
+
+                    wss.handleUpgrade(req, socket, head, (ws) => {
+                        wss.emit("connection", ws, req, { sessionId, userId });
+                    });
+                } else {
+                    socket.destroy();
                 }
-
-                wss.handleUpgrade(req, socket, head, (ws) => {
-                    wss.emit("connection", ws, req, { sessionId, userId });
-                });
-            } else {
+            } catch (err) {
+                console.error("Upgrade error:", err);
                 socket.destroy();
             }
-        } catch (err) {
-            console.error("Upgrade error:", err);
-            socket.destroy();
-        }
+        })();
     });
 
     wss.on("connection", (ws: WebSocket, _req: IncomingMessage, params: ConnectionParams = {}) => {
@@ -160,7 +162,10 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
 
         // register
         if (!connections.has(sessionId)) connections.set(sessionId, new Map());
-        connections.get(sessionId)!.set(userId, { userId, sessionId, ws });
+        const sessionConnections = connections.get(sessionId);
+        if (sessionConnections) {
+            sessionConnections.set(userId, { userId, sessionId, ws });
+        }
 
         // confirm
         ws.send(
@@ -170,87 +175,104 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
             } as ConnectedMessage),
         );
 
-        ws.on("message", async (raw) => {
-            try {
-                const data = JSON.parse(raw.toString()) as UnknownData;
-
-                if (data.type === "student_response") {
-                    const { questionId, optionIds } = data as StudentResponseMessage;
-
-                    if (typeof questionId !== "number" || !Array.isArray(optionIds)) {
-                        throw new Error("Invalid student_response format");
+        ws.on("message", (raw) => {
+            void (async () => {
+                try {
+                    let rawString: string;
+                    if (raw instanceof Buffer) {
+                        rawString = raw.toString();
+                    } else if (typeof raw === 'string') {
+                        rawString = raw;
+                    } else {
+                        throw new Error('Unsupported message format');
                     }
+                    const data = JSON.parse(rawString) as UnknownData;
 
-                    // 1) delete old answers
-                    const deleteResult = await prisma.response.deleteMany({
-                        where: { userId, questionId },
-                    });
+                    if (data.type === "student_response") {
+                        const { questionId, optionIds } = data as StudentResponseMessage;
 
-                    // 2) bulk insert new answers
-                    const createResult = await prisma.response.createMany({
-                        data: optionIds.map((optId) => ({
-                            userId,
+                        if (typeof questionId !== "number" || !Array.isArray(optionIds)) {
+                            throw new Error("Invalid student_response format");
+                        }
+
+                        // 1) delete old answers
+                        const _deleteResult = await prisma.response.deleteMany({
+                            where: { userId, questionId },
+                        });
+                        console.log(_deleteResult)
+
+                        // 2) bulk insert new answers
+                        const _createResult = await prisma.response.createMany({
+                            data: optionIds.map((optId) => ({
+                                userId,
+                                questionId,
+                                optionId: optId,
+                            })),
+                            skipDuplicates: true,
+                        });
+                        console.log(_createResult)
+
+                        // 3) re-aggregate and broadcast
+                        const groups = await prisma.response.groupBy({
+                            by: ["optionId"],
+                            where: { questionId },
+                            _count: { optionId: true },
+                        });
+
+                        const optionCounts = groups.reduce<Record<number, number>>((acc, g) => {
+                            acc[g.optionId] = g._count.optionId;
+                            return acc;
+                        }, {});
+
+                        const total = Object.values(optionCounts).reduce((sum, c) => sum + c, 0);
+
+                        // confirmation
+                        ws.send(
+                            JSON.stringify({
+                                type: "response_saved",
+                                message: "Your answer has been recorded",
+                                data: { questionId, optionIds },
+                            } as ResponseSavedMessage),
+                        );
+
+                        // broadcast update
+                        broadcastToSession(sessionId, {
+                            type: "response_update",
                             questionId,
-                            optionId: optId,
-                        })),
-                        skipDuplicates: true,
-                    });
-
-                    // 3) re-aggregate and broadcast
-                    const groups = await prisma.response.groupBy({
-                        by: ["optionId"],
-                        where: { questionId },
-                        _count: { optionId: true },
-                    });
-
-                    const optionCounts = groups.reduce<Record<number, number>>((acc, g) => {
-                        acc[g.optionId] = g._count.optionId;
-                        return acc;
-                    }, {});
-
-                    const total = Object.values(optionCounts).reduce((sum, c) => sum + c, 0);
-
-                    // confirmation
+                            responseCount: total,
+                            optionCounts,
+                        } as ResponseUpdateMessage);
+                    } else if (data.type === "active_question_update") {
+                        const { questionId } = data as ActiveQuestionUpdateMessage;
+                        console.log("Broadcasting question change:", questionId);
+                        // Ensure all clients get the question change notification
+                        const message: QuestionChangedMessage = {
+                            type: "question_changed",
+                            questionId
+                        };
+                        broadcastToSession(sessionId, message);
+                    } else if (data.type === "pause_poll") {
+                        const { paused } = data as PausePollMessage;
+                        broadcastToSession(sessionId, { type: "poll_paused", paused });
+                    }
+                } catch (err) {
+                    console.error("WS message error:", err);
                     ws.send(
                         JSON.stringify({
-                            type: "response_saved",
-                            message: "Your answer has been recorded",
-                            data: { questionId, optionIds },
-                        } as ResponseSavedMessage),
+                            type: "error",
+                            message: "Invalid message format",
+                        } as ErrorMessage),
                     );
-
-                    // broadcast update
-                    broadcastToSession(sessionId, {
-                        type: "response_update",
-                        questionId,
-                        responseCount: total,
-                        optionCounts,
-                    } as ResponseUpdateMessage);
-                } else if (data.type === "active_question_update") {
-                    const { questionId } = data as ActiveQuestionUpdateMessage;
-                    broadcastToSession(sessionId, {
-                        type: "question_changed",
-                        questionId,
-                    } as QuestionChangedMessage);
-                } else if (data.type === "pause_poll") {
-                    const { paused } = data as PausePollMessage;
-                    broadcastToSession(sessionId, { type: "poll_paused", paused });
                 }
-            } catch (err) {
-                console.error("WS message error:", err);
-                ws.send(
-                    JSON.stringify({
-                        type: "error",
-                        message: "Invalid message format",
-                    } as ErrorMessage),
-                );
-            }
+            })();
         });
 
         ws.on("close", () => {
-            const sessConns = connections.get(sessionId)!;
-            sessConns.delete(userId);
-            if (sessConns.size === 0) connections.delete(sessionId);
+            const sessConns = connections.get(sessionId);
+            if (sessConns) {
+                sessConns.delete(userId);
+                if (sessConns.size === 0) connections.delete(sessionId);
+            }
         });
 
         ws.on("error", (e) => {

@@ -9,7 +9,6 @@ import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 
-import { getSessionPauseState } from "@/services/courseSession";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -54,12 +53,12 @@ interface StudentResponseMessage extends WebSocketMessageBase {
 }
 
 // Add new type for response updates
-interface ResponseUpdateMessage extends WebSocketMessageBase {
-    type: "response_update";
-    questionId: number;
-    responseCount: number;
-    optionCounts: Record<number, number>;
-}
+// interface ResponseUpdateMessage extends WebSocketMessageBase {
+//     type: "response_update";
+//     questionId: number;
+//     responseCount: number;
+//     optionCounts: Record<number, number>;
+// }
 
 interface PollPausedMessage extends WebSocketMessageBase {
     type: "poll_paused";
