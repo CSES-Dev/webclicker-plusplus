@@ -3,9 +3,9 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev",
-        "build": "prisma generate && next build",
-        "start": "next start",
+        "dev": "ts-node --project tsconfig.server.json server.ts",
+        "build": "next build",
+        "start": "NODE_ENV=production ts-node --project tsconfig.server.json server.ts",
         "lint": "next lint",
         "test:e2e": "playwright test",
         "check-git-hooks": "node .secret-scan/secret-scan.js -- --check-git-hooks",
@@ -20,7 +20,7 @@
         "@next-auth/prisma-adapter": "^1.0.7",
         "@playwright/test": "^1.49.0",
         "@prisma/client": "^6.4.0",
-        "@radix-ui/react-alert-dialog": "^1.1.13",
+        "@radix-ui/react-alert-dialog": "^1.1.14",
         "@radix-ui/react-dialog": "^1.1.6",
         "@radix-ui/react-dropdown-menu": "^2.1.6",
         "@radix-ui/react-label": "^2.1.2",
@@ -33,6 +33,7 @@
         "@radix-ui/react-toast": "^1.2.6",
         "@radix-ui/react-tooltip": "^1.1.8",
         "@shadcn/ui": "^0.0.4",
+        "@types/ws": "^8.18.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "date-fns": "^3.6.0",
@@ -54,6 +55,7 @@
         "swr": "^2.3.2",
         "tailwind-merge": "^2.5.5",
         "vaul": "^1.1.2",
+        "ws": "^8.18.2",
         "zod": "^3.24.2"
     },
     "devDependencies": {
@@ -69,10 +71,11 @@
         "husky": "^9.1.7",
         "postcss": "^8",
         "prettier": "^3.3.3",
-        "prisma": "^6.4.0",
+        "prisma": "^6.8.2",
         "shadcn-ui": "^0.9.4",
         "tailwindcss": "^3.4.1",
         "tailwindcss-animate": "^1.0.7",
+        "ts-node": "^10.9.2",
         "typescript": "^5"
     }
 }
