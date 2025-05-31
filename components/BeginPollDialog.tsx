@@ -16,7 +16,9 @@ import {
 import { IconQuestionButton } from "@/components/ui/plus-icon-button";
 import { useToast } from "@/hooks/use-toast";
 import { addWildcardQuestion } from "@/lib/server-utils";
+import { formatDateToISO } from "@/lib/utils";
 import { createCourseSession } from "@/services/courseSession";
+import { getCourseSessionByDate } from "@/services/session";
 
 export default function BeginPollDialog() {
     const params = useParams();
@@ -25,28 +27,36 @@ export default function BeginPollDialog() {
     const { toast } = useToast();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleAddWildCard = async (questionType: QuestionType) => {
-        try {
-            const session = await createCourseSession(courseId);
-            if (!session) {
+    const handleAddWildCard = (questionType: QuestionType) => {
+        setIsLoading(true);
+        const date = formatDateToISO(new Date());
+        getCourseSessionByDate(courseId, date)
+            .then(async (res) => {
+                let session = res;
+                if (!res) {
+                    session = await createCourseSession(courseId, date);
+                }
+                if (!session) {
+                    return toast({
+                        variant: "destructive",
+                        description: "Error creating session. Please try again",
+                    });
+                }
+                if (!session.activeQuestionId) {
+                    // only add question if poll has not started
+                    await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
+                }
+                router.push(`/dashboard/course/${courseId}/start-session`);
+            })
+            .catch(() => {
                 return toast({
                     variant: "destructive",
-                    description: "Error creating session. Please try again",
+                    description: "Something happened. Please try again",
                 });
-            }
-            if (!session.activeQuestionId) {
-                // only add question if poll has not started
-                await addWildcardQuestion(session.id, 0, questionType); // position 0 since first question
-            }
-            router.push(`/dashboard/course/${courseId}/start-session`);
-        } catch (err) {
-            console.error(err);
-            setIsLoading(false);
-            return toast({
-                variant: "destructive",
-                description: "Something happened. Please try again",
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
-        }
     };
 
     return (
@@ -67,7 +77,7 @@ export default function BeginPollDialog() {
                 <div className="flex flex-col gap-4 md:flex-row justify-around items-center">
                     <IconQuestionButton
                         onSelect={(questionType) => {
-                            void handleAddWildCard(questionType);
+                            handleAddWildCard(questionType);
                         }}
                         label={
                             <Button
@@ -83,7 +93,6 @@ export default function BeginPollDialog() {
                     <Button
                         variant="primary"
                         onClick={() => {
-                            // router.push("/start-session");
                             router.push(`/dashboard/course/${courseId}/start-session`);
                         }}
                         disabled={isLoading}

@@ -26,7 +26,6 @@ export default function Page() {
             if (!code) {
                 toast({ variant: "destructive", description: "Invalid code" });
             } else {
-                console.log(code);
                 const courseInfo = await getCourseWithCode(code);
                 if (!courseInfo) {
                     toast({ variant: "destructive", description: "Invalid code" });

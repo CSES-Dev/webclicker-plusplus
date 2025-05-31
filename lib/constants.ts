@@ -15,3 +15,5 @@ export const questionTypeMap = {
     MSQ: "Select All That Apply",
     MCQ: "Multiple Choice",
 };
+
+export const DEFAULT_SHOW_RESULTS = false;

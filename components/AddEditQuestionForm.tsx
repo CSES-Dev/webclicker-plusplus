@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -22,7 +22,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { questionTypes } from "@/lib/constants";
 import { getOrCreateCourseSession } from "@/services/courseSession";
-import { addQuestionWithOptions } from "@/services/question";
+import { addQuestionWithOptions, updateQuestion } from "@/services/question";
 
 const schema = z.object({
     question: z.string().min(1, { message: "Question must have at least one character" }),
@@ -56,20 +56,42 @@ const schema = z.object({
 
 interface Props {
     courseId: number;
+    defaultDate?: Date;
     location: "page" | "calendar";
+    questionId?: number;
+    prevData?: {
+        question: string;
+        selectedQuestionType: "Multiple Choice" | "Select All";
+        date: Date;
+        correctAnswers: {
+            answer: string;
+        }[];
+        answerChoices: {
+            choice: string;
+        }[];
+    };
+    onUpdate?: () => void;
 }
 
-export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) => {
+export const AddEditQuestionForm: React.FC<Props> = ({
+    courseId,
+    location,
+    defaultDate,
+    questionId,
+    onUpdate,
+    prevData,
+}: Props) => {
     const form = useForm<z.infer<typeof schema>>({
         mode: "onChange",
         resolver: zodResolver(schema),
-        defaultValues: {
+        defaultValues: prevData ?? {
             question: "",
             selectedQuestionType: "Multiple Choice",
             correctAnswers: [{ answer: " " }],
             answerChoices: [{ choice: " " }],
         },
     });
+
     const {
         fields: fieldsCorrectAnswers,
         append: appendCorrectAnswer,
@@ -90,6 +112,30 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (prevData) {
+            const cleanedPrevData = {
+                ...prevData,
+                answerChoices: prevData.answerChoices.filter((c) => c.choice !== ""),
+                correctAnswers: prevData.correctAnswers.filter((a) => a.answer !== ""),
+            };
+            form.reset(cleanedPrevData);
+        } else {
+            form.reset({
+                question: "",
+                selectedQuestionType: "Multiple Choice",
+                correctAnswers: [{ answer: "" }],
+                answerChoices: [{ choice: "" }],
+            });
+        }
+    }, [prevData]);
+    
+
+    useEffect(() => {
+        if (!defaultDate) return;
+        form.setValue("date", defaultDate);
+    }, [defaultDate]);
 
     const currentQuestionType = form.watch("selectedQuestionType");
     useEffect(() => {
@@ -118,37 +164,67 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
                     });
                 });
         }
-        async function createQuestion() {
+        async function createOrEditQuestion() {
             if (!courseSessionId)
                 return toast({
                     variant: "destructive",
-                    description: "Could not add question to session",
+                    description: "Could not access course session",
                 });
-            await addQuestionWithOptions(
-                courseSessionId,
-                question,
-                selectedQuestionType,
-                answerChoices.map((choiceObject) => choiceObject.choice),
-                correctAnswers.map((answerObject) => answerObject.answer),
-            )
-                .then((res) => {
-                    if ("error" in res)
-                        return toast({ variant: "destructive", description: res?.error ?? "" });
-                })
-                .catch((err: unknown) => {
-                    console.error(err);
-                    return toast({ variant: "destructive", description: "Unknown error occurred" });
-                });
+            if (questionId) {
+                await updateQuestion(
+                    questionId,
+                    courseSessionId,
+                    question,
+                    selectedQuestionType,
+                    answerChoices.map((choiceObject) => choiceObject.choice),
+                    correctAnswers.map((answerObject) => answerObject.answer),
+                )
+                    .then((res) => {
+                        if ("error" in res)
+                            return toast({ variant: "destructive", description: res?.error ?? "" });
+                    })
+                    .catch((err: unknown) => {
+                        console.error(err);
+                        return toast({
+                            variant: "destructive",
+                            description: "Unknown error occurred",
+                        });
+                    });
+            } else {
+                await addQuestionWithOptions(
+                    courseSessionId,
+                    question,
+                    selectedQuestionType,
+                    answerChoices.map((choiceObject) => choiceObject.choice),
+                    correctAnswers.map((answerObject) => answerObject.answer),
+                )
+                    .then((res) => {
+                        if ("error" in res)
+                            return toast({ variant: "destructive", description: res?.error ?? "" });
+                    })
+                    .catch((err: unknown) => {
+                        console.error(err);
+                        return toast({
+                            variant: "destructive",
+                            description: "Unknown error occurred",
+                        });
+                    });
+            }
         }
         setLoading(false);
         getCourseSessionInfo()
             .then(() =>
-                createQuestion().then(() => {
+                createOrEditQuestion().then(() => {
                     setIsOpen(false);
                     setLoading(false);
                     form.reset();
+                    if (typeof onUpdate === "function") {
+                        onUpdate();
+                    }
                     return toast({
-                        description: "Question added successfully",
+                        description: questionId
+                            ? "Question updated successfully"
+                            : "Question added successfully",
                     });
                 }),
             )
@@ -171,8 +247,14 @@ export const AddQuestionForm: React.FC<Props> = ({ courseId, location }: Props) 
                 }}
             >
                 {location === "page" ? (
-                    <button className="text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
-                        Add Question +
+                    <button className="flex gap-1 items-center text-base sm:text-xl font-normal px-5 sm:px-8 py-3 bg-[#F2F5FF] text-[#18328D] rounded-xl border border-[#A5A5A5]">
+                        {prevData ? (
+                            "Edit"
+                        ) : (
+                            <>
+                                Add Question <Plus />
+                            </>
+                        )}
                     </button>
                 ) : (
                     <button className="hover:underline text-[#18328D] text-2xl font-normal">

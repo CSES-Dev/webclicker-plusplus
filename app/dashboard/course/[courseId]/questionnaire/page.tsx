@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AddEditQuestionForm } from "@/components/AddEditQuestionForm";
 import { AddInstructorForm } from "@/components/AddInstuctorForm";
-import { AddQuestionForm } from "@/components/AddQuestionForm";
 import BeginPollDialog from "@/components/BeginPollDialog";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
 import { Button } from "@/components/ui/button";
@@ -19,11 +19,15 @@ export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
     const [courseInfo, setCourseInfo] = useState<{ name: string; code: string }>();
-    const [activeSession, setActiveSession] = useState<number | null>(null);
+    const [hasActiveSession, setHasActiveSession] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const { toast } = useToast();
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
+    const [refreshCalendar, setRefreshCalendar] = useState(false);
+    const handleQuestionUpdate = () => {
+        setRefreshCalendar(prev => !prev);
+    };
 
     useEffect(() => {
         if (isAccessLoading) {
@@ -35,7 +39,7 @@ export default function Page() {
             return;
         }
         const getCourseName = async () => {
-            setActiveSession(null);
+            setHasActiveSession(false);
             setIsLoading(true);
             try {
                 const course = await getCourseWithId(courseId);
@@ -43,7 +47,9 @@ export default function Page() {
                     courseId,
                     formatDateToISO(new Date()),
                 );
-                setActiveSession(courseSession?.id ?? null);
+                if (courseSession?.activeQuestionId) {
+                    setHasActiveSession(true);
+                }
                 setCourseInfo({ name: course.title, code: course.code });
             } catch (error) {
                 toast({ variant: "destructive", description: "Could not get course information." });
@@ -67,8 +73,14 @@ export default function Page() {
                     {`${courseInfo?.name} (${courseInfo?.code})`}{" "}
                 </h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
-                    <AddQuestionForm courseId={courseId} location="page" />
-                    {activeSession ? (
+                    <AddEditQuestionForm
+                        defaultDate={new Date(formatDateToISO(new Date()))}
+                        courseId={courseId}
+                        location="page"
+                        onUpdate={handleQuestionUpdate}
+                    />
+
+                    {hasActiveSession ? (
                         <Button
                             asChild
                             className="h-[50px] w-48 text-base sm:text-xl font-normal rounded-xl"
@@ -82,7 +94,7 @@ export default function Page() {
                     )}
                 </div>
             </section>
-            <SlidingCalendar courseId={courseId} />
+            <SlidingCalendar courseId={courseId} refreshTrigger={refreshCalendar} />
             <AddInstructorForm />
         </div>
     );

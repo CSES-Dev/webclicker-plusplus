@@ -30,12 +30,12 @@ export async function getOrCreateCourseSession(
 /**
  * Creates a new course session
  */
-export async function createCourseSession(courseId: number) {
+export async function createCourseSession(courseId: number, date: string) {
     try {
         const newSession = await prisma.courseSession.create({
             data: {
                 courseId,
-                startTime: new Date(new Date().setHours(0, 0, 0, 0)),
+                startTime: new Date(date),
             },
         });
         return newSession;
@@ -48,14 +48,15 @@ export async function createCourseSession(courseId: number) {
 /**
  * Ends an active course session
  */
-export async function endCourseSession(sessionId: number) {
+export async function endCourseSession(sessionId: number, date: Date) {
     try {
         const endedSession = await prisma.courseSession.update({
             where: {
                 id: sessionId,
             },
             data: {
-                endTime: new Date(),
+                endTime: date,
+                activeQuestionId: null,
             },
         });
 
@@ -72,10 +73,7 @@ export async function findActiveCourseSessions(courseId: number, start: Date) {
     return await prisma.courseSession.findMany({
         where: {
             courseId,
-            startTime: {
-                gte: new Date(start.setHours(0, 0, 0, 0)),
-                lt: new Date(start.setHours(23, 59, 59, 999)),
-            },
+            startTime: start,
             endTime: null,
         },
         include: {
@@ -86,4 +84,35 @@ export async function findActiveCourseSessions(courseId: number, start: Date) {
             },
         },
     });
+}
+
+export async function pauseOrResumeCourseSession(sessionId: number, paused: boolean) {
+    try {
+        await prisma.courseSession.update({
+            where: {
+                id: sessionId,
+            },
+            data: {
+                paused,
+            },
+        });
+        return true;
+    } catch (error) {
+        console.error("Error pausing/resuming course session:", error);
+        throw new Error("Failed to pause/resume course session");
+    }
+}
+
+export async function getSessionPauseState(sessionId: number) {
+    try {
+        const session = await prisma.courseSession.findUnique({
+            where: {
+                id: sessionId,
+            },
+        });
+        return session?.paused ?? false;
+    } catch (error) {
+        console.error("Error getting session pause state:", error);
+        throw new Error("Failed to get session pause state");
+    }
 }

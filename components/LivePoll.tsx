@@ -1,12 +1,15 @@
 "use client";
 import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import AnswerOptions from "@/components/ui/answerOptions";
 import BackButton from "@/components/ui/backButton";
 import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
+
+import { getSessionPauseState } from "@/services/courseSession";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -26,7 +29,8 @@ type WebSocketMessageType =
     | "error"
     | "echo"
     | "binary"
-    | "student_response";
+    | "student_response"
+    | "poll_paused";
 
 interface WebSocketMessageBase {
     type: WebSocketMessageType;
@@ -49,11 +53,25 @@ interface StudentResponseMessage extends WebSocketMessageBase {
     optionIds: number[];
 }
 
+// Add new type for response updates
+interface ResponseUpdateMessage extends WebSocketMessageBase {
+    type: "response_update";
+    questionId: number;
+    responseCount: number;
+    optionCounts: Record<number, number>;
+}
+
+interface PollPausedMessage extends WebSocketMessageBase {
+    type: "poll_paused";
+    paused: boolean;
+}
+
 // Union type for all message types
 type WebSocketMessage =
     | QuestionChangedMessage
     | ResponseSavedMessage
     | StudentResponseMessage
+    | PollPausedMessage
     | WebSocketMessageBase;
 
 export default function LivePoll({
@@ -65,6 +83,7 @@ export default function LivePoll({
     const params = useParams();
     const router = useRouter();
     const { toast } = useToast();
+    const { data: session } = useSession();
 
     const courseId = parseInt(params.courseId as string);
     const { hasAccess: _hasAccess, isLoading: isAccessLoading } = useAccess({
@@ -79,6 +98,7 @@ export default function LivePoll({
     const [questionCount, setQuestionCount] = useState("1");
     const [isConnected, setIsConnected] = useState(false);
     const [_messages, setMessages] = useState<string[]>([]);
+    const [isPaused, setIsPaused] = useState(false);
 
     // Use useRef for activeQuestionId to prevent unnecessary re-renders
     const activeQuestionIdRef = useRef<number | null>(null);
@@ -154,126 +174,139 @@ export default function LivePoll({
 
     // Setup WebSocket connection
     useEffect(() => {
-        if (!courseSessionId) return;
+        if (!courseSessionId || !session?.user?.id) return;
 
-        // Generate a temporary user ID for testing
-        // In a real app, you would use the authenticated user's ID
-        const tempUserId = `test-user-${Math.floor(Math.random() * 1000)}`;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+        const reconnectDelay = 1000; // Start with 1 second
 
-        // Create WebSocket connection
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const ws = new WebSocket(
-            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSessionId}&userId=${tempUserId}`,
-        );
-        wsRef.current = ws;
+        const connectWebSocket = () => {
+            const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            const ws = new WebSocket(
+                `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSessionId}&userId=${session.user.id}`,
+            );
+            wsRef.current = ws;
 
-        ws.onopen = () => {
-            console.log("WebSocket connection established");
-            setIsConnected(true);
-            setMessages((prev) => [...prev, "Connected to WebSocket"]);
-        };
+            ws.onopen = () => {
+                console.log("WebSocket connection established");
+                setIsConnected(true);
+                setMessages((prev) => [...prev, "Connected to WebSocket"]);
+                reconnectAttempts = 0; // Reset reconnect attempts on successful connection
+            };
 
-        ws.onmessage = (event) => {
-            let data: WebSocketMessage | null = null;
-            let messageText = "";
+            ws.onmessage = (event) => {
+                let data: WebSocketMessage | null = null;
+                let messageText = "";
 
-            // Display the raw message for debugging
-            console.log("Raw message received:", event.data);
+                // Display the raw message for debugging
+                console.log("Raw message received:", event.data);
 
-            // Try to parse as JSON, but handle plain text too
-            try {
-                if (typeof event.data === "string") {
-                    try {
-                        // Try to parse as JSON
-                        data = JSON.parse(event.data) as WebSocketMessage;
-                        messageText = `Received JSON: ${JSON.stringify(data)}`;
-                        console.log("Parsed JSON:", data);
+                // Try to parse as JSON, but handle plain text too
+                try {
+                    if (typeof event.data === "string") {
+                        try {
+                            // Try to parse as JSON
+                            data = JSON.parse(event.data) as WebSocketMessage;
+                            messageText = `Received JSON: ${JSON.stringify(data)}`;
+                            console.log("Parsed JSON:", data);
 
-                        // Process valid JSON message
-                        if (data?.type) {
-                            // Fixed with optional chaining
-                            // Type guard for question_changed
-                            if (data.type === "question_changed" && "questionId" in data) {
-                                // Refresh the question when the instructor changes it
-                                activeQuestionIdRef.current = null; // Force refresh
-                                void fetchActiveQuestion();
-                            } else if (data.type === "response_saved") {
-                                toast({ description: data.message ?? "Response saved" }); // Fixed with nullish coalescing
-                                setSubmitting(false); // Reset submitting state on success
-                            } else if (data.type === "error") {
-                                toast({
-                                    variant: "destructive",
-                                    description: data.message ?? "Error occurred", // Fixed with nullish coalescing
-                                });
-                                setSubmitting(false); // Reset submitting state on error
-                            } else if (data.type === "connected") {
-                                console.log("WebSocket connection confirmed:", data.message);
-                            } else if (data.type === "echo") {
-                                console.log("Server echo:", data.message);
-                                // This is likely a text response echoed back
-                                // We can safely ignore this for the student response flow
+                            // Process valid JSON message
+                            if (data?.type) {
+                                if (data.type === "question_changed" && "questionId" in data) {
+                                    activeQuestionIdRef.current = null;
+                                    void fetchActiveQuestion();
+                                } else if (data.type === "response_saved") {
+                                    toast({ description: data.message ?? "Response saved" });
+                                    setSubmitting(false);
+                                } else if (data.type === "error") {
+                                    toast({
+                                        variant: "destructive",
+                                        description: data.message ?? "Error occurred",
+                                    });
+                                    setSubmitting(false);
+                                } else if (data.type === "connected") {
+                                    console.log("WebSocket connection confirmed:", data.message);
+                                } else if (data.type === "echo") {
+                                    console.log("Server echo:", data.message);
+                                } else if (data.type === "poll_paused") {
+                                    if ('paused' in data) {
+                                        setIsPaused(data.paused);
+                                    }
+                                }
+                            }
+                        } catch (_) {
+                            const message = event.data;
+                            messageText = `Received text: ${message}`;
+
+                            // Check if this is a response to our student submission
+                            if (
+                                typeof message === "string" &&
+                                message.includes("student_response") &&
+                                submitting
+                            ) {
+                                //  likely a response to our student submission
+                                toast({ description: "Your answer has been recorded" });
+                                setSubmitting(false);
                             }
                         }
-                    } catch (_) {
-                        // Fixed unused variable
-                        // This is from the old server - we need to handle this format
-                        const message = event.data;
-                        messageText = `Received text: ${message}`;
-
-                        // Check if this is a response to our student submission
-                        if (
-                            typeof message === "string" &&
-                            message.includes("student_response") &&
-                            submitting
-                        ) {
-                            // This is likely a response to our student submission
-                            toast({ description: "Your answer has been recorded" });
-                            setSubmitting(false); // Reset submitting state
-                        }
+                    } else {
+                        data = {
+                            type: "binary",
+                            message: "Binary data received",
+                        };
+                        messageText = "Received: Binary data";
+                        console.log("Received binary data");
                     }
-                } else {
-                    // Handle binary data if needed
-                    data = {
-                        type: "binary",
-                        message: "Binary data received",
-                    };
-                    messageText = "Received: Binary data";
-                    console.log("Received binary data");
+
+                    setMessages((prev) => [...prev, messageText]);
+                } catch (err: unknown) {
+                    const errorStr = err instanceof Error ? err.message : "Unknown error";
+                    console.error("Error processing message:", errorStr);
+                    setMessages((prev) => [...prev, `Error processing message: ${errorStr}`]);
+                    setSubmitting(false);
                 }
+            };
 
-                // Add message to list for debugging
-                setMessages((prev) => [...prev, messageText]);
-            } catch (err: unknown) {
-                // Fixed catch callback variable type
-                const errorStr = err instanceof Error ? err.message : "Unknown error";
-                console.error("Error processing message:", errorStr);
-                setMessages((prev) => [...prev, `Error processing message: ${errorStr}`]);
-                setSubmitting(false); // Reset submitting state on error
-            }
+            ws.onclose = () => {
+                console.log("WebSocket connection closed");
+                setIsConnected(false);
+                setMessages((prev) => [...prev, "Disconnected from WebSocket"]);
+                setSubmitting(false);
+
+                // Attempt to reconnect if we haven't exceeded max attempts
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    const delay = reconnectDelay * Math.pow(2, reconnectAttempts - 1); // Exponential backoff
+                    console.log(
+                        `Attempting to reconnect in ${delay}ms (attempt ${reconnectAttempts}/${maxReconnectAttempts})`,
+                    );
+                    setTimeout(connectWebSocket, delay);
+                } else {
+                    toast({
+                        variant: "destructive",
+                        description: "Lost connection to server. Please refresh the page.",
+                    });
+                }
+            };
+
+            ws.onerror = (wsError) => {
+                console.error("WebSocket error:", wsError);
+                setMessages((prev) => [...prev, "WebSocket error occurred"]);
+                setSubmitting(false);
+            };
+
+            // Initial fetch
+            void fetchActiveQuestion();
         };
 
-        ws.onclose = () => {
-            console.log("WebSocket connection closed");
-            setIsConnected(false);
-            setMessages((prev) => [...prev, "Disconnected from WebSocket"]);
-            setSubmitting(false); // Reset submitting state when connection closes
-        };
-
-        ws.onerror = (wsError) => {
-            console.error("WebSocket error:", wsError);
-            setMessages((prev) => [...prev, "WebSocket error occurred"]);
-            setSubmitting(false); // Reset submitting state on error
-        };
-
-        // Initial fetch
-        void fetchActiveQuestion();
+        connectWebSocket();
 
         return () => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.close();
+            if (wsRef.current?.readyState === WebSocket.OPEN) {
+                wsRef.current.close();
             }
         };
-    }, [courseSessionId, fetchActiveQuestion, toast, submitting]);
+    }, [courseSessionId, session?.user?.id, fetchActiveQuestion, toast]);
 
     // Handle loading state
     if ((loading && !currentQuestion) || isAccessLoading) {
@@ -326,8 +359,6 @@ export default function LivePoll({
         }
 
         try {
-            toast({ description: "Your answer has been submitted" });
-
             // Set submitting to true BEFORE we do anything else
             setSubmitting(true);
 
@@ -347,27 +378,17 @@ export default function LivePoll({
             // Add to local messages list
             setMessages((prev) => [...prev, `Sent: ${JSON.stringify(message)}`]);
 
-            // Also send via API as a fallback - make this async
-            void fetch("/api/submitStudentResponse", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    questionId: currentQuestion.id,
-                    optionIds,
-                }),
-            }).catch((apiError) => {
-                console.error("API error:", apiError);
-            });
-
             // Fallback timer in case WebSocket response is never received
             setTimeout(() => {
-                setSubmitting(false);
-                console.log("Fallback timer: Setting submitting state to false"); // Add this log
-            }, 3000);
+                if (submitting) {
+                    setSubmitting(false);
+                    toast({
+                        variant: "destructive",
+                        description: "Response may not have been saved. Please try again.",
+                    });
+                }
+            }, 5000);
         } catch (submitError: unknown) {
-            // Fixed catch callback variable type
             const errorStr = submitError instanceof Error ? submitError.message : "Unknown error";
             console.error("Error submitting answer:", errorStr);
             toast({ variant: "destructive", description: "Failed to submit answer" });
@@ -420,18 +441,28 @@ export default function LivePoll({
                 <button
                     onClick={handleSubmit}
                     disabled={
+                        isPaused ||
                         !selectedValues ||
                         (Array.isArray(selectedValues) && selectedValues.length === 0) ||
                         submitting ||
                         !isConnected
                     }
-                    className="mt-6 px-6 py-2 bg-custom-background text-white rounded-md hover:bg-opacity-90 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    className={`mt-6 px-6 py-2 rounded-lg text-white font-medium ${
+                        submitting ||
+                        !selectedValues ||
+                        (Array.isArray(selectedValues) && selectedValues.length === 0) ||
+                        (isPaused !== undefined && isPaused !== null && isPaused)
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-blue-600 hover:bg-blue-700"
+                    }`}
                 >
-                    {submitting ? "Submitting..." : "Submit Answer"}
+                    {submitting ? "Submitting..." : isPaused ? "Poll Paused" : "Submit Answer"}
                 </button>
 
                 {/* Submission Status - crucial for visual feedback */}
                 {submitting && <p className="mt-4 text-blue-500 text-[14px]">Submitting...</p>}
+
+                {isPaused && <p className="mt-4 text-red-500 text-[14px]">Poll is currently paused.</p>}
 
                 {/* Footer Message */}
                 <p className="mt-6 text-[14px] text-gray-500 text-center">
