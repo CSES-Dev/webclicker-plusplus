@@ -21,9 +21,11 @@ import { formatDateToISO } from "@/lib/utils";
 
 interface Props {
     courseId: number;
+    selectedDate?: Date;
+    onDateChange?: (date: Date) => void;
 }
 
-function SlidingCalendar({ courseId }: Props) {
+function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChange }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
@@ -62,10 +64,10 @@ function SlidingCalendar({ courseId }: Props) {
     };
 
     useEffect(() => {
-        if (selectedDate) {
-            fetchQuestions(selectedDate.toDate());
-        }
-    }, [selectedDate]);
+        const initialDate = selectedDateProp ? dayjs(selectedDateProp) : dayjs();
+        setSelectedDate(initialDate);
+        fetchQuestions(initialDate.toDate());
+    }, [selectedDateProp]);
 
     // fetch incorrect and correct options of selected question
     useEffect(() => {
@@ -157,7 +159,12 @@ function SlidingCalendar({ courseId }: Props) {
                                         ? "bg-[#18328D] text-white"
                                         : "bg-white text-black"
                                 }`}
-                                onClick={() => setSelectedDate(date)}
+                                onClick={() => {
+                                    setSelectedDate(date);
+                                    if (onDateChange) {
+                                        onDateChange(date.toDate());
+                                    }
+                                }}
                             >
                                 <span
                                     className={`text-xs sm:text-lg font-normal ${
