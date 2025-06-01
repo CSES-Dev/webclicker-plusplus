@@ -30,7 +30,7 @@ export default function Page() {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [refreshCalendar, setRefreshCalendar] = useState(false);
     const handleQuestionUpdate = () => {
-        setRefreshCalendar(prev => !prev);
+        setRefreshCalendar((prev) => !prev);
     };
 
     useEffect(() => {

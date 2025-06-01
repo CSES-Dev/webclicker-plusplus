@@ -26,7 +26,12 @@ interface Props {
     refreshTrigger?: boolean;
 }
 
-function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChange, refreshTrigger }: Props) {
+function SlidingCalendar({
+    courseId,
+    selectedDate: selectedDateProp,
+    onDateChange,
+    refreshTrigger,
+}: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
@@ -262,7 +267,11 @@ function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChang
                                                             courseId={courseId}
                                                             location="page"
                                                             questionId={question.id}
-                                                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
+                                                            onUpdate={() =>
+                                                                fetchQuestions(
+                                                                    selectedDate.toDate(),
+                                                                )
+                                                            }
                                                             prevData={{
                                                                 question: question.text,
                                                                 selectedQuestionType:

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 const { parse } = require("json2csv");
 
-export async function GET(req: Request, { params }: { params: { sessionId: string } }) {
-    const sessionId = parseInt(params.sessionId);
+export async function GET(req: Request, context: { params: { sessionId: string } }) {
+    const sessionId = parseInt(context.params.sessionId);
     const url = new URL(req.url);
     const mode = url.searchParams.get("mode") ?? "basic";
 
