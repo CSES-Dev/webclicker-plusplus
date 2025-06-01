@@ -28,6 +28,10 @@ export default function Page() {
     const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
     const [exportMode, setExportMode] = useState("basic");
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [refreshCalendar, setRefreshCalendar] = useState(false);
+    const handleQuestionUpdate = () => {
+        setRefreshCalendar(prev => !prev);
+    };
 
     useEffect(() => {
         if (isAccessLoading) {
@@ -143,6 +147,7 @@ export default function Page() {
                 courseId={courseId}
                 selectedDate={selectedDate}
                 onDateChange={setSelectedDate}
+                refreshTrigger={refreshCalendar}
             />
             <AddInstructorForm />
         </div>

@@ -23,9 +23,10 @@ interface Props {
     courseId: number;
     selectedDate?: Date;
     onDateChange?: (date: Date) => void;
+    refreshTrigger?: boolean;
 }
 
-function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChange }: Props) {
+function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChange, refreshTrigger }: Props) {
     const [startDate, setStartDate] = useState<Dayjs>(dayjs().startOf("week"));
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [questions, setQuestions] = useState<
@@ -64,10 +65,13 @@ function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChang
     };
 
     useEffect(() => {
-        const initialDate = selectedDateProp ? dayjs(selectedDateProp) : dayjs();
-        setSelectedDate(initialDate);
-        fetchQuestions(initialDate.toDate());
-    }, [selectedDateProp]);
+        const newDate = selectedDateProp ? dayjs(selectedDateProp) : selectedDate;
+        setSelectedDate(newDate);
+        if (newDate) {
+            fetchQuestions(newDate.toDate());
+        }
+    }, [selectedDateProp, refreshTrigger]);
+
 
     // fetch incorrect and correct options of selected question
     useEffect(() => {
