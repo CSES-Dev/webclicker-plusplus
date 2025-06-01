@@ -114,28 +114,30 @@ export default function Page() {
                             <Button
                                 variant="outline"
                                 className="h-9 px-3 text-sm"
-                                onClick={async () => {
-                                    try {
-                                        const res = await getCourseSessionByDate(
-                                            courseId,
-                                            formatDateToISO(selectedDate),
-                                        );
-                                        if (!res?.id) {
+                                onClick={() => {
+                                    void (async () => {
+                                        try {
+                                            const res = await getCourseSessionByDate(
+                                                courseId,
+                                                formatDateToISO(selectedDate),
+                                            );
+                                            if (!res?.id) {
+                                                toast({
+                                                    variant: "destructive",
+                                                    description: "No session found.",
+                                                });
+                                                return;
+                                            }
+                                            const downloadUrl = `/api/export/${res.id}?mode=${exportMode}`;
+                                            window.open(downloadUrl, "_blank");
+                                        } catch (err) {
                                             toast({
                                                 variant: "destructive",
-                                                description: "No session found.",
+                                                description: "Export failed.",
                                             });
-                                            return;
+                                            console.error("Export error:", err);
                                         }
-                                        const downloadUrl = `/api/export/${res.id}?mode=${exportMode}`;
-                                        window.open(downloadUrl, "_blank");
-                                    } catch (err) {
-                                        toast({
-                                            variant: "destructive",
-                                            description: "Export failed.",
-                                        });
-                                        console.error("Export error:", err);
-                                    }
+                                    })();
                                 }}
                             >
                                 Export CSV

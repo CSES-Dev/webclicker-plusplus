@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { parse } from "json2csv";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-const { parse } = require("json2csv");
 
-export async function GET(req: Request, context: { params: { sessionId: string } }) {
+export async function GET(req: NextRequest, context: { params: { sessionId: string } }) {
     const sessionId = parseInt(context.params.sessionId);
     const url = new URL(req.url);
     const mode = url.searchParams.get("mode") ?? "basic";
@@ -37,7 +37,7 @@ export async function GET(req: Request, context: { params: { sessionId: string }
             userQuestionMap.set(email, new Set());
         }
 
-        userQuestionMap.get(email)!.add(questionId);
+        userQuestionMap.get(email)?.add(questionId);
 
         advancedRows.push({
             email,
@@ -54,7 +54,24 @@ export async function GET(req: Request, context: { params: { sessionId: string }
         date_of_session: sessionDate,
     }));
 
-    const csv = parse(mode === "advanced" ? advancedRows : basicRows);
+    const csv =
+        mode === "advanced"
+            ? parse(
+                  advancedRows as {
+                      email: string;
+                      question: string;
+                      answer: string;
+                      is_correct: boolean;
+                      date_of_session: string;
+                  }[],
+              )
+            : parse(
+                  basicRows as {
+                      email: string;
+                      num_questions_answered: number;
+                      date_of_session: string;
+                  }[],
+              );
 
     return new NextResponse(csv, {
         headers: {
