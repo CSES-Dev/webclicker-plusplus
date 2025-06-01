@@ -1,5 +1,6 @@
 "use server";
 import type { CourseSession, QuestionType } from "@prisma/client";
+import { endOfDay, startOfDay } from "date-fns";
 import prisma from "@/lib/prisma";
 
 export async function getCourseSessionByDate(
@@ -10,10 +11,16 @@ export async function getCourseSessionByDate(
     // 1. Belongs to the specified course
     // 2. Started on the day
     // 3. Has no end time (still active)
+    const dayStart = startOfDay(new Date(date));
+    const dayEnd = endOfDay(new Date(date));
+
     return prisma.courseSession.findFirst({
         where: {
             courseId,
-            startTime: new Date(date),
+            startTime: {
+                gte: dayStart,
+                lte: dayEnd,
+            },
             endTime: null,
         },
     });

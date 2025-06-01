@@ -44,9 +44,8 @@ function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChang
     const { toast } = useToast();
 
     useEffect(() => {
-        const currentDate = dayjs();
+        const currentDate = dayjs().startOf("day");
         setSelectedDate(currentDate);
-        fetchQuestions(currentDate.toDate());
     }, []);
 
     const fetchQuestions = async (date: Date) => {
@@ -71,7 +70,6 @@ function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChang
             fetchQuestions(newDate.toDate());
         }
     }, [selectedDateProp, refreshTrigger]);
-
 
     // fetch incorrect and correct options of selected question
     useEffect(() => {
@@ -264,6 +262,7 @@ function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChang
                                                             courseId={courseId}
                                                             location="page"
                                                             questionId={question.id}
+                                                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
                                                             prevData={{
                                                                 question: question.text,
                                                                 selectedQuestionType:
@@ -309,6 +308,7 @@ function SlidingCalendar({ courseId, selectedDate: selectedDateProp, onDateChang
                             courseId={courseId}
                             location="calendar"
                             defaultDate={new Date(formatDateToISO(selectedDate?.toDate()))}
+                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
                         />
                     </div>
                 )}

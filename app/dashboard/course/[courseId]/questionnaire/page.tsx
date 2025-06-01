@@ -81,6 +81,7 @@ export default function Page() {
                         defaultDate={new Date(formatDateToISO(new Date()))}
                         courseId={courseId}
                         location="page"
+                        onUpdate={handleQuestionUpdate}
                     />
 
                     {hasActiveSession ? (
