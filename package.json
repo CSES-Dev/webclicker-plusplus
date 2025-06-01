@@ -40,7 +40,7 @@
         "framer-motion": "^12.4.10",
         "json2csv": "^6.0.0-alpha.2",
         "lucide-react": "^0.464.0",
-        "next": "^15.2.3",
+        "next": "^15.3.3",
         "next-auth": "^4.24.11",
         "next-themes": "^0.4.4",
         "playwright": "^1.49.0",
@@ -59,7 +59,7 @@
     },
     "devDependencies": {
         "@types/json2csv": "^5.0.7",
-        "@types/node": "^20",
+        "@types/node": "^22.15.29",
         "@types/react": "^18",
         "@types/react-dom": "^18",
         "@typescript-eslint/eslint-plugin": "^8.15.0",
@@ -75,6 +75,6 @@
         "shadcn-ui": "^0.9.4",
         "tailwindcss": "^3.4.1",
         "tailwindcss-animate": "^1.0.7",
-        "typescript": "^5"
+        "typescript": "^5.8.3"
     }
 }

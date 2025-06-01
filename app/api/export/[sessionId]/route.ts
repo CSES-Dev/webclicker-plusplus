@@ -2,8 +2,11 @@ import { parse } from "json2csv";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest, context: { params: { sessionId: string } }) {
-    const sessionId = parseInt(context.params.sessionId);
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { sessionId: string } }
+) {
+    const sessionId = parseInt(params.sessionId);
     const url = new URL(req.url);
     const mode = url.searchParams.get("mode") ?? "basic";
 
