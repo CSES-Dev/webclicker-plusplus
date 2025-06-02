@@ -7,7 +7,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Question, QuestionType } from "@prisma/client";
-import { questionTypeMap } from "@/lib/constants";
 import Link from "next/link";
 
 const questionTypeStyles = {
@@ -31,6 +30,7 @@ interface PastQuestion extends Question {
     responses: {
         optionId: number;
         user: { firstName: string; lastName?: string };
+        answeredAt: string;
     }[];
 }
 
@@ -40,7 +40,6 @@ interface Props {
 
 function PastQuestions({ courseId }: Props) {
     const [questions, setQuestions] = useState<PastQuestion[]>([]);
-    const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState<QuestionType | "ALL">("ALL");
 
     useEffect(() => {
@@ -52,8 +51,6 @@ function PastQuestions({ courseId }: Props) {
                 setQuestions(data);
             } catch (error) {
                 console.error("Error fetching past questions:", error);
-            } finally {
-                setLoading(false);
             }
         };
 
@@ -67,21 +64,50 @@ function PastQuestions({ courseId }: Props) {
     const calculateScore = (question: PastQuestion) => {
         if (question.responses.length === 0) return 0;
 
-        const correctResponses = question.responses.filter((response) => {
-            const option = question.options.find((opt) => opt.id === response.optionId);
-            return option?.isCorrect;
+        const correctOptionIds = question.options
+            .filter((option) => option.isCorrect)
+            .map((option) => option.id);
+
+        const userResponses = new Map<string, number[]>();
+        const userResponseTimes = new Map<string, Date>();
+
+        question.responses.forEach((response) => {
+            const userId = response.user.firstName + (response.user.lastName || "");
+            const responseTime = response.answeredAt ? new Date(response.answeredAt) : new Date(0);
+
+            if (!userResponseTimes.has(userId)) {
+                userResponseTimes.set(userId, responseTime);
+                userResponses.set(userId, [response.optionId]);
+            } else if (responseTime > userResponseTimes.get(userId)!) {
+                userResponseTimes.set(userId, responseTime);
+                userResponses.set(userId, [response.optionId]);
+            } else if (responseTime.getTime() === userResponseTimes.get(userId)?.getTime()) {
+                userResponses.get(userId)?.push(response.optionId);
+            }
         });
 
-        return Math.round((correctResponses.length / question.responses.length) * 100);
+        let correctCount = 0;
+        userResponses.forEach((selectedOptionIds, userId) => {
+            if (question.type === QuestionType.MSQ) {
+                const isCorrect =
+                    selectedOptionIds.length === correctOptionIds.length &&
+                    correctOptionIds.every((id) => selectedOptionIds.includes(id));
+                if (isCorrect) correctCount++;
+            } else {
+                const isCorrect = question.options.some(
+                    (opt) => opt.id === selectedOptionIds[0] && opt.isCorrect,
+                );
+                if (isCorrect) correctCount++;
+            }
+        });
+
+        const totalUsers = userResponses.size;
+        return totalUsers > 0 ? Math.round((correctCount / totalUsers) * 100) : 0;
     };
 
     const formatDate = (date: Date) => {
         return new Date(date).toLocaleDateString("en-US");
     };
-
-    if (loading) {
-        return <div className="flex justify-center py-8">Loading past questions...</div>;
-    }
 
     return (
         <div className="flex flex-col items-center space-y-4 w-full">

@@ -42,7 +42,11 @@ export default async function QuestionResponsesPage({ params }: Props) {
     const question = await prisma.question.findUnique({
         where: { id: questionId },
         include: {
-            options: true,
+            options: {
+                orderBy: {
+                    id: 'asc'
+                }
+            },
             responses: {
                 include: {
                     option: true,
@@ -54,6 +58,9 @@ export default async function QuestionResponsesPage({ params }: Props) {
                         },
                     },
                 },
+                orderBy: {
+                    answeredAt: 'desc'
+                }
             },
             session: {
                 select: {
@@ -80,10 +87,56 @@ export default async function QuestionResponsesPage({ params }: Props) {
         return notFound();
     }
 
+    const correctOptionIds = question.options
+        .filter(option => option.isCorrect)
+        .map(option => option.id);
+
+    const latestResponseSets = question.responses.reduce((acc, response) => {
+        if (!acc.has(response.userId)) {
+            const userResponses = question.responses
+                .filter(r => r.userId === response.userId && r.questionId === questionId)
+                .sort((a, b) => b.answeredAt.getTime() - a.answeredAt.getTime());
+            
+            if (question.type === "MSQ") {
+                const latestAnsweredAt = userResponses[0]?.answeredAt;
+                const latestSubmission = userResponses
+                    .filter(r => r.answeredAt.getTime() === latestAnsweredAt?.getTime());
+                acc.set(response.userId, latestSubmission);
+            } else {
+                acc.set(response.userId, [userResponses[0]]);
+            }
+        }
+        return acc;
+    }, new Map<string, typeof question.responses>());
+
+    const allLatestResponses = Array.from(latestResponseSets.values()).flat();
+
+    const studentResults = Array.from(latestResponseSets.entries()).map(([userId, responses]) => {
+        if (question.type === "MSQ") {
+            const selectedOptionIds = responses.map(r => r.optionId);
+            const isCorrect = 
+                selectedOptionIds.length === correctOptionIds.length &&
+                correctOptionIds.every(id => selectedOptionIds.includes(id));
+            return { userId, isCorrect };
+        } else {
+            const isCorrect = responses[0]?.option.isCorrect || false;
+            return { userId, isCorrect };
+        }
+    });
+
     const totalStudents = question.session.course.users.length;
-    const answeredStudents = question.responses.length;
-    const correctPercentage =
-        (question.responses.filter((r) => r.option.isCorrect).length / answeredStudents) * 100 || 0;
+    const answeredStudents = latestResponseSets.size;
+    const correctCount = studentResults.filter(r => r.isCorrect).length;
+    const correctPercentage = answeredStudents > 0 ? Math.round((correctCount / answeredStudents) * 100) : 0;
+
+    const optionCounts = question.options.map(option => {
+        const count = allLatestResponses.filter(r => r.optionId === option.id).length;
+        return {
+            optionId: option.id,
+            count,
+            percentage: answeredStudents > 0 ? Math.round((count / answeredStudents) * 100) : 0
+        };
+    });
 
     return (
         <div className="container mx-auto py-8 px-4">
@@ -97,7 +150,7 @@ export default async function QuestionResponsesPage({ params }: Props) {
                 </Link>
             </div>
 
-            {/* Header section */}
+            {/* Header Section */}
             <section className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-8">
                     <span
@@ -120,29 +173,30 @@ export default async function QuestionResponsesPage({ params }: Props) {
                 </div>
             </section>
 
-            {/* Question box */}
+            {/* Question/Average Section */}
             <section className="bg-white rounded-xl shadow p-6 mb-8 border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Left side container with question and answer choices */}
+                    {/* Question and Answer Choices */}
                     <div className="order-1 md:order-none">
                         <h1 className="text-4xl font-normal mb-6 text-[#434343]">
                             {question.text}
                         </h1>
                         <div className="space-y-4">
                             {question.options.map((option) => {
-                                const count = question.responses.filter(
-                                    (r) => r.optionId === option.id,
-                                ).length;
-                                const percentage =
-                                    answeredStudents > 0
-                                        ? Math.round((count / answeredStudents) * 100)
-                                        : 0;
+                                const optionCount = optionCounts.find(oc => oc.optionId === option.id);
+                                const count = optionCount?.count || 0;
+                                const percentage = optionCount?.percentage || 0;
                                 const hasResponses = count > 0;
 
                                 return (
                                     <div key={option.id} className="space-y-2">
                                         <div className="flex justify-between items-center">
                                             <span className="font-medium">{option.text}</span>
+                                            {option.isCorrect && (
+                                                <span className="text-xs font-medium text-green-600">
+                                                    Correct Answer
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <div className="flex-1 relative">
@@ -177,7 +231,7 @@ export default async function QuestionResponsesPage({ params }: Props) {
                         </div>
                     </div>
 
-                    {/* Right side container */}
+                    {/* Circular Progress */}
                     <div className="flex justify-center order-2 md:order-none w-full">
                         <CircularProgress
                             value={correctPercentage}
@@ -188,7 +242,7 @@ export default async function QuestionResponsesPage({ params }: Props) {
                 </div>
             </section>
 
-            {/* Student responses table */}
+            {/* Student Responses Table */}
             <section className="bg-white rounded-xl border border-[#D9D9D9] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full border-collapse">
@@ -211,10 +265,15 @@ export default async function QuestionResponsesPage({ params }: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {question.responses.map((response, index) => {
-                                const isCorrect = response.option.isCorrect;
+                            {Array.from(latestResponseSets.entries()).map(([userId, responses], index) => {
+                                const firstResponse = responses[0];
                                 const fullName =
-                                    `${response.user.firstName} ${response.user.lastName || ""}`.trim();
+                                    `${firstResponse.user.firstName} ${firstResponse.user.lastName || ""}`.trim();
+                                
+                                const studentResult = studentResults.find(r => r.userId === userId);
+                                const isCorrect = studentResult?.isCorrect || false;
+
+                                const selectedOptions = responses.map(r => r.option.text).join(", ");
 
                                 return (
                                     <tr key={index} className="border-b border-[#D9D9D9]">
@@ -224,19 +283,19 @@ export default async function QuestionResponsesPage({ params }: Props) {
                                                     {fullName}
                                                 </div>
                                                 <div className="text-base text-[#434343] truncate">
-                                                    {response.user.email}
+                                                    {firstResponse.user.email}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 text-left border-r border-[#D9D9D9]">
                                             <div className="text-lg text-black font-normal">
-                                                {response.option.text}
+                                                {question.type === "MSQ" ? selectedOptions : firstResponse.option.text}
                                             </div>
                                         </td>
                                         <td className="px-4 py-4 text-center">
                                             <span
                                                 className={`px-3 py-1 inline-flex text-lg leading-5 font-medium rounded-md 
-                        ${isCorrect ? "bg-[#E6F6EC] text-[#067647]" : "bg-[#FEE9E9] text-[#D12929]"}`}
+                                                ${isCorrect ? "bg-[#E6F6EC] text-[#067647]" : "bg-[#FEE9E9] text-[#D12929]"}`}
                                             >
                                                 {isCorrect ? "Correct" : "Incorrect"}
                                             </span>
