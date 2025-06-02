@@ -5,18 +5,12 @@ import React, { useState } from "react";
 import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
 import PerformanceData from "@/components/ui/PerformanceData";
 import StudentTable from "@/components/ui/StudentTable";
-import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { analyticsPages } from "@/lib/constants";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
-    const [isLoading, setIsLoading] = useState(false);
     const [page, setPage] = useState<string>("Performance");
-
-    if (isLoading) {
-        return <GlobalLoadingSpinner />;
-    }
 
     return (
         <div className="w-full flex flex-col">
@@ -40,9 +34,9 @@ export default function Page() {
             {/* Performance and Attendance Data */}
             <div className="flex flex-col md:flex-row justify-center md:justify-between items-center md:items-stretch bg-white overflow-auto h-96 max-h-96 w-full rounded-[20px] border border-[#A5A5A5]">
                 {page === "Performance" ? (
-                    <PerformanceData courseId={courseId} setIsLoading={setIsLoading} />
+                    <PerformanceData courseId={courseId} />
                 ) : (
-                    <AttendanceLineChart courseId={courseId} setIsLoading={setIsLoading} />
+                    <AttendanceLineChart courseId={courseId} />
                 )}
             </div>
             <div className="flex flex-row justify-between mt-8 pl-1">
@@ -52,7 +46,7 @@ export default function Page() {
                 </button>
             </div>
             {/* Student Data Table */}
-            <StudentTable courseId={courseId} setIsLoading={setIsLoading} />
+            <StudentTable courseId={courseId} />
         </div>
     );
 }

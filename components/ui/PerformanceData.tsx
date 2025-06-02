@@ -10,12 +10,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { getLimitedPastQuestions, getResponses } from "@/services/question";
 import { getIncorrectAndCorrectResponseCounts, getQuestionsWithAverageScore } from "@/lib/utils";
+import { GlobalLoadingSpinner } from "./global-loading-spinner";
 
 interface Props {
     courseId: number;
-    setIsLoading: (isLoading: boolean) => void;
 }
-export default function PerformanceData({ courseId, setIsLoading }: Props) {
+export default function PerformanceData({ courseId }: Props) {
     const [pastQuestions, setPastQuestions] = useState<
         { type: keyof typeof questionTypeMap; title: string; average: number }[]
     >([]);
@@ -27,6 +27,7 @@ export default function PerformanceData({ courseId, setIsLoading }: Props) {
         correct: 0,
     });
     const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
 
     const performanceChartData = [
         { result: "correct", count: responseStatistics.correct, fill: "#BAFF7E" },
@@ -36,6 +37,7 @@ export default function PerformanceData({ courseId, setIsLoading }: Props) {
     useEffect(() => {
         const fetchCourseStatistics = async () => {
             try {
+                setIsLoading(true);
                 const pastQuestionsRes = await getLimitedPastQuestions(courseId, 2);
                 if ("error" in pastQuestionsRes) {
                     return toast({
@@ -61,11 +63,17 @@ export default function PerformanceData({ courseId, setIsLoading }: Props) {
                     variant: "destructive",
                     description: "Unknown error occurred.",
                 });
+            } finally {
+                setIsLoading(false);
             }
         };
 
         void fetchCourseStatistics();
     }, []);
+
+    if (isLoading) {
+        return <GlobalLoadingSpinner />;
+    }
 
     return (
         <>

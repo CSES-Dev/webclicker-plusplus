@@ -9,10 +9,9 @@ import useDebounce from "@/hooks/use-debounce";
 
 interface Props {
     courseId: number;
-    setIsLoading: (isLoading: boolean) => void;
 }
 
-export default function AttendanceLineChart({ courseId, setIsLoading }: Props) {
+export default function AttendanceLineChart({ courseId }: Props) {
     const [weekStart, setWeekStart] = useState<Date>(dayjs().startOf("week").toDate());
     let debouncedWeekStart = useDebounce<Date>(weekStart, 2000);
     const [chartData, setChartData] = useState<{ date: string; attendance: number }[]>();
@@ -45,6 +44,7 @@ export default function AttendanceLineChart({ courseId, setIsLoading }: Props) {
     const handlePrevWeek = () => {
         setWeekStart(dayjs(weekStart).subtract(7, "day").toDate());
     };
+
     return (
         <div className="flex flex-row justify-center items-end px-auto w-full p-3">
             <button

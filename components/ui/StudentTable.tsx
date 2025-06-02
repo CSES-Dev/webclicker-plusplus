@@ -12,12 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { getStudents } from "@/services/userCourse";
 import { getAllSessionIds } from "@/services/session";
 import { getStudentsWithScores } from "@/lib/utils";
+import { GlobalLoadingSpinner } from "./global-loading-spinner";
 
 interface Props {
     courseId: number;
-    setIsLoading: (isLoading: boolean) => void;
 }
-export default function StudentTable({ courseId, setIsLoading }: Props) {
+export default function StudentTable({ courseId }: Props) {
     const [students, setStudents] = useState<
         {
             name: string;
@@ -27,10 +27,12 @@ export default function StudentTable({ courseId, setIsLoading }: Props) {
         }[]
     >([]);
     const [studentQuery, setStudentQuery] = useState<string | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(false);
     const { toast } = useToast();
 
     useEffect(() => {
         const fetchStudentData = async () => {
+            setIsLoading(true);
             await getStudents(courseId, studentQuery)
                 .then(async (studentData) => {
                     if ("error" in studentData)
@@ -57,10 +59,17 @@ export default function StudentTable({ courseId, setIsLoading }: Props) {
                         variant: "destructive",
                         description: "Unknown error occurred.",
                     });
+                })
+                .finally(() => {
+                    setIsLoading(false);
                 });
         };
         void fetchStudentData();
     }, [studentQuery]);
+
+    if (isLoading) {
+        return <GlobalLoadingSpinner />;
+    }
 
     return (
         <div className="bg-white h-fit max-h-96 rounded-[20px] border border-[#A5A5A5] mt-4 overflow-y-auto">
