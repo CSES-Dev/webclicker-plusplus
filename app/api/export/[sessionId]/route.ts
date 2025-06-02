@@ -1,17 +1,19 @@
-import { parse } from "json2csv";
 import { NextRequest, NextResponse } from "next/server";
+import { parse } from "json2csv";
 import prisma from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { sessionId: string } }
+  context: { params: Promise<{ sessionId: string }> }
 ) {
-    const sessionId = parseInt(params.sessionId);
+    const { sessionId } = await context.params;
+    const sessionIdNum = parseInt(sessionId);
+
     const url = new URL(req.url);
     const mode = url.searchParams.get("mode") ?? "basic";
 
     const responses = await prisma.response.findMany({
-        where: { question: { sessionId } },
+        where: { question: { sessionId: sessionIdNum } },
         include: {
             user: true,
             question: true,
@@ -20,7 +22,7 @@ export async function GET(
     });
 
     const session = await prisma.courseSession.findUnique({
-        where: { id: sessionId },
+        where: { id: sessionIdNum },
     });
 
     if (!session) {
@@ -57,24 +59,7 @@ export async function GET(
         date_of_session: sessionDate,
     }));
 
-    const csv =
-        mode === "advanced"
-            ? parse(
-                  advancedRows as {
-                      email: string;
-                      question: string;
-                      answer: string;
-                      is_correct: boolean;
-                      date_of_session: string;
-                  }[],
-              )
-            : parse(
-                  basicRows as {
-                      email: string;
-                      num_questions_answered: number;
-                      date_of_session: string;
-                  }[],
-              );
+    const csv = mode === "advanced" ? parse(advancedRows) : parse(basicRows);
 
     return new NextResponse(csv, {
         headers: {
