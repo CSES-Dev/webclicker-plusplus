@@ -196,11 +196,6 @@ export default async function QuestionResponsesPage({ params }: Props) {
                                     <div key={option.id} className="space-y-2">
                                         <div className="flex justify-between items-center">
                                             <span className="font-medium">{option.text}</span>
-                                            {option.isCorrect && (
-                                                <span className="text-xs font-medium text-green-600">
-                                                    Correct Answer
-                                                </span>
-                                            )}
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <div className="flex-1 relative">
