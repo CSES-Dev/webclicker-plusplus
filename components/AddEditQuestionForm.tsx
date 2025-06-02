@@ -130,7 +130,6 @@ export const AddEditQuestionForm: React.FC<Props> = ({
             });
         }
     }, [prevData]);
-    
 
     useEffect(() => {
         if (!defaultDate) return;

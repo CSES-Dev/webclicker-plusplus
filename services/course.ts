@@ -46,6 +46,7 @@ export async function getCourseWithId(courseId: number) {
         endTime: schedule?.endTime,
     };
 }
+
 type AddCourseResult = Course | { error: string };
 
 export async function addCourse(
@@ -102,4 +103,53 @@ export async function addCourse(
     }
 
     return newCourse;
+}
+
+type UpdateCourseParams = {
+    title: string;
+    color: string;
+    days: string[];
+    startTime: string;
+    endTime: string;
+};
+
+export async function updateCourse(
+    courseId: number,
+    data: UpdateCourseParams,
+): Promise<Course | { error: string }> {
+    try {
+        // First update the course details
+        const updatedCourse = await prisma.course.update({
+            where: { id: courseId },
+            data: {
+                title: data.title,
+                color: data.color,
+            },
+        });
+
+        // Then update the schedule
+        const existingSchedule = await prisma.schedule.findFirst({
+            where: { courseId },
+        });
+
+        if (!existingSchedule) {
+            throw new Error("Schedule not found for this course");
+        }
+
+        await prisma.schedule.update({
+            where: { id: existingSchedule.id },
+            data: {
+                dayOfWeek: data.days,
+                startTime: data.startTime,
+                endTime: data.endTime,
+            },
+        });
+
+        return updatedCourse;
+    } catch (error) {
+        console.error("Error updating course:", error);
+        return {
+            error: error instanceof Error ? error.message : "Failed to update course",
+        };
+    }
 }

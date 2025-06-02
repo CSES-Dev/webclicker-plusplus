@@ -253,7 +253,11 @@ function SlidingCalendar({ courseId, refreshTrigger }: Props) {
                                                             courseId={courseId}
                                                             location="page"
                                                             questionId={question.id}
-                                                            onUpdate={() => fetchQuestions(selectedDate.toDate())}
+                                                            onUpdate={() =>
+                                                                fetchQuestions(
+                                                                    selectedDate.toDate(),
+                                                                )
+                                                            }
                                                             prevData={{
                                                                 question: question.text,
                                                                 selectedQuestionType:

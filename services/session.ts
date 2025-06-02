@@ -1,5 +1,6 @@
 "use server";
 import type { CourseSession, QuestionType } from "@prisma/client";
+import { endOfDay, startOfDay } from "date-fns";
 import prisma from "@/lib/prisma";
 
 export async function getCourseSessionByDate(
@@ -10,10 +11,16 @@ export async function getCourseSessionByDate(
     // 1. Belongs to the specified course
     // 2. Started on the day
     // 3. Has no end time (still active)
+    const dayStart = startOfDay(new Date(date));
+    const dayEnd = endOfDay(new Date(date));
+
     return prisma.courseSession.findFirst({
         where: {
             courseId,
-            startTime: new Date(date),
+            startTime: {
+                gte: dayStart,
+                lte: dayEnd,
+            },
             endTime: null,
         },
     });
@@ -85,5 +92,53 @@ export async function getQuestionById(questionId: number) {
     } catch (error) {
         console.error("Error fetching question by ID:", error);
         throw error;
+    }
+}
+
+export async function getAllSessionIds(courseId: number) {
+    try {
+        const sessions = await prisma.courseSession.findMany({
+            where: {
+                courseId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        return sessions.map((session) => session.id);
+    } catch (error) {
+        console.error(error);
+        return { error: "Error fetching sessions" };
+    }
+}
+
+export async function getSessionIdsByDate(courseId: number, date: Date) {
+    try {
+        const dayStart = new Date(date);
+        dayStart.setHours(0, 0, 0, 0);
+
+        const dayEnd = new Date(date);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const sessions = await prisma.courseSession
+            .findMany({
+                where: {
+                    courseId,
+                    startTime: {
+                        gte: dayStart,
+                        lte: dayEnd,
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            })
+            .then((res) => res.map((session) => session.id));
+
+        return sessions;
+    } catch (error) {
+        console.error(error);
+        return { error: "Error fetching session information" };
     }
 }

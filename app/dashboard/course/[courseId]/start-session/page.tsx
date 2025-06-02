@@ -3,7 +3,7 @@ import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
 import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { LetteredYAxisTick } from "@/components/YAxisTick";
@@ -29,8 +29,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
-import { formatDateToISO } from "@/lib/utils";
-import { ChartData } from "@/models/Chart";
+import { formatDateToISO, shuffleArray } from "@/lib/utils";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
@@ -114,12 +113,14 @@ export default function StartSession() {
     const activeIndex = questions ? questions.findIndex((q) => q.id === activeQuestionId) : -1;
     const isLastQuestion = activeIndex === totalQuestions - 1;
 
-    const chartData: ChartData[] = questionData
-        ? questionData.options.map((option: { id: number; text: string }) => ({
+    const shuffledOptions = useMemo(() => {
+        return questionData ? shuffleArray(questionData.options) : [];
+    }, [activeQuestionId, questionData?.options]);
+
+    const chartData = questionData
+        ? shuffledOptions.map((option) => ({
               option: option.text,
-              Votes: questionData.responses.filter(
-                  (resp: { optionId: number }) => resp.optionId === option.id,
-              ).length,
+              Votes: questionData.responses.filter((resp) => resp.optionId === option.id).length,
           }))
         : [];
 
