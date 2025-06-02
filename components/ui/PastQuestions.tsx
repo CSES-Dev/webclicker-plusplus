@@ -86,7 +86,7 @@ function PastQuestions({ courseId }: Props) {
     return (
         <div className="flex flex-col items-center space-y-4 w-full">
             <section className="w-full max-w-screen-xl flex justify-between items-center">
-                <h1 className="font-medium text-2xl sm:text-4xl text-[#414141]">Past Questions</h1>
+                <h1 className="font-medium text-2xl sm:text-4xl text-black">Past Questions</h1>
             </section>
 
             <div className="w-full max-w-screen-xl bg-white rounded-[20px] border border-[#A5A5A5] overflow-hidden">

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { CircularProgress } from "@/components/ui/circular-progress";
 
 interface Props {
     params: {
@@ -10,6 +11,29 @@ interface Props {
         questionId: string;
     };
 }
+
+const questionTypeStyles = {
+    MCQ: {
+        bgColor: "#FFFED3",
+        textColor: "#58560B",
+        borderColor: "#58570B",
+        label: "Multiple Choice",
+    },
+    MSQ: {
+        bgColor: "#EBCFFF",
+        textColor: "#602E84",
+        borderColor: "#602E84",
+        label: "Select-All",
+    },
+};
+
+const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+    });
+};
 
 export default async function QuestionResponsesPage({ params }: Props) {
     const questionId = parseInt(params.questionId);
@@ -74,26 +98,36 @@ export default async function QuestionResponsesPage({ params }: Props) {
             </div>
 
             {/* Header section */}
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <span className="text-sm font-medium text-gray-500">
-                        {questionTypeMap[question.type]} •{" "}
-                        {new Date(question.session.startTime).toLocaleDateString()}
+            <section className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-8">
+                    <span
+                        className="text-sm font-medium px-3 py-1.5 rounded border"
+                        style={{
+                            backgroundColor: questionTypeStyles[question.type].bgColor,
+                            color: questionTypeStyles[question.type].textColor,
+                            borderColor: questionTypeStyles[question.type].borderColor,
+                            borderWidth: "1px",
+                        }}
+                    >
+                        {questionTypeStyles[question.type].label}
+                    </span>
+                    <span className="text-2xl font-medium text-[#414141]">
+                        {formatDate(question.session.startTime)}
                     </span>
                 </div>
-                <div className="text-sm font-medium text-gray-700">
+                <div className="text-2xl font-normal text-[#414141]">
                     Total Students Answered: {answeredStudents}/{totalStudents}
                 </div>
-            </div>
+            </section>
 
             {/* Question box */}
-            <div className="bg-white rounded-lg shadow p-6 mb-8 border border-gray-200">
-                <h1 className="text-2xl font-semibold mb-6">{question.text}</h1>
-
+            <section className="bg-white rounded-xl shadow p-6 mb-8 border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Answer choices */}
-                    <div>
-                        <h3 className="text-lg font-medium mb-4">Answer Choices</h3>
+                    {/* Left side container with question and answer choices */}
+                    <div className="order-1 md:order-none">
+                        <h1 className="text-4xl font-normal mb-6 text-[#434343]">
+                            {question.text}
+                        </h1>
                         <div className="space-y-4">
                             {question.options.map((option) => {
                                 const count = question.responses.filter(
@@ -103,24 +137,39 @@ export default async function QuestionResponsesPage({ params }: Props) {
                                     answeredStudents > 0
                                         ? Math.round((count / answeredStudents) * 100)
                                         : 0;
+                                const hasResponses = count > 0;
 
                                 return (
-                                    <div key={option.id} className="space-y-1">
-                                        <div className="flex justify-between">
-                                            <span
-                                                className={`font-medium ${option.isCorrect ? "text-[#2D9B62]" : ""}`}
-                                            >
-                                                {option.text} {option.isCorrect && "(Correct)"}
-                                            </span>
-                                            <span>
+                                    <div key={option.id} className="space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium">{option.text}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className="flex-1 relative">
+                                                <div
+                                                    className={`w-full rounded-full h-2.5 ${
+                                                        !hasResponses
+                                                            ? "bg-[#BAC0B9]"
+                                                            : option.isCorrect
+                                                              ? "bg-[#E6F6EC]"
+                                                              : "bg-[#FEE9E9]"
+                                                    }`}
+                                                >
+                                                    {hasResponses && (
+                                                        <div
+                                                            className={`h-2.5 rounded-full ${
+                                                                option.isCorrect
+                                                                    ? "bg-[#519546]"
+                                                                    : "bg-[#D96363]"
+                                                            }`}
+                                                            style={{ width: `${percentage}%` }}
+                                                        ></div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <span className="text-sm text-gray-600 w-14 text-right">
                                                 {percentage}% ({count})
                                             </span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                                            <div
-                                                className={`h-2.5 rounded-full ${option.isCorrect ? "bg-green-500" : "bg-blue-500"}`}
-                                                style={{ width: `${percentage}%` }}
-                                            ></div>
                                         </div>
                                     </div>
                                 );
@@ -128,60 +177,35 @@ export default async function QuestionResponsesPage({ params }: Props) {
                         </div>
                     </div>
 
-                    {/* Class average circle */}
-                    <div className="flex flex-col items-center">
-                        <h3 className="text-lg font-medium mb-4">Class Average</h3>
-                        <div className="relative w-52 h-52">
-                            <svg className="w-full h-full" viewBox="0 0 100 100">
-                                {/* Background circle */}
-                                <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="45"
-                                    fill="none"
-                                    stroke="#E5E7EB"
-                                    strokeWidth="8"
-                                />
-                                {/* Progress circle - only show if percentage > 0 */}
-                                {correctPercentage > 0 && (
-                                    <circle
-                                        cx="50"
-                                        cy="50"
-                                        r="45"
-                                        fill="none"
-                                        stroke="#2D9B62"
-                                        strokeWidth="8"
-                                        strokeLinecap="round"
-                                        strokeDasharray={`${correctPercentage * 2.83} 283`}
-                                        strokeDashoffset="0"
-                                        transform="rotate(-90 50 50)"
-                                    />
-                                )}
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-3xl font-bold text-gray-800">
-                                    {Math.round(correctPercentage)}%
-                                </span>
-                            </div>
-                        </div>
+                    {/* Right side container */}
+                    <div className="flex justify-center order-2 md:order-none w-full">
+                        <CircularProgress
+                            value={correctPercentage}
+                            size={180}
+                            thickness={16}
+                        />
                     </div>
                 </div>
-            </div>
+            </section>
 
             {/* Student responses table */}
-            <div className="bg-white rounded-lg border border-[#D9D9D9] overflow-hidden">
+            <section className="bg-white rounded-xl border border-[#D9D9D9] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="min-w-full border-collapse">
-                        {" "}
+                        <colgroup>
+                            <col className="w-1/4" />
+                            <col className="w-2/4" />
+                            <col className="w-1/4" />
+                        </colgroup>
                         <thead className="bg-[#F2F5FF]">
                             <tr>
-                                <th className="px-6 py-3 text-center text-sm font-medium text-[#434343] uppercase border-b border-[#D9D9D9] border-r">
+                                <th className="px-4 py-3 text-center text-xl font-medium text-[#434343] border-b border-[#D9D9D9] border-r">
                                     Student
                                 </th>
-                                <th className="px-6 py-3 text-center text-sm font-medium text-[#434343] uppercase border-b border-[#D9D9D9] border-r">
+                                <th className="px-4 py-3 text-center text-xl font-medium text-[#434343] border-b border-[#D9D9D9] border-r">
                                     Answer Provided
                                 </th>
-                                <th className="px-6 py-3 text-center text-sm font-medium text-[#434343] uppercase border-b border-[#D9D9D9]">
+                                <th className="px-4 py-3 text-center text-xl font-medium text-[#434343] border-b border-[#D9D9D9]">
                                     Status
                                 </th>
                             </tr>
@@ -194,25 +218,25 @@ export default async function QuestionResponsesPage({ params }: Props) {
 
                                 return (
                                     <tr key={index} className="border-b border-[#D9D9D9]">
-                                        <td className="px-6 py-4 text-center border-r border-[#D9D9D9]">
-                                            <div>
-                                                <div className="text-sm font-medium text-[#1F1F1F]">
+                                        <td className="px-4 py-4 border-r border-[#D9D9D9]">
+                                            <div className="flex flex-col">
+                                                <div className="text-lg font-normal text-black truncate">
                                                     {fullName}
                                                 </div>
-                                                <div className="text-sm text-[#666666]">
+                                                <div className="text-base text-[#434343] truncate">
                                                     {response.user.email}
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-center border-r border-[#D9D9D9]">
-                                            <div className="text-sm text-[#1F1F1F]">
+                                        <td className="px-4 py-4 text-left border-r border-[#D9D9D9]">
+                                            <div className="text-lg text-black font-normal">
                                                 {response.option.text}
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-center">
+                                        <td className="px-4 py-4 text-center">
                                             <span
-                                                className={`px-3 py-1 inline-flex text-sm leading-5 font-medium rounded-md 
-                  ${isCorrect ? "bg-[#E6F6EC] text-[#067647]" : "bg-[#FEE9E9] text-[#D12929]"}`}
+                                                className={`px-3 py-1 inline-flex text-lg leading-5 font-medium rounded-md 
+                        ${isCorrect ? "bg-[#E6F6EC] text-[#067647]" : "bg-[#FEE9E9] text-[#D12929]"}`}
                                             >
                                                 {isCorrect ? "Correct" : "Incorrect"}
                                             </span>
@@ -223,12 +247,7 @@ export default async function QuestionResponsesPage({ params }: Props) {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </div>
     );
 }
-
-const questionTypeMap = {
-    MCQ: "Multiple Choice",
-    MSQ: "Multiple Select",
-};
