@@ -9,11 +9,12 @@ import useDebounce from "@/hooks/use-debounce";
 
 interface Props {
     courseId: number;
+    setIsLoading: (isLoading: boolean) => void;
 }
 
-export default function AttendanceLineChart({ courseId }: Props) {
+export default function AttendanceLineChart({ courseId, setIsLoading }: Props) {
     const [weekStart, setWeekStart] = useState<Date>(dayjs().startOf("week").toDate());
-    let debouncedWeekStart = useDebounce<Date>(weekStart, 200);
+    let debouncedWeekStart = useDebounce<Date>(weekStart, 2000);
     const [chartData, setChartData] = useState<{ date: string; attendance: number }[]>();
     const { toast } = useToast();
 
