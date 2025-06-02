@@ -149,11 +149,14 @@ function PastQuestions({ courseId }: Props) {
                         <div className="p-6 text-center text-gray-500">No past questions found</div>
                     ) : (
                         filteredQuestions.map((question) => (
-                            <div key={question.id} className="grid grid-cols-12 items-center p-6">
+                            <div
+                                key={question.id}
+                                className="grid grid-cols-1 lg:grid-cols-12 gap-y-4 lg:gap-y-0 items-start lg:items-center p-6"
+                            >
                                 {/* Question column */}
-                                <div className="col-span-6">
+                                <div className="lg:col-span-6">
                                     <span
-                                        className="text-xl font-normal px-2 py-1 rounded border"
+                                        className="text-base lg:text-xl font-normal px-2 py-1 rounded border"
                                         style={{
                                             backgroundColor:
                                                 questionTypeStyles[question.type].bgColor,
@@ -164,30 +167,26 @@ function PastQuestions({ courseId }: Props) {
                                     >
                                         {questionTypeStyles[question.type].label}
                                     </span>
-                                    <p className="mt-2 text-2xl font-normal text-[#1F1F1F]">
+                                    <p className="mt-2 text-lg lg:text-2xl font-normal text-[#1F1F1F]">
                                         {question.text}
                                     </p>
                                 </div>
 
                                 {/* Date column */}
-                                <div className="col-span-2 flex justify-center">
-                                    <span className="text-xl font-normal text-[#1F1F1F]">
-                                        {formatDate(question.session.startTime)}
-                                    </span>
+                                <div className="lg:col-span-2 flex lg:justify-center text-base lg:text-xl text-[#1F1F1F]">
+                                    {formatDate(question.session.startTime)}
                                 </div>
 
                                 {/* Score column */}
-                                <div className="col-span-2 flex justify-center">
-                                    <span className="text-xl font-semibold text-[#2D9B62]">
-                                        {calculateScore(question)}%
-                                    </span>
+                                <div className="lg:col-span-2 flex lg:justify-center text-base lg:text-xl font-semibold text-[#2D9B62]">
+                                    {calculateScore(question)}%
                                 </div>
 
                                 {/* Student Answers column */}
-                                <div className="col-span-2 flex justify-end">
+                                <div className="lg:col-span-2 flex lg:justify-end">
                                     <Link
                                         href={`/dashboard/course/${courseId}/questionnaire/${question.id}/responses`}
-                                        className="px-4 py-2 text-black rounded-md border border-[#A5A5A5]"
+                                        className="px-4 py-2 text-black rounded-lg border border-[#A5A5A5] text-center block"
                                     >
                                         Student Answers &rarr;
                                     </Link>

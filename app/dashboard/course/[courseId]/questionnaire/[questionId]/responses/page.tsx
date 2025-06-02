@@ -44,8 +44,8 @@ export default async function QuestionResponsesPage({ params }: Props) {
         include: {
             options: {
                 orderBy: {
-                    id: 'asc'
-                }
+                    id: "asc",
+                },
             },
             responses: {
                 include: {
@@ -59,8 +59,8 @@ export default async function QuestionResponsesPage({ params }: Props) {
                     },
                 },
                 orderBy: {
-                    answeredAt: 'desc'
-                }
+                    answeredAt: "desc",
+                },
             },
             session: {
                 select: {
@@ -88,19 +88,20 @@ export default async function QuestionResponsesPage({ params }: Props) {
     }
 
     const correctOptionIds = question.options
-        .filter(option => option.isCorrect)
-        .map(option => option.id);
+        .filter((option) => option.isCorrect)
+        .map((option) => option.id);
 
     const latestResponseSets = question.responses.reduce((acc, response) => {
         if (!acc.has(response.userId)) {
             const userResponses = question.responses
-                .filter(r => r.userId === response.userId && r.questionId === questionId)
+                .filter((r) => r.userId === response.userId && r.questionId === questionId)
                 .sort((a, b) => b.answeredAt.getTime() - a.answeredAt.getTime());
-            
+
             if (question.type === "MSQ") {
                 const latestAnsweredAt = userResponses[0]?.answeredAt;
-                const latestSubmission = userResponses
-                    .filter(r => r.answeredAt.getTime() === latestAnsweredAt?.getTime());
+                const latestSubmission = userResponses.filter(
+                    (r) => r.answeredAt.getTime() === latestAnsweredAt?.getTime(),
+                );
                 acc.set(response.userId, latestSubmission);
             } else {
                 acc.set(response.userId, [userResponses[0]]);
@@ -113,10 +114,10 @@ export default async function QuestionResponsesPage({ params }: Props) {
 
     const studentResults = Array.from(latestResponseSets.entries()).map(([userId, responses]) => {
         if (question.type === "MSQ") {
-            const selectedOptionIds = responses.map(r => r.optionId);
-            const isCorrect = 
+            const selectedOptionIds = responses.map((r) => r.optionId);
+            const isCorrect =
                 selectedOptionIds.length === correctOptionIds.length &&
-                correctOptionIds.every(id => selectedOptionIds.includes(id));
+                correctOptionIds.every((id) => selectedOptionIds.includes(id));
             return { userId, isCorrect };
         } else {
             const isCorrect = responses[0]?.option.isCorrect || false;
@@ -126,15 +127,16 @@ export default async function QuestionResponsesPage({ params }: Props) {
 
     const totalStudents = question.session.course.users.length;
     const answeredStudents = latestResponseSets.size;
-    const correctCount = studentResults.filter(r => r.isCorrect).length;
-    const correctPercentage = answeredStudents > 0 ? Math.round((correctCount / answeredStudents) * 100) : 0;
+    const correctCount = studentResults.filter((r) => r.isCorrect).length;
+    const correctPercentage =
+        answeredStudents > 0 ? Math.round((correctCount / answeredStudents) * 100) : 0;
 
-    const optionCounts = question.options.map(option => {
-        const count = allLatestResponses.filter(r => r.optionId === option.id).length;
+    const optionCounts = question.options.map((option) => {
+        const count = allLatestResponses.filter((r) => r.optionId === option.id).length;
         return {
             optionId: option.id,
             count,
-            percentage: answeredStudents > 0 ? Math.round((count / answeredStudents) * 100) : 0
+            percentage: answeredStudents > 0 ? Math.round((count / answeredStudents) * 100) : 0,
         };
     });
 
@@ -183,7 +185,9 @@ export default async function QuestionResponsesPage({ params }: Props) {
                         </h1>
                         <div className="space-y-4">
                             {question.options.map((option) => {
-                                const optionCount = optionCounts.find(oc => oc.optionId === option.id);
+                                const optionCount = optionCounts.find(
+                                    (oc) => oc.optionId === option.id,
+                                );
                                 const count = optionCount?.count || 0;
                                 const percentage = optionCount?.percentage || 0;
                                 const hasResponses = count > 0;
@@ -233,11 +237,14 @@ export default async function QuestionResponsesPage({ params }: Props) {
 
                     {/* Circular Progress */}
                     <div className="flex justify-center order-2 md:order-none w-full">
-                        <CircularProgress
-                            value={correctPercentage}
-                            size={180}
-                            thickness={16}
-                        />
+                        {/* Mobile View */}
+                        <div className="lg:hidden">
+                            <CircularProgress value={correctPercentage} size={180} thickness={18} />
+                        </div>
+                        {/* Desktop View */}
+                        <div className="hidden lg:block">
+                            <CircularProgress value={correctPercentage} size={240} thickness={24} />
+                        </div>
                     </div>
                 </div>
             </section>
@@ -265,44 +272,52 @@ export default async function QuestionResponsesPage({ params }: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {Array.from(latestResponseSets.entries()).map(([userId, responses], index) => {
-                                const firstResponse = responses[0];
-                                const fullName =
-                                    `${firstResponse.user.firstName} ${firstResponse.user.lastName || ""}`.trim();
-                                
-                                const studentResult = studentResults.find(r => r.userId === userId);
-                                const isCorrect = studentResult?.isCorrect || false;
+                            {Array.from(latestResponseSets.entries()).map(
+                                ([userId, responses], index) => {
+                                    const firstResponse = responses[0];
+                                    const fullName =
+                                        `${firstResponse.user.firstName} ${firstResponse.user.lastName || ""}`.trim();
 
-                                const selectedOptions = responses.map(r => r.option.text).join(", ");
+                                    const studentResult = studentResults.find(
+                                        (r) => r.userId === userId,
+                                    );
+                                    const isCorrect = studentResult?.isCorrect || false;
 
-                                return (
-                                    <tr key={index} className="border-b border-[#D9D9D9]">
-                                        <td className="px-4 py-4 border-r border-[#D9D9D9]">
-                                            <div className="flex flex-col">
-                                                <div className="text-lg font-normal text-black truncate">
-                                                    {fullName}
+                                    const selectedOptions = responses
+                                        .map((r) => r.option.text)
+                                        .join(", ");
+
+                                    return (
+                                        <tr key={index} className="border-b border-[#D9D9D9]">
+                                            <td className="px-4 py-4 border-r border-[#D9D9D9]">
+                                                <div className="flex flex-col">
+                                                    <div className="text-lg font-normal text-black truncate">
+                                                        {fullName}
+                                                    </div>
+                                                    <div className="text-base text-[#434343] truncate">
+                                                        {firstResponse.user.email}
+                                                    </div>
                                                 </div>
-                                                <div className="text-base text-[#434343] truncate">
-                                                    {firstResponse.user.email}
+                                            </td>
+                                            <td className="px-4 py-4 text-left border-r border-[#D9D9D9]">
+                                                <div className="text-lg text-black font-normal">
+                                                    {question.type === "MSQ"
+                                                        ? selectedOptions
+                                                        : firstResponse.option.text}
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 text-left border-r border-[#D9D9D9]">
-                                            <div className="text-lg text-black font-normal">
-                                                {question.type === "MSQ" ? selectedOptions : firstResponse.option.text}
-                                            </div>
-                                        </td>
-                                        <td className="px-4 py-4 text-center">
-                                            <span
-                                                className={`px-3 py-1 inline-flex text-lg leading-5 font-medium rounded-md 
+                                            </td>
+                                            <td className="px-4 py-4 text-center">
+                                                <span
+                                                    className={`px-3 py-1 inline-flex text-lg leading-5 font-medium rounded-md 
                                                 ${isCorrect ? "bg-[#E6F6EC] text-[#067647]" : "bg-[#FEE9E9] text-[#D12929]"}`}
-                                            >
-                                                {isCorrect ? "Correct" : "Incorrect"}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                                                >
+                                                    {isCorrect ? "Correct" : "Incorrect"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                },
+                            )}
                         </tbody>
                     </table>
                 </div>
