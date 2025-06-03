@@ -9,6 +9,8 @@ import DonutChart from "@/components/ui/DonutChart";
 import { Button } from "@/components/ui/button";
 import { getQuestionsAndResponsesForDate, getStudentAnalytics } from "@/services/analytics";
 import { useToast } from "@/hooks/use-toast";
+import { QuestionResponseTable } from "@/components/QuestionResponseTable";
+
 
 
 type Props = {
@@ -18,7 +20,6 @@ type Props = {
 
 export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     const { toast } = useToast();
-    const [isOpen, setIsOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [analyticsData, setAnalyticsData] = useState<{
         fullName: string;
@@ -67,7 +68,7 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     }, [selectedDate]);
 
     return (
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <Sheet>
             <SheetTrigger asChild>
                 <Button variant="outline">Open Student Analytics</Button>
             </SheetTrigger>
@@ -203,44 +204,7 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2 max-h-72 overflow-y-auto">
-                                    {questionsForDate.map((question, idx) => (
-                                        <div key={idx} className="grid grid-cols-3 gap-2">
-                                            <div className="flex flex-col border rounded-md py-10 relative">
-                                                <div className="text-lg text-center px-2">
-                                                    {question.text}
-                                                </div>
-                                                <div className="absolute bottom-2 right-2">
-                                                    <span className="text-xs bg-[#EDEDED] rounded text-[#5C0505] px-2 py-1">
-                                                        {question.type === "MCQ"
-                                                            ? "Multiple Choice"
-                                                            : "Multi-Select"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="border rounded-md text-lg flex items-center justify-center text-center">
-                                                {question.inputtedAnswers
-                                                    .map(
-                                                        (optId) =>
-                                                            question.options.find(
-                                                                (o) => o.id === optId,
-                                                            )?.text,
-                                                    )
-                                                    .join(", ") || "—"}
-                                            </div>
-                                            <div className="border rounded-md text-lg flex items-center justify-center text-center">
-                                                {question.correctAnswers
-                                                    .map(
-                                                        (optId) =>
-                                                            question.options.find(
-                                                                (o) => o.id === optId,
-                                                            )?.text,
-                                                    )
-                                                    .join(", ")}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                                <QuestionResponseTable questions={questionsForDate} />
                             </div>
                         )}
                     </div>
