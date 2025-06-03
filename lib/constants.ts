@@ -19,6 +19,11 @@ export const questionTypeMap = {
     MCQ: "Multiple Choice",
 };
 
+export const questionTypeColors = {
+    MSQ: { bg: "#FFFED3", fg: "#58560B" },
+    MCQ: { bg: "#EBCFFF", fg: "#602E84" },
+};
+
 // donut chart config
 export const dataKey = "count";
 export const nameKey = "result";
