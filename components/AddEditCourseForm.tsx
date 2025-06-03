@@ -62,7 +62,6 @@ export const AddEditCourseForm = ({
         },
     });
 
-
     const handleSubmit = async (values: z.infer<typeof schema>) => {
         const { title, color, days, endTime, startTime } = values;
         setLoading(true);
