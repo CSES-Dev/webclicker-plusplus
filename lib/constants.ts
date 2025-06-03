@@ -49,6 +49,16 @@ export const attendanceChartConfig = {
     },
 } satisfies ChartConfig;
 
+export const studentAnalyticsScoreChartConfig = {
+    Correct: { label: "Correct", color: "#BFF2A7" },
+    Incorrect: { label: "Incorrect", color: "#FFFFFF" },
+} satisfies ChartConfig;
+
+export const studentAnalyticsAttendanceChartConfig = {
+    Correct: { label: "Attended", color: "#A7F2C2" },
+    Incorrect: { label: "Missed", color: "#FFFFFF" },
+} satisfies ChartConfig;
+
 export const analyticsPages = ["Performance", "Attendance Rate"];
 export const coursePages = ["Questionnaire", "Analytics"];
 
