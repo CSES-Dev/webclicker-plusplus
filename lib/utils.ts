@@ -127,6 +127,7 @@ export function getStudentsWithScores(students: Student[], sessionIds: number[])
                 : 0;
 
         return {
+            id: student.id,
             name: String(student.firstName) + " " + String(student.lastName),
             email: student.email,
             attendance,

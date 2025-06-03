@@ -13,6 +13,7 @@ import { getStudents } from "@/services/userCourse";
 import { getAllSessionIds } from "@/services/session";
 import { getStudentsWithScores } from "@/lib/utils";
 import LoaderComponent from "./loader";
+import { StudentAnalyticsDrawer } from "../StudentAnalyticsDrawer";
 
 interface Props {
     courseId: number;
@@ -20,6 +21,7 @@ interface Props {
 export default function StudentTable({ courseId }: Props) {
     const [students, setStudents] = useState<
         {
+            id: string;
             name: string;
             email: string | null;
             attendance: number;
@@ -139,9 +141,10 @@ export default function StudentTable({ courseId }: Props) {
                                 </TableCell>
                                 <TableCell>
                                     <div className="w-1/2 pr-6">
-                                        <button className="w-32 h-8 bg-white border border-[#A5A5A5] hover:bg-slate-100 rounded-md">
-                                            View Activity →
-                                        </button>
+                                        <StudentAnalyticsDrawer
+                                            courseId={courseId}
+                                            studentId={student.id}
+                                        />
                                     </div>
                                 </TableCell>
                             </TableRow>

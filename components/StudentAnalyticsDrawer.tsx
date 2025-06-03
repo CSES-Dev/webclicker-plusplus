@@ -10,11 +10,13 @@ import { Button } from "@/components/ui/button";
 import { getQuestionsAndResponsesForDate, getStudentAnalytics } from "@/services/analytics";
 import { useToast } from "@/hooks/use-toast";
 import { QuestionResponseTable } from "@/components/QuestionResponseTable";
-
-
+import {
+    studentAnalyticsAttendanceChartConfig,
+    studentAnalyticsScoreChartConfig,
+} from "@/lib/constants";
 
 type Props = {
-    studentId: string;
+    studentId: string | null;
     courseId: number;
 };
 
@@ -32,9 +34,10 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     } | null>(null);
 
     useEffect(() => {
+        if (!studentId) return;
         getStudentAnalytics(courseId, studentId)
             .then(setAnalyticsData)
-            .catch ((err: unknown) =>  {
+            .catch((err: unknown) => {
                 if (err instanceof Error) {
                     console.error("Failed to load analytics", err);
                 } else {
@@ -46,7 +49,7 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
                     description: "Failed to load analytics",
                 });
             });
-    }, []);
+    }, [courseId, studentId]);
 
     type QuestionForDate = {
         id: number;
@@ -61,6 +64,7 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
 
     useEffect(() => {
         const fetchQuestions = async () => {
+            if (!studentId) return;
             const data = await getQuestionsAndResponsesForDate(courseId, studentId, selectedDate);
             setQuestionsForDate(data);
         };
@@ -70,7 +74,9 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     return (
         <Sheet>
             <SheetTrigger asChild>
-                <Button variant="outline">Open Student Analytics</Button>
+                <button className="w-32 h-8 bg-white border border-[#A5A5A5] hover:bg-slate-100 rounded-md">
+                    View Activity →
+                </button>
             </SheetTrigger>
             <SheetContent className="w-[800px] max-w-full flex flex-col p-0">
                 <VisuallyHidden>
@@ -100,10 +106,7 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
                                             fill: "#FFFFFF",
                                         },
                                     ]}
-                                    chartConfig={{
-                                        Correct: { label: "Correct", color: "#BFF2A7" },
-                                        Incorrect: { label: "Incorrect", color: "#FFFFFF" },
-                                    }}
+                                    chartConfig={studentAnalyticsScoreChartConfig}
                                     dataKey="value"
                                     nameKey="name"
                                     description="Average Poll Score"
@@ -140,10 +143,7 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
                                             fill: "#FFFFFF",
                                         },
                                     ]}
-                                    chartConfig={{
-                                        Correct: { label: "Attended", color: "#A7F2C2" },
-                                        Incorrect: { label: "Missed", color: "#FFFFFF" },
-                                    }}
+                                    chartConfig={studentAnalyticsAttendanceChartConfig}
                                     dataKey="value"
                                     nameKey="name"
                                     description="Attendance"
