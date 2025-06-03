@@ -232,7 +232,7 @@ export default function LivePoll({
                                     }
                                 }
                             }
-                        } catch (_) {
+                        } catch {
                             const message = event.data;
                             messageText = `Received text: ${message}`;
 

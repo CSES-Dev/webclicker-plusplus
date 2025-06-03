@@ -128,7 +128,7 @@ export default function StartSession() {
                             (prev) =>
                                 ({
                                     ...prev,
-                                    [String(data.questionId)]: data.optionCounts!,
+                                    [String(data.questionId)]: data.optionCounts ?? {},
                                 }) as Record<string, Record<number, number>>,
                         );
                     }
@@ -199,7 +199,7 @@ export default function StartSession() {
 
     const chartData = shuffledOptions.map((option) => ({
         option: option.text,
-        Votes: (activeQuestionId && allResponseCounts[String(activeQuestionId)]?.[option.id]) || 0,
+        Votes: (activeQuestionId && allResponseCounts[String(activeQuestionId)]?.[option.id]) ?? 0,
     }));
 
     const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
@@ -227,7 +227,7 @@ export default function StartSession() {
                         console.log("Sent active_question_update via WebSocket (next)");
                     }
                 }
-            } catch (_error) {
+            } catch {
                 toast({ variant: "destructive", description: "Error updating question" });
             }
             setIsChangingQuestion(false);
@@ -257,7 +257,7 @@ export default function StartSession() {
                         console.log("Sent active_question_update via WebSocket (prev)");
                     }
                 }
-            } catch (_error) {
+            } catch {
                 toast({ variant: "destructive", description: "Error updating question" });
             }
             setIsChangingQuestion(false);
@@ -291,7 +291,7 @@ export default function StartSession() {
                             console.log("Sent active_question_update via WebSocket (select)");
                         }
                     }
-                } catch (_error) {
+                } catch {
                     toast({ variant: "destructive", description: "Error updating question" });
                 }
                 setIsChangingQuestion(false);
@@ -379,7 +379,7 @@ export default function StartSession() {
                         (prev) =>
                             ({
                                 ...prev,
-                                [String(activeQuestionId)]: data.optionCounts!,
+                                [String(activeQuestionId)]: data.optionCounts ?? {},
                             }) as Record<string, Record<number, number>>,
                     );
                 }
