@@ -62,20 +62,24 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
-    const [responseCounts, setResponseCounts] = useState<Record<number, number>>({});
     const [_totalResponses, setTotalResponses] = useState(0);
     const wsRef = useRef<WebSocket | null>(null);
     const sessionData = useSession();
     const [isPaused, setIsPaused] = useState(false);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
-
+    const [allResponseCounts, setAllResponseCounts] = useState<
+        Record<string, Record<number, number>>
+    >({});
 
     useEffect(() => {
         async function fetchSessionData() {
             const sessionResult = await getCourseSessionByDate(courseId, utcDate);
             if (sessionResult) {
-                setCourseSession({ id: sessionResult.id, activeQuestionId: sessionResult.activeQuestionId });
+                setCourseSession({
+                    id: sessionResult.id,
+                    activeQuestionId: sessionResult.activeQuestionId,
+                });
                 if (sessionResult.activeQuestionId !== null) {
                     setActiveQuestionId(sessionResult.activeQuestionId);
                 }
@@ -112,10 +116,21 @@ export default function StartSession() {
             try {
                 const data = JSON.parse(event.data as string) as WebSocketMessage;
                 console.log("Received WebSocket message:", data);
-                if (data.type === "response_update" && data.questionId === activeQuestionId) {
+
+                if (data.type === "response_update") {
                     console.log("Updating response counts:", data.optionCounts);
-                    if (data.optionCounts) {
-                        setResponseCounts(data.optionCounts);
+                    if (
+                        data.optionCounts &&
+                        data.questionId !== undefined &&
+                        data.questionId !== null
+                    ) {
+                        setAllResponseCounts(
+                            (prev) =>
+                                ({
+                                    ...prev,
+                                    [String(data.questionId)]: data.optionCounts!,
+                                }) as Record<string, Record<number, number>>,
+                        );
                     }
                     if (data.responseCount) {
                         setTotalResponses(data.responseCount);
@@ -178,14 +193,14 @@ export default function StartSession() {
 
     // Update chart data to use WebSocket updates
     const shuffledOptions = useMemo(
-    () => questionData ? shuffleArray(questionData.options) : [],
-    [activeQuestionId, questionData?.options]
+        () => (questionData ? shuffleArray(questionData.options) : []),
+        [activeQuestionId, questionData?.options],
     );
 
-    const chartData = shuffledOptions.map(option => ({
-    option: option.text,
-    Votes: responseCounts?.[option.id] || 0,
-}));
+    const chartData = shuffledOptions.map((option) => ({
+        option: option.text,
+        Votes: (activeQuestionId && allResponseCounts[String(activeQuestionId)]?.[option.id]) || 0,
+    }));
 
     const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
 
@@ -202,11 +217,13 @@ export default function StartSession() {
                 });
                 if (response.ok) {
                     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                        wsRef.current.send(JSON.stringify({
-                            type: "active_question_update",
-                            questionId: nextQuestionID,
-                            courseSessionId: courseSession.id,
-                        }));
+                        wsRef.current.send(
+                            JSON.stringify({
+                                type: "active_question_update",
+                                questionId: nextQuestionID,
+                                courseSessionId: courseSession.id,
+                            }),
+                        );
                         console.log("Sent active_question_update via WebSocket (next)");
                     }
                 }
@@ -230,11 +247,13 @@ export default function StartSession() {
                 });
                 if (response.ok) {
                     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                        wsRef.current.send(JSON.stringify({
-                            type: "active_question_update",
-                            questionId: prevQuestionID,
-                            courseSessionId: courseSession.id,
-                        }));
+                        wsRef.current.send(
+                            JSON.stringify({
+                                type: "active_question_update",
+                                questionId: prevQuestionID,
+                                courseSessionId: courseSession.id,
+                            }),
+                        );
                         console.log("Sent active_question_update via WebSocket (prev)");
                     }
                 }
@@ -252,18 +271,23 @@ export default function StartSession() {
                 const selectedQuestionId = parseInt(questionId);
                 setActiveQuestionId(selectedQuestionId);
                 try {
-                    const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
-                    });
+                    const response = await fetch(
+                        `/api/session/${courseSession.id}/activeQuestion`,
+                        {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
+                        },
+                    );
                     if (response.ok) {
                         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                            wsRef.current.send(JSON.stringify({
-                                type: "active_question_update",
-                                questionId: selectedQuestionId,
-                                courseSessionId: courseSession.id,
-                            }));
+                            wsRef.current.send(
+                                JSON.stringify({
+                                    type: "active_question_update",
+                                    questionId: selectedQuestionId,
+                                    courseSessionId: courseSession.id,
+                                }),
+                            );
                             console.log("Sent active_question_update via WebSocket (select)");
                         }
                     }
@@ -346,8 +370,18 @@ export default function StartSession() {
         fetch(`/api/getResponseCounts?questionId=${activeQuestionId}`)
             .then((res) => res.json())
             .then((data: ResponseCountsData) => {
-                if (data.optionCounts) {
-                    setResponseCounts(data.optionCounts);
+                if (
+                    data.optionCounts &&
+                    typeof activeQuestionId === "number" &&
+                    !isNaN(activeQuestionId)
+                ) {
+                    setAllResponseCounts(
+                        (prev) =>
+                            ({
+                                ...prev,
+                                [String(activeQuestionId)]: data.optionCounts!,
+                            }) as Record<string, Record<number, number>>,
+                    );
                 }
                 if (data.responseCount) {
                     setTotalResponses(data.responseCount);
@@ -396,7 +430,7 @@ export default function StartSession() {
                                 className="w-full text-base md:text-lg"
                             >
                                 <ResponsiveContainer width="100%" height={300}>
-                                {showResults ? (
+                                    {showResults ? (
                                         <BarChart
                                             data={chartData}
                                             layout="vertical"
@@ -442,14 +476,14 @@ export default function StartSession() {
                                                 />
                                             </Bar>
                                         </BarChart>
-                                ) : (
-                                    <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                                        <EyeOff className="w-10 h-10" />
-                                        <p className="text-sm font-medium">
-                                            Poll results are hidden
-                                        </p>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                                            <EyeOff className="w-10 h-10" />
+                                            <p className="text-sm font-medium">
+                                                Poll results are hidden
+                                            </p>
+                                        </div>
+                                    )}
                                 </ResponsiveContainer>
                             </ChartContainer>
                         ) : (
@@ -505,7 +539,8 @@ export default function StartSession() {
                 <Button
                     onClick={() => {
                         setShowResults((prev: boolean) => !prev);
-                    }}                >
+                    }}
+                >
                     {showResults ? "Hide" : "Show"}
                 </Button>
                 <div className="flex gap-2">

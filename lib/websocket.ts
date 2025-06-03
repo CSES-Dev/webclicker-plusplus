@@ -181,10 +181,10 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                     let rawString: string;
                     if (raw instanceof Buffer) {
                         rawString = raw.toString();
-                    } else if (typeof raw === 'string') {
+                    } else if (typeof raw === "string") {
                         rawString = raw;
                     } else {
-                        throw new Error('Unsupported message format');
+                        throw new Error("Unsupported message format");
                     }
                     const data = JSON.parse(rawString) as UnknownData;
 
@@ -199,7 +199,7 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                         const _deleteResult = await prisma.response.deleteMany({
                             where: { userId, questionId },
                         });
-                        console.log(_deleteResult)
+                        console.log(_deleteResult);
 
                         // 2) bulk insert new answers
                         const _createResult = await prisma.response.createMany({
@@ -210,7 +210,7 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                             })),
                             skipDuplicates: true,
                         });
-                        console.log(_createResult)
+                        console.log(_createResult);
 
                         // 3) re-aggregate and broadcast
                         const groups = await prisma.response.groupBy({
@@ -248,7 +248,7 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                         // Ensure all clients get the question change notification
                         const message: QuestionChangedMessage = {
                             type: "question_changed",
-                            questionId
+                            questionId,
                         };
                         broadcastToSession(sessionId, message);
                     } else if (data.type === "pause_poll") {

@@ -9,7 +9,6 @@ import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 
-
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
 };
@@ -228,7 +227,7 @@ export default function LivePoll({
                                 } else if (data.type === "echo") {
                                     console.log("Server echo:", data.message);
                                 } else if (data.type === "poll_paused") {
-                                    if ('paused' in data) {
+                                    if ("paused" in data) {
                                         setIsPaused(data.paused);
                                     }
                                 }
@@ -461,7 +460,9 @@ export default function LivePoll({
                 {/* Submission Status - crucial for visual feedback */}
                 {submitting && <p className="mt-4 text-blue-500 text-[14px]">Submitting...</p>}
 
-                {isPaused && <p className="mt-4 text-red-500 text-[14px]">Poll is currently paused.</p>}
+                {isPaused && (
+                    <p className="mt-4 text-red-500 text-[14px]">Poll is currently paused.</p>
+                )}
 
                 {/* Footer Message */}
                 <p className="mt-6 text-[14px] text-gray-500 text-center">
