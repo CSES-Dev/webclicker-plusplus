@@ -14,13 +14,11 @@ import { Select, SelectContent, SelectItem, SelectValue } from "@/components/ui/
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
-import { getCourseWithId } from "@/services/course";
 import { getCourseSessionByDate } from "@/services/session";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
-    const [courseInfo, setCourseInfo] = useState<{ name: string; code: string }>();
     const [hasActiveSession, setHasActiveSession] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -34,19 +32,10 @@ export default function Page() {
     };
 
     useEffect(() => {
-        if (isAccessLoading) {
-            return;
-        }
-        if (!isAccessLoading && !hasAccess) {
-            toast({ variant: "destructive", description: "Access denied!" });
-            router.push("/dashboard");
-            return;
-        }
-        const getCourseName = async () => {
+        const getCourseInfo = async () => {
             setHasActiveSession(false);
             setIsLoading(true);
             try {
-                const course = await getCourseWithId(courseId);
                 const courseSession = await getCourseSessionByDate(
                     courseId,
                     formatDateToISO(new Date()),
@@ -54,7 +43,6 @@ export default function Page() {
                 if (courseSession?.activeQuestionId) {
                     setHasActiveSession(true);
                 }
-                setCourseInfo({ name: course.title, code: course.code });
             } catch (error) {
                 toast({ variant: "destructive", description: "Could not get course information." });
                 console.error("Failed to fetch course:", error);
@@ -63,19 +51,16 @@ export default function Page() {
                 setIsLoading(false);
             }
         };
-        void getCourseName();
-    }, [courseId, hasAccess, isAccessLoading]);
+        void getCourseInfo();
+    }, [courseId]);
 
-    if (isAccessLoading || !hasAccess || isLoading) {
+    if (isLoading) {
         return <GlobalLoadingSpinner />;
     }
 
     return (
         <div className="w-full mx-auto flex flex-col gap-8 justify-center items-center">
             <section className="w-full flex flex-col items-start">
-                <h1 className="text-2xl font-normal">
-                    {`${courseInfo?.name} (${courseInfo?.code})`}{" "}
-                </h1>
                 <div className="flex flex-row gap-6 items-center mt-4 ml-auto">
                     <AddEditQuestionForm
                         defaultDate={new Date(formatDateToISO(new Date()))}
