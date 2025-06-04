@@ -1,20 +1,17 @@
 "use client";
 
-import { SelectTrigger } from "@radix-ui/react-select";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { AddEditQuestionForm } from "@/components/AddEditQuestionForm";
 import { AddInstructorForm } from "@/components/AddInstuctorForm";
 import BeginPollDialog from "@/components/BeginPollDialog";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";
 import { Button } from "@/components/ui/button";
 import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
-import { Select, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
 import { getCourseSessionByDate } from "@/services/session";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Page() {
     const params = useParams();
@@ -23,8 +20,6 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const { toast } = useToast();
-    const { hasAccess, isLoading: isAccessLoading } = useAccess({ courseId, role: "LECTURER" });
-    const [exportMode, setExportMode] = useState("basic");
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [refreshCalendar, setRefreshCalendar] = useState(false);
     const handleQuestionUpdate = () => {
@@ -81,54 +76,6 @@ export default function Page() {
                     ) : (
                         <BeginPollDialog />
                     )}
-
-                    {
-                        <div className="flex items-center ml-auto mt-2">
-                            <span className="text-sm text-muted-foreground">Export:</span>
-
-                            <Select value={exportMode} onValueChange={setExportMode}>
-                                <SelectTrigger className="w-[130px] h-9 text-sm">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="basic">Basic CSV</SelectItem>
-                                    <SelectItem value="advanced">Advanced CSV</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Button
-                                variant="outline"
-                                className="h-9 px-3 text-sm"
-                                onClick={() => {
-                                    void (async () => {
-                                        try {
-                                            const res = await getCourseSessionByDate(
-                                                courseId,
-                                                formatDateToISO(selectedDate),
-                                            );
-                                            if (!res?.id) {
-                                                toast({
-                                                    variant: "destructive",
-                                                    description: "No session found.",
-                                                });
-                                                return;
-                                            }
-                                            const downloadUrl = `/api/export/${res.id}?mode=${exportMode}`;
-                                            window.open(downloadUrl, "_blank");
-                                        } catch (err) {
-                                            toast({
-                                                variant: "destructive",
-                                                description: "Export failed.",
-                                            });
-                                            console.error("Export error:", err);
-                                        }
-                                    })();
-                                }}
-                            >
-                                Export CSV
-                            </Button>
-                        </div>
-                    }
                 </div>
             </section>
             <SlidingCalendar

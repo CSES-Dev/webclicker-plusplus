@@ -114,3 +114,12 @@ export type Student = {
     firstName: string;
     lastName: string | null;
 };
+
+export const csvBasicFieldNames = ["email", "num_questions_answered", "date_of_session"];
+export const csvAdvancedFieldNames = [
+    "email",
+    "question",
+    "answer",
+    "is_correct",
+    "date_of_session",
+];

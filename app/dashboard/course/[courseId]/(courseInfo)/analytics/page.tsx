@@ -1,16 +1,32 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import { useState } from "react";
+import { ExportCSVDropdown } from "@/components/ExportCSVDropdown";
 import AttendanceLineChart from "@/components/ui/AttendanceLineChart";
 import PerformanceData from "@/components/ui/PerformanceData";
 import StudentTable from "@/components/ui/StudentTable";
+import { toast } from "@/hooks/use-toast";
 import { analyticsPages } from "@/lib/constants";
+import { ExportCSVType } from "@/types/ExportCSVType";
 
 export default function Page() {
     const params = useParams();
     const courseId = parseInt((params.courseId as string) ?? "0");
     const [page, setPage] = useState<string>("Performance");
+
+    const downloadCsv = (mode: ExportCSVType) => {
+        try {
+            const downloadUrl = `/api/export/${courseId}?mode=${mode}`;
+            window.open(downloadUrl, "_blank");
+        } catch (err) {
+            toast({
+                variant: "destructive",
+                description: "Export failed.",
+            });
+            console.error("Export error:", err);
+        }
+    };
 
     return (
         <div className="w-full flex flex-col">
@@ -41,9 +57,7 @@ export default function Page() {
             </div>
             <div className="flex flex-row justify-between mt-8 pl-1">
                 <h1 className="text-2xl font-normal">Student Data</h1>
-                <button className="h-10 w-40 px-3 bg-[hsl(var(--primary))] text-white rounded-lg focus:outline-none">
-                    Export CSV
-                </button>
+                <ExportCSVDropdown onSelect={downloadCsv} />
             </div>
             {/* Student Data Table */}
             <StudentTable courseId={courseId} />
