@@ -4,13 +4,14 @@ import type { Question } from "@prisma/client";
 import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { LetteredYAxisTick } from "@/components/YAxisTick";
 import BackButton from "@/components/ui/backButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     ChartConfig,
@@ -27,10 +28,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { usePollSocket } from "@/hooks/use-poll-socket"
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO, shuffleArray } from "@/lib/utils";
+import type { StartSessionWebSocketMessage } from "@/lib/websocket"
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
@@ -38,9 +41,6 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
-
-import { StartSessionWebSocketMessage } from "@/lib/websocket"
-import { usePollSocket } from "@/hooks/use-poll-socket"
 
 interface ResponseCountsData {
     optionCounts?: Record<number, number>;
@@ -64,7 +64,46 @@ export default function StartSession() {
     const [allResponseCounts, setAllResponseCounts] = useState<Record<string, Record<number, number>>>({});
     const [_totalResponses, setTotalResponses] = useState(0);
     const sessionData = useSession();
-    const [isConnected, setIsConnected] = useState(false);
+    const [_isConnected, setIsConnected] = useState(false);
+
+    const handleWebSocketMessage = useCallback((data: StartSessionWebSocketMessage) => {
+        console.log("Received WebSocket message:", data);
+
+        if (data.type === "response_update") {
+            console.log("Updating response counts:", data.optionCounts);
+            if (data.optionCounts && data.questionId !== undefined && data.questionId !== null) {
+                setAllResponseCounts(
+                    (prev: Record<string, Record<number, number>>) =>
+                        ({
+                            ...prev,
+                            [String(data.questionId)]: data.optionCounts ?? {},
+                        }) as Record<string, Record<number, number>>,
+                );
+            }
+            if (data.responseCount) {
+                setTotalResponses(data.responseCount);
+            }
+        }
+    }, []);
+
+    const handleWebSocketConnect = useCallback(() => {
+        console.log("WebSocket connection established");
+        setIsConnected(true);
+    }, []);
+
+    const handleWebSocketDisconnect = useCallback(() => {
+        console.log("WebSocket connection closed");
+        setIsConnected(false);
+    }, []);
+
+    // Setup WebSocket connection using the custom hook
+    const wsRef = usePollSocket({
+        courseSessionId: courseSession?.id ?? 0,
+        userId: sessionData.data?.user?.id ?? "",
+        onMessage: handleWebSocketMessage,
+        onConnect: handleWebSocketConnect,
+        onDisconnect: handleWebSocketDisconnect,
+    });
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -165,7 +204,7 @@ export default function StartSession() {
             }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession, toast]);
+    }, [activeIndex, questions, totalQuestions, courseSession, toast, wsRef]);
 
     const handlePreviousQuestion = useCallback(async () => {
         if (questions && activeIndex > 0 && courseSession) {
@@ -193,7 +232,7 @@ export default function StartSession() {
             }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, courseSession, toast]);
+    }, [activeIndex, questions, courseSession, toast, wsRef]);
 
     const handleQuestionSelect = useCallback(
         async (questionId: string) => {
@@ -226,7 +265,7 @@ export default function StartSession() {
                 setIsChangingQuestion(false);
             }
         },
-        [courseSession, toast],
+        [courseSession, toast, wsRef],
     );
 
     const handleAddWildcard = useCallback(
@@ -284,7 +323,7 @@ export default function StartSession() {
                 console.error(error);
             }
         },
-        [courseSession, toast],
+        [courseSession, toast, wsRef],
     );
 
     const chartConfig: ChartConfig = {
@@ -322,45 +361,6 @@ export default function StartSession() {
                 console.error("Failed to fetch response counts:", error);
             });
     }, [activeQuestionId]);
-
-    const handleWebSocketMessage = useCallback((data: StartSessionWebSocketMessage) => {
-        console.log("Received WebSocket message:", data);
-
-        if (data.type === "response_update") {
-            console.log("Updating response counts:", data.optionCounts);
-            if (data.optionCounts && data.questionId !== undefined && data.questionId !== null) {
-                setAllResponseCounts(
-                    (prev: Record<string, Record<number, number>>) =>
-                        ({
-                            ...prev,
-                            [String(data.questionId)]: data.optionCounts ?? {},
-                        }) as Record<string, Record<number, number>>,
-                );
-            }
-            if (data.responseCount) {
-                setTotalResponses(data.responseCount);
-            }
-        }
-    }, []);
-
-    const handleWebSocketConnect = useCallback(() => {
-        console.log("WebSocket connection established");
-        setIsConnected(true);
-    }, []);
-
-    const handleWebSocketDisconnect = useCallback(() => {
-        console.log("WebSocket connection closed");
-        setIsConnected(false);
-    }, []);
-
-    // Setup WebSocket connection using the custom hook
-    const wsRef = usePollSocket({
-        courseSessionId: courseSession?.id ?? 0,
-        userId: sessionData.data?.user?.id ?? "",
-        onMessage: handleWebSocketMessage,
-        onConnect: handleWebSocketConnect,
-        onDisconnect: handleWebSocketDisconnect,
-    });
 
     if (!courseSession || questionsLoading) {
         return <GlobalLoadingSpinner />;
