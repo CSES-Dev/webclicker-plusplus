@@ -86,6 +86,13 @@ export type WebSocketMessage =
 
 type UnknownData = Record<string, unknown>;
 
+export type StartSessionWebSocketMessage {
+    type: string;
+    questionId?: number;
+    optionCounts?: Record<number, number>;
+    responseCount?: number;
+}
+
 type AuthenticatedConnection = {
     userId: string;
     sessionId: string;

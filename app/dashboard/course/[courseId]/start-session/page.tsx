@@ -39,12 +39,7 @@ import {
     getQuestionsForSession,
 } from "@/services/session";
 
-interface WebSocketMessage {
-    type: string;
-    questionId?: number;
-    optionCounts?: Record<number, number>;
-    responseCount?: number;
-}
+import { StartSessionWebSocketMessage } from "@/lib/websocket"
 
 interface ResponseCountsData {
     optionCounts?: Record<number, number>;
@@ -114,7 +109,7 @@ export default function StartSession() {
 
         ws.onmessage = (event) => {
             try {
-                const data = JSON.parse(event.data as string) as WebSocketMessage;
+                const data = JSON.parse(event.data as string) as StartSessionWebSocketMessage;
                 console.log("Received WebSocket message:", data);
 
                 if (data.type === "response_update") {
