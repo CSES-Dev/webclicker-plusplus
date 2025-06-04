@@ -40,6 +40,7 @@ import {
 } from "@/services/session";
 
 import { StartSessionWebSocketMessage } from "@/lib/websocket"
+import { usePollSocket } from "@/hooks/use-poll-socket"
 
 interface ResponseCountsData {
     optionCounts?: Record<number, number>;
@@ -57,15 +58,13 @@ export default function StartSession() {
     const [activeQuestionId, setActiveQuestionId] = useState<number | null>(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
-    const [_totalResponses, setTotalResponses] = useState(0);
-    const wsRef = useRef<WebSocket | null>(null);
-    const sessionData = useSession();
     const [isPaused, setIsPaused] = useState(false);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
-    const [allResponseCounts, setAllResponseCounts] = useState<
-        Record<string, Record<number, number>>
-    >({});
+    const [allResponseCounts, setAllResponseCounts] = useState<Record<string, Record<number, number>>>({});
+    const [_totalResponses, setTotalResponses] = useState(0);
+    const sessionData = useSession();
+    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
         async function fetchSessionData() {
@@ -80,7 +79,6 @@ export default function StartSession() {
                 }
             } else {
                 toast({ description: "No session found" });
-                // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
                 router.push(`/dashboard/course/${courseId}/questionnaire`);
             }
         }
@@ -92,64 +90,6 @@ export default function StartSession() {
         () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
         { enabled: !!activeQuestionId },
     );
-
-    // Setup WebSocket connection
-    useEffect(() => {
-        if (!courseSession || !sessionData.data?.user?.id) return;
-
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const ws = new WebSocket(
-            `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSession.id}&userId=${sessionData.data.user.id}`,
-        );
-        wsRef.current = ws;
-
-        ws.onopen = () => {
-            console.log("WebSocket connection established");
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data as string) as StartSessionWebSocketMessage;
-                console.log("Received WebSocket message:", data);
-
-                if (data.type === "response_update") {
-                    console.log("Updating response counts:", data.optionCounts);
-                    if (
-                        data.optionCounts &&
-                        data.questionId !== undefined &&
-                        data.questionId !== null
-                    ) {
-                        setAllResponseCounts(
-                            (prev) =>
-                                ({
-                                    ...prev,
-                                    [String(data.questionId)]: data.optionCounts ?? {},
-                                }) as Record<string, Record<number, number>>,
-                        );
-                    }
-                    if (data.responseCount) {
-                        setTotalResponses(data.responseCount);
-                    }
-                }
-            } catch (error) {
-                console.error("Error processing WebSocket message:", error);
-            }
-        };
-
-        ws.onerror = (error) => {
-            console.error("WebSocket error:", error);
-        };
-
-        ws.onclose = () => {
-            console.log("WebSocket connection closed");
-        };
-
-        return () => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.close();
-            }
-        };
-    }, [courseSession, sessionData.data?.user?.id]);
 
     // fetch session questions
     const {
@@ -210,17 +150,15 @@ export default function StartSession() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ activeQuestionId: nextQuestionID }),
                 });
-                if (response.ok) {
-                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                        wsRef.current.send(
-                            JSON.stringify({
-                                type: "active_question_update",
-                                questionId: nextQuestionID,
-                                courseSessionId: courseSession.id,
-                            }),
-                        );
-                        console.log("Sent active_question_update via WebSocket (next)");
-                    }
+                if (response.ok && wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(
+                        JSON.stringify({
+                            type: "active_question_update",
+                            questionId: nextQuestionID,
+                            courseSessionId: courseSession.id,
+                        }),
+                    );
+                    console.log("Sent active_question_update via WebSocket (next)");
                 }
             } catch {
                 toast({ variant: "destructive", description: "Error updating question" });
@@ -240,17 +178,15 @@ export default function StartSession() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ activeQuestionId: prevQuestionID }),
                 });
-                if (response.ok) {
-                    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                        wsRef.current.send(
-                            JSON.stringify({
-                                type: "active_question_update",
-                                questionId: prevQuestionID,
-                                courseSessionId: courseSession.id,
-                            }),
-                        );
-                        console.log("Sent active_question_update via WebSocket (prev)");
-                    }
+                if (response.ok && wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(
+                        JSON.stringify({
+                            type: "active_question_update",
+                            questionId: prevQuestionID,
+                            courseSessionId: courseSession.id,
+                        }),
+                    );
+                    console.log("Sent active_question_update via WebSocket (prev)");
                 }
             } catch {
                 toast({ variant: "destructive", description: "Error updating question" });
@@ -274,17 +210,15 @@ export default function StartSession() {
                             body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
                         },
                     );
-                    if (response.ok) {
-                        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                            wsRef.current.send(
-                                JSON.stringify({
-                                    type: "active_question_update",
-                                    questionId: selectedQuestionId,
-                                    courseSessionId: courseSession.id,
-                                }),
-                            );
-                            console.log("Sent active_question_update via WebSocket (select)");
-                        }
+                    if (response.ok && wsRef.current?.readyState === WebSocket.OPEN) {
+                        wsRef.current.send(
+                            JSON.stringify({
+                                type: "active_question_update",
+                                questionId: selectedQuestionId,
+                                courseSessionId: courseSession.id,
+                            }),
+                        );
+                        console.log("Sent active_question_update via WebSocket (select)");
                     }
                 } catch {
                     toast({ variant: "destructive", description: "Error updating question" });
@@ -339,7 +273,9 @@ export default function StartSession() {
             setIsPaused(pauseState);
             try {
                 await pauseOrResumeCourseSession(courseSession.id, pauseState);
-                wsRef.current?.send(JSON.stringify({ type: "poll_paused", paused: pauseState }));
+                if (wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify({ type: "poll_paused", paused: pauseState }));
+                }
             } catch (error) {
                 toast({
                     variant: "destructive",
@@ -386,6 +322,45 @@ export default function StartSession() {
                 console.error("Failed to fetch response counts:", error);
             });
     }, [activeQuestionId]);
+
+    const handleWebSocketMessage = useCallback((data: StartSessionWebSocketMessage) => {
+        console.log("Received WebSocket message:", data);
+
+        if (data.type === "response_update") {
+            console.log("Updating response counts:", data.optionCounts);
+            if (data.optionCounts && data.questionId !== undefined && data.questionId !== null) {
+                setAllResponseCounts(
+                    (prev: Record<string, Record<number, number>>) =>
+                        ({
+                            ...prev,
+                            [String(data.questionId)]: data.optionCounts ?? {},
+                        }) as Record<string, Record<number, number>>,
+                );
+            }
+            if (data.responseCount) {
+                setTotalResponses(data.responseCount);
+            }
+        }
+    }, []);
+
+    const handleWebSocketConnect = useCallback(() => {
+        console.log("WebSocket connection established");
+        setIsConnected(true);
+    }, []);
+
+    const handleWebSocketDisconnect = useCallback(() => {
+        console.log("WebSocket connection closed");
+        setIsConnected(false);
+    }, []);
+
+    // Setup WebSocket connection using the custom hook
+    const wsRef = usePollSocket({
+        courseSessionId: courseSession?.id ?? 0,
+        userId: sessionData.data?.user?.id ?? "",
+        onMessage: handleWebSocketMessage,
+        onConnect: handleWebSocketConnect,
+        onDisconnect: handleWebSocketDisconnect,
+    });
 
     if (!courseSession || questionsLoading) {
         return <GlobalLoadingSpinner />;
