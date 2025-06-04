@@ -236,10 +236,13 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                     } else {
                         throw new Error("Unsupported message format");
                     }
-                    const rawData = JSON.parse(rawString);
+                    
+                    // Parse and validate the data with unknown type first
+                    const parsedData = JSON.parse(rawString) as unknown;
 
-                    if (isStudentResponseMessage(rawData)) {
-                        const { questionId, optionIds } = rawData;
+                    // Now use our type guards to safely handle the data
+                    if (isStudentResponseMessage(parsedData)) {
+                        const { questionId, optionIds } = parsedData;
 
                         // 1) delete old answers
                         const _deleteResult = await prisma.response.deleteMany({
@@ -288,16 +291,24 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                             responseCount: total,
                             optionCounts,
                         } as ResponseUpdateMessage);
-                    } else if (isActiveQuestionUpdateMessage(rawData)) {
-                        console.log("Broadcasting question change:", rawData.questionId);
+                    } else if (isActiveQuestionUpdateMessage(parsedData)) {
+                        console.log("Broadcasting question change:", parsedData.questionId);
                         // Ensure all clients get the question change notification
                         const message: QuestionChangedMessage = {
                             type: "question_changed",
-                            questionId: rawData.questionId,
+                            questionId: parsedData.questionId,
                         };
                         broadcastToSession(sessionId, message);
-                    } else if (isPollPausedMessage(rawData)) {
-                        broadcastToSession(sessionId, { type: "poll_paused", paused: rawData.paused });
+                    } else if (isPollPausedMessage(parsedData)) {
+                        broadcastToSession(sessionId, { type: "poll_paused", paused: parsedData.paused });
+                    } else {
+                        console.warn("Received unhandled message type:", parsedData);
+                        ws.send(
+                            JSON.stringify({
+                                type: "error",
+                                message: "Unhandled message type",
+                            } as ErrorMessage),
+                        );
                     }
                 } catch (err) {
                     console.error("WS message error:", err);

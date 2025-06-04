@@ -20,8 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 // } from "@/lib/websocket";
 
 import type {
-    WebSocketMessage,
     StudentResponseMessage,
+    WebSocketMessage,
 } from "@/lib/websocket";
 
 type QuestionWithOptions = PrismaQuestion & {
@@ -155,7 +155,7 @@ export default function LivePoll({
     }, [fetchActiveQuestion, toast]);
 
     // Add this alongside existing WebSocket setup
-    const newWsRef = usePollSocket({
+    const _newWsRef = usePollSocket({
         courseSessionId,
         userId: session?.user?.id ?? "",
         onMessage: handleWebSocketMessage,
