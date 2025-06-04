@@ -60,4 +60,4 @@ export function usePollSocket({
     }, [courseSessionId, userId, onConnect, onDisconnect, onMessage]);
 
     return wsRef;
-} 
+}

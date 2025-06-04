@@ -89,7 +89,7 @@ export type StartSessionWebSocketMessage = {
     questionId?: number;
     optionCounts?: Record<number, number>;
     responseCount?: number;
-}
+};
 
 type AuthenticatedConnection = {
     userId: string;
@@ -236,7 +236,7 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                     } else {
                         throw new Error("Unsupported message format");
                     }
-                    
+
                     // Parse and validate the data with unknown type first
                     const parsedData = JSON.parse(rawString) as unknown;
 
@@ -300,7 +300,10 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                         };
                         broadcastToSession(sessionId, message);
                     } else if (isPollPausedMessage(parsedData)) {
-                        broadcastToSession(sessionId, { type: "poll_paused", paused: parsedData.paused });
+                        broadcastToSession(sessionId, {
+                            type: "poll_paused",
+                            paused: parsedData.paused,
+                        });
                     } else {
                         console.warn("Received unhandled message type:", parsedData);
                         ws.send(

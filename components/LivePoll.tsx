@@ -19,10 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 //     WebSocketMessageBase
 // } from "@/lib/websocket";
 
-import type {
-    StudentResponseMessage,
-    WebSocketMessage,
-} from "@/lib/websocket";
+import type { StudentResponseMessage, WebSocketMessage } from "@/lib/websocket";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -132,27 +129,30 @@ export default function LivePoll({
     }, [courseSessionId, toast, router]); // Added dependencies
 
     // Add this new handler but keep existing code
-    const handleWebSocketMessage = useCallback((data: WebSocketMessage) => {
-        if (data?.type) {
-            if (data.type === "question_changed" && "questionId" in data) {
-                activeQuestionIdRef.current = null;
-                void fetchActiveQuestion();
-            } else if (data.type === "response_saved") {
-                toast({ description: data.message ?? "Response saved" });
-                setSubmitting(false);
-            } else if (data.type === "error") {
-                toast({
-                    variant: "destructive",
-                    description: data.message ?? "Error occurred",
-                });
-                setSubmitting(false);
-            } else if (data.type === "connected") {
-                console.log("WebSocket connection confirmed:", data.message);
-            } else if (data.type === "poll_paused" && "paused" in data) {
-                setIsPaused(data.paused);
+    const handleWebSocketMessage = useCallback(
+        (data: WebSocketMessage) => {
+            if (data?.type) {
+                if (data.type === "question_changed" && "questionId" in data) {
+                    activeQuestionIdRef.current = null;
+                    void fetchActiveQuestion();
+                } else if (data.type === "response_saved") {
+                    toast({ description: data.message ?? "Response saved" });
+                    setSubmitting(false);
+                } else if (data.type === "error") {
+                    toast({
+                        variant: "destructive",
+                        description: data.message ?? "Error occurred",
+                    });
+                    setSubmitting(false);
+                } else if (data.type === "connected") {
+                    console.log("WebSocket connection confirmed:", data.message);
+                } else if (data.type === "poll_paused" && "paused" in data) {
+                    setIsPaused(data.paused);
+                }
             }
-        }
-    }, [fetchActiveQuestion, toast]);
+        },
+        [fetchActiveQuestion, toast],
+    );
 
     // Add this alongside existing WebSocket setup
     const _newWsRef = usePollSocket({

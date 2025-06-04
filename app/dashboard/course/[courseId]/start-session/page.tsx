@@ -28,12 +28,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { usePollSocket } from "@/hooks/use-poll-socket"
+import { usePollSocket } from "@/hooks/use-poll-socket";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO, shuffleArray } from "@/lib/utils";
-import type { StartSessionWebSocketMessage } from "@/lib/websocket"
+import type { StartSessionWebSocketMessage } from "@/lib/websocket";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
@@ -61,7 +61,9 @@ export default function StartSession() {
     const [isPaused, setIsPaused] = useState(false);
     const [isChangingQuestion, setIsChangingQuestion] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
-    const [allResponseCounts, setAllResponseCounts] = useState<Record<string, Record<number, number>>>({});
+    const [allResponseCounts, setAllResponseCounts] = useState<
+        Record<string, Record<number, number>>
+    >({});
     const [_totalResponses, setTotalResponses] = useState(0);
     const sessionData = useSession();
     const [_isConnected, setIsConnected] = useState(false);
