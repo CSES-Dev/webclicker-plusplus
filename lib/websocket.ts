@@ -8,72 +8,81 @@ type ConnectionParams = {
     userId?: string;
 };
 
-//  message
-type StudentResponseMessage = {
-    type: "student_response";
-    questionId: number;
-    optionIds: number[];
-};
+// Define proper types for WebSocket messages
+export type WebSocketMessageType =
+    | "connected"
+    | "response_saved"
+    | "question_changed"
+    | "response_update"
+    | "error"
+    | "echo"
+    | "binary"
+    | "student_response"
+    | "poll_paused"
+    | "active_question_update";
 
-type ActiveQuestionUpdateMessage = {
-    type: "active_question_update";
-    questionId: number;
-    courseSessionId?: number;
-};
+export interface WebSocketMessageBase {
+    type: WebSocketMessageType;
+    message?: string;
+}
 
-type ResponseSavedMessage = {
+export interface QuestionChangedMessage extends WebSocketMessageBase {
+    type: "question_changed";
+    questionId: number;
+}
+
+export interface ResponseSavedMessage extends WebSocketMessageBase {
     type: "response_saved";
-    message: string;
+    message?: string;
     data?: {
         questionId?: number;
         optionIds?: number[];
         originalMessage?: string;
     };
-};
+}
 
-type ResponseUpdateMessage = {
+export interface StudentResponseMessage extends WebSocketMessageBase {
+    type: "student_response";
+    questionId: number;
+    optionIds: number[];
+}
+
+export interface ResponseUpdateMessage extends WebSocketMessageBase {
     type: "response_update";
     questionId: number;
     responseCount: number;
     optionCounts: Record<number, number>;
-};
+}
 
-type QuestionChangedMessage = {
-    type: "question_changed";
-    questionId: number;
-};
-
-type ConnectedMessage = {
-    type: "connected";
-    message: string;
-};
-
-type ErrorMessage = {
-    type: "error";
-    message: string;
-};
-
-type TextMessage = {
-    type: "text";
-    message: string;
-};
-
-type PausePollMessage = {
-    type: "pause_poll";
+export interface PollPausedMessage extends WebSocketMessageBase {
+    type: "poll_paused";
     paused: boolean;
-};
+}
 
-type WebSocketMessage =
-    | StudentResponseMessage
-    | ActiveQuestionUpdateMessage
-    | ResponseSavedMessage
-    | ResponseUpdateMessage
+export interface ConnectedMessage extends WebSocketMessageBase {
+    type: "connected";
+}
+
+export interface ErrorMessage extends WebSocketMessageBase {
+    type: "error";
+}
+
+export interface ActiveQuestionUpdateMessage extends WebSocketMessageBase {
+    type: "active_question_update";
+    questionId: number;
+    courseSessionId?: number;
+}
+
+// Union type for all message types
+export type WebSocketMessage =
     | QuestionChangedMessage
+    | ResponseSavedMessage
+    | StudentResponseMessage
+    | PollPausedMessage
+    | ActiveQuestionUpdateMessage
     | ConnectedMessage
     | ErrorMessage
-    | TextMessage
-    | PausePollMessage
-    | { type: "poll_paused"; paused: boolean };
+    | WebSocketMessageBase;
 
 type UnknownData = Record<string, unknown>;
 
@@ -186,74 +195,81 @@ export function initWebSocketServer(server: HttpServer): WebSocketServer {
                     } else {
                         throw new Error("Unsupported message format");
                     }
-                    const data = JSON.parse(rawString) as UnknownData;
+                    const rawData = JSON.parse(rawString);
 
-                    if (data.type === "student_response") {
-                        const { questionId, optionIds } = data as StudentResponseMessage;
+                    if (rawData && typeof rawData === "object" && "type" in rawData) {
+                        if (rawData.type === "student_response" && 
+                            "questionId" in rawData && 
+                            "optionIds" in rawData &&
+                            typeof rawData.questionId === "number" && 
+                            Array.isArray(rawData.optionIds)) {
+                            const data = rawData as StudentResponseMessage;
+                            const { questionId, optionIds } = data;
 
-                        if (typeof questionId !== "number" || !Array.isArray(optionIds)) {
-                            throw new Error("Invalid student_response format");
-                        }
+                            // 1) delete old answers
+                            const _deleteResult = await prisma.response.deleteMany({
+                                where: { userId, questionId },
+                            });
+                            console.log(_deleteResult);
 
-                        // 1) delete old answers
-                        const _deleteResult = await prisma.response.deleteMany({
-                            where: { userId, questionId },
-                        });
-                        console.log(_deleteResult);
+                            // 2) bulk insert new answers
+                            const _createResult = await prisma.response.createMany({
+                                data: optionIds.map((optId) => ({
+                                    userId,
+                                    questionId,
+                                    optionId: optId,
+                                })),
+                                skipDuplicates: true,
+                            });
+                            console.log(_createResult);
 
-                        // 2) bulk insert new answers
-                        const _createResult = await prisma.response.createMany({
-                            data: optionIds.map((optId) => ({
-                                userId,
+                            // 3) re-aggregate and broadcast
+                            const groups = await prisma.response.groupBy({
+                                by: ["optionId"],
+                                where: { questionId },
+                                _count: { optionId: true },
+                            });
+
+                            const optionCounts = groups.reduce<Record<number, number>>((acc, g) => {
+                                acc[g.optionId] = g._count.optionId;
+                                return acc;
+                            }, {});
+
+                            const total = Object.values(optionCounts).reduce((sum, c) => sum + c, 0);
+
+                            // confirmation
+                            ws.send(
+                                JSON.stringify({
+                                    type: "response_saved",
+                                    message: "Your answer has been recorded",
+                                    data: { questionId, optionIds },
+                                } as ResponseSavedMessage),
+                            );
+
+                            // broadcast update
+                            broadcastToSession(sessionId, {
+                                type: "response_update",
                                 questionId,
-                                optionId: optId,
-                            })),
-                            skipDuplicates: true,
-                        });
-                        console.log(_createResult);
-
-                        // 3) re-aggregate and broadcast
-                        const groups = await prisma.response.groupBy({
-                            by: ["optionId"],
-                            where: { questionId },
-                            _count: { optionId: true },
-                        });
-
-                        const optionCounts = groups.reduce<Record<number, number>>((acc, g) => {
-                            acc[g.optionId] = g._count.optionId;
-                            return acc;
-                        }, {});
-
-                        const total = Object.values(optionCounts).reduce((sum, c) => sum + c, 0);
-
-                        // confirmation
-                        ws.send(
-                            JSON.stringify({
-                                type: "response_saved",
-                                message: "Your answer has been recorded",
-                                data: { questionId, optionIds },
-                            } as ResponseSavedMessage),
-                        );
-
-                        // broadcast update
-                        broadcastToSession(sessionId, {
-                            type: "response_update",
-                            questionId,
-                            responseCount: total,
-                            optionCounts,
-                        } as ResponseUpdateMessage);
-                    } else if (data.type === "active_question_update") {
-                        const { questionId } = data as ActiveQuestionUpdateMessage;
-                        console.log("Broadcasting question change:", questionId);
-                        // Ensure all clients get the question change notification
-                        const message: QuestionChangedMessage = {
-                            type: "question_changed",
-                            questionId,
-                        };
-                        broadcastToSession(sessionId, message);
-                    } else if (data.type === "pause_poll") {
-                        const { paused } = data as PausePollMessage;
-                        broadcastToSession(sessionId, { type: "poll_paused", paused });
+                                responseCount: total,
+                                optionCounts,
+                            } as ResponseUpdateMessage);
+                        } else if (rawData.type === "active_question_update" && 
+                                 "questionId" in rawData && 
+                                 typeof rawData.questionId === "number") {
+                            const data = rawData as ActiveQuestionUpdateMessage;
+                            console.log("Broadcasting question change:", data.questionId);
+                            // Ensure all clients get the question change notification
+                            const message: QuestionChangedMessage = {
+                                type: "question_changed",
+                                questionId: data.questionId,
+                            };
+                            broadcastToSession(sessionId, message);
+                        } else if (rawData.type === "poll_paused" && 
+                                 "paused" in rawData && 
+                                 typeof rawData.paused === "boolean") {
+                            const data = rawData as PollPausedMessage;
+                            broadcastToSession(sessionId, { type: "poll_paused", paused: data.paused });
+                        }
                     }
                 } catch (err) {
                     console.error("WS message error:", err);

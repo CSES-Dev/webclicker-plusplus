@@ -8,6 +8,15 @@ import BackButton from "@/components/ui/backButton";
 import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { useToast } from "@/hooks/use-toast";
+import type {
+    WebSocketMessage,
+    WebSocketMessageType,
+    StudentResponseMessage,
+    QuestionChangedMessage,
+    ResponseSavedMessage,
+    PollPausedMessage,
+    WebSocketMessageBase
+} from "@/lib/websocket";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -17,60 +26,6 @@ type fetchCourseSessionQuestionResponse = {
     activeQuestionId: number;
     totalQuestions: number;
 };
-
-// Define proper types for WebSocket messages
-type WebSocketMessageType =
-    | "connected"
-    | "response_saved"
-    | "question_changed"
-    | "response_update"
-    | "error"
-    | "echo"
-    | "binary"
-    | "student_response"
-    | "poll_paused";
-
-interface WebSocketMessageBase {
-    type: WebSocketMessageType;
-    message?: string;
-}
-
-interface QuestionChangedMessage extends WebSocketMessageBase {
-    type: "question_changed";
-    questionId: number;
-}
-
-interface ResponseSavedMessage extends WebSocketMessageBase {
-    type: "response_saved";
-    message?: string;
-}
-
-interface StudentResponseMessage extends WebSocketMessageBase {
-    type: "student_response";
-    questionId: number;
-    optionIds: number[];
-}
-
-// Add new type for response updates
-// interface ResponseUpdateMessage extends WebSocketMessageBase {
-//     type: "response_update";
-//     questionId: number;
-//     responseCount: number;
-//     optionCounts: Record<number, number>;
-// }
-
-interface PollPausedMessage extends WebSocketMessageBase {
-    type: "poll_paused";
-    paused: boolean;
-}
-
-// Union type for all message types
-type WebSocketMessage =
-    | QuestionChangedMessage
-    | ResponseSavedMessage
-    | StudentResponseMessage
-    | PollPausedMessage
-    | WebSocketMessageBase;
 
 export default function LivePoll({
     courseSessionId,
