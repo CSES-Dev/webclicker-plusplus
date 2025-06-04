@@ -17,6 +17,7 @@ import type {
     PollPausedMessage,
     WebSocketMessageBase
 } from "@/lib/websocket";
+import { usePollSocket } from "@/hooks/use-poll-socket";
 
 type QuestionWithOptions = PrismaQuestion & {
     options: PrismaOption[];
@@ -125,7 +126,43 @@ export default function LivePoll({
         }
     }, [courseSessionId, toast, router]); // Added dependencies
 
-    // Setup WebSocket connection
+    // Add this new handler but keep existing code
+    const handleWebSocketMessage = useCallback((data: WebSocketMessage) => {
+        if (data?.type) {
+            if (data.type === "question_changed" && "questionId" in data) {
+                activeQuestionIdRef.current = null;
+                void fetchActiveQuestion();
+            } else if (data.type === "response_saved") {
+                toast({ description: data.message ?? "Response saved" });
+                setSubmitting(false);
+            } else if (data.type === "error") {
+                toast({
+                    variant: "destructive",
+                    description: data.message ?? "Error occurred",
+                });
+                setSubmitting(false);
+            } else if (data.type === "connected") {
+                console.log("WebSocket connection confirmed:", data.message);
+            } else if (data.type === "poll_paused" && "paused" in data) {
+                setIsPaused(data.paused);
+            }
+        }
+    }, [fetchActiveQuestion, toast]);
+
+    // Add this alongside existing WebSocket setup
+    const newWsRef = usePollSocket({
+        courseSessionId,
+        userId: session?.user?.id ?? "",
+        onMessage: handleWebSocketMessage,
+        onConnect: () => {
+            console.log("New WebSocket connected");
+        },
+        onDisconnect: () => {
+            console.log("New WebSocket disconnected");
+        },
+    });
+
+    // Keep existing WebSocket setup
     useEffect(() => {
         if (!courseSessionId || !session?.user?.id) return;
 

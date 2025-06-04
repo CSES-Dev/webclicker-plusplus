@@ -339,7 +339,7 @@ export default function StartSession() {
             setIsPaused(pauseState);
             try {
                 await pauseOrResumeCourseSession(courseSession.id, pauseState);
-                wsRef.current?.send(JSON.stringify({ type: "pause_poll", paused: pauseState }));
+                wsRef.current?.send(JSON.stringify({ type: "poll_paused", paused: pauseState }));
             } catch (error) {
                 toast({
                     variant: "destructive",
