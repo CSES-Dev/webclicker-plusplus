@@ -9,8 +9,11 @@ export default function Home() {
                     Welcome to WebClicker++
                 </h1>
                 <Button variant="outline" asChild>
-                    <Button asChild className="h-12 w-40">
-                        <Link href="/dashboard">Join a Class</Link>
+                    <Button
+                        asChild
+                        className="w-40 bg-secondary text-primary hover:bg-secondary hover:text-primary"
+                    >
+                        <Link href="/dashboard" className="!h-12">Join a Class</Link>
                     </Button>
                 </Button>
             </main>
