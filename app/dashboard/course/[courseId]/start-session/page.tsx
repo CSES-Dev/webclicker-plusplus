@@ -3,6 +3,7 @@ import { QuestionType } from "@prisma/client";
 import type { Question } from "@prisma/client";
 import { EyeOff, PauseCircleIcon, PlayCircleIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "react-query";
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from "recharts";
@@ -10,6 +11,7 @@ import { LetteredYAxisTick } from "@/components/YAxisTick";
 import BackButton from "@/components/ui/backButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     ChartConfig,
@@ -26,10 +28,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { usePollSocket } from "@/hooks/use-poll-socket";
 import { useToast } from "@/hooks/use-toast";
 import { DEFAULT_SHOW_RESULTS } from "@/lib/constants";
 import { addWildcardQuestion } from "@/lib/server-utils";
 import { formatDateToISO, shuffleArray } from "@/lib/utils";
+import type { StartSessionWebSocketMessage } from "@/lib/websocket";
 import { CourseSessionData, QuestionData } from "@/models/CourseSession";
 import { endCourseSession, pauseOrResumeCourseSession } from "@/services/courseSession";
 import {
@@ -37,6 +41,11 @@ import {
     getQuestionById,
     getQuestionsForSession,
 } from "@/services/session";
+
+interface ResponseCountsData {
+    optionCounts?: Record<number, number>;
+    responseCount?: number;
+}
 
 export default function StartSession() {
     const params = useParams();
@@ -50,26 +59,78 @@ export default function StartSession() {
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
     const [isEndingSession, setIsEndingSession] = useState(false);
     const [isPaused, setIsPaused] = useState(false);
+    const [isChangingQuestion, setIsChangingQuestion] = useState(false);
     const [showResults, setShowResults] = useState(DEFAULT_SHOW_RESULTS);
-    const [isChangingQuestion, setIsChangingQuestion] = useState(false); // New state for question navigation
+    const [allResponseCounts, setAllResponseCounts] = useState<
+        Record<string, Record<number, number>>
+    >({});
+    const [_totalResponses, setTotalResponses] = useState(0);
+    const sessionData = useSession();
+    const [_isConnected, setIsConnected] = useState(false);
+
+    const handleWebSocketMessage = useCallback((data: StartSessionWebSocketMessage) => {
+        console.log("Received WebSocket message:", data);
+
+        if (data.type === "response_update") {
+            console.log("Updating response counts:", data.optionCounts);
+            if (data.optionCounts && data.questionId !== undefined && data.questionId !== null) {
+                setAllResponseCounts(
+                    (prev: Record<string, Record<number, number>>) =>
+                        ({
+                            ...prev,
+                            [String(data.questionId)]: data.optionCounts ?? {},
+                        }) as Record<string, Record<number, number>>,
+                );
+            }
+            if (data.responseCount) {
+                setTotalResponses(data.responseCount);
+            }
+        }
+    }, []);
+
+    const handleWebSocketConnect = useCallback(() => {
+        console.log("WebSocket connection established");
+        setIsConnected(true);
+    }, []);
+
+    const handleWebSocketDisconnect = useCallback(() => {
+        console.log("WebSocket connection closed");
+        setIsConnected(false);
+    }, []);
+
+    // Setup WebSocket connection using the custom hook
+    const wsRef = usePollSocket({
+        courseSessionId: courseSession?.id ?? 0,
+        userId: sessionData.data?.user?.id ?? "",
+        onMessage: handleWebSocketMessage,
+        onConnect: handleWebSocketConnect,
+        onDisconnect: handleWebSocketDisconnect,
+    });
 
     useEffect(() => {
         async function fetchSessionData() {
-            const session = await getCourseSessionByDate(courseId, utcDate);
-            if (session) {
-                setCourseSession({ id: session.id, activeQuestionId: session.activeQuestionId });
-                if (session.activeQuestionId !== null) {
-                    setActiveQuestionId(session.activeQuestionId);
+            const sessionResult = await getCourseSessionByDate(courseId, utcDate);
+            if (sessionResult) {
+                setCourseSession({
+                    id: sessionResult.id,
+                    activeQuestionId: sessionResult.activeQuestionId,
+                });
+                if (sessionResult.activeQuestionId !== null) {
+                    setActiveQuestionId(sessionResult.activeQuestionId);
                 }
-                if (session.paused) setIsPaused(session.paused);
             } else {
                 toast({ description: "No session found" });
-                // subject to change (just put this for now goes to 404 maybe it should go to /dashboard?)
                 router.push(`/dashboard/course/${courseId}/questionnaire`);
             }
         }
         void fetchSessionData();
     }, [courseId, utcDate, router, toast]);
+
+    const { data: questionData } = useQuery<QuestionData | null>(
+        ["question", activeQuestionId],
+        () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
+        { enabled: !!activeQuestionId },
+    );
 
     // fetch session questions
     const {
@@ -94,80 +155,86 @@ export default function StartSession() {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ activeQuestionId: questions[0].id }),
-                }).catch((err: unknown) => {
-                    console.error("Error updating active question:", err);
+                }).catch((error: unknown) => {
+                    console.error("Error updating active question:", error);
                 });
             }
         }
     }, [questions, activeQuestionId, courseSession]);
-
-    // retrieve details of the active question
-    const { data: questionData } = useQuery<QuestionData | null>(
-        ["question", activeQuestionId],
-        () => (activeQuestionId ? getQuestionById(activeQuestionId) : Promise.resolve(null)),
-        { refetchInterval: 2000, enabled: !!activeQuestionId },
-    );
 
     const totalQuestions = questions?.length ?? 0;
 
     const activeIndex = questions ? questions.findIndex((q) => q.id === activeQuestionId) : -1;
     const isLastQuestion = activeIndex === totalQuestions - 1;
 
-    const shuffledOptions = useMemo(() => {
-        return questionData ? shuffleArray(questionData.options) : [];
-    }, [activeQuestionId, questionData?.options]);
-
-    const chartData = questionData
-        ? shuffledOptions.map((option) => ({
-              option: option.text,
-              Votes: questionData.responses.filter((resp) => resp.optionId === option.id).length,
-          }))
-        : [];
-
-    // Create a reusable function for updating the active question
-    const updateActiveQuestion = useCallback(
-        async (questionId: number, sessionId: string) => {
-            try {
-                const response = await fetch(`/api/session/${sessionId}/activeQuestion`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ activeQuestionId: questionId }),
-                });
-
-                if (!response.ok) {
-                    toast({ variant: "destructive", description: "Error updating question" });
-                    console.error("Failed to update active question in DB", response);
-                    return false;
-                }
-                return true;
-            } catch (err: unknown) {
-                toast({ variant: "destructive", description: "Error updating question" });
-                console.error("Error updating active question:", err);
-                return false;
-            }
-        },
-        [toast],
+    // Update chart data to use WebSocket updates
+    const shuffledOptions = useMemo(
+        () => (questionData ? shuffleArray(questionData.options) : []),
+        [activeQuestionId, questionData?.options],
     );
+
+    const chartData = shuffledOptions.map((option) => ({
+        option: option.text,
+        Votes: (activeQuestionId && allResponseCounts[String(activeQuestionId)]?.[option.id]) ?? 0,
+    }));
+
+    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
 
     const handleNextQuestion = useCallback(async () => {
         if (questions && activeIndex !== -1 && activeIndex < totalQuestions - 1 && courseSession) {
             setIsChangingQuestion(true);
             const nextQuestionID = questions[activeIndex + 1].id;
             setActiveQuestionId(nextQuestionID);
-            await updateActiveQuestion(nextQuestionID, String(courseSession.id));
+            try {
+                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ activeQuestionId: nextQuestionID }),
+                });
+                if (response.ok && wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(
+                        JSON.stringify({
+                            type: "active_question_update",
+                            questionId: nextQuestionID,
+                            courseSessionId: courseSession.id,
+                        }),
+                    );
+                    console.log("Sent active_question_update via WebSocket (next)");
+                }
+            } catch {
+                toast({ variant: "destructive", description: "Error updating question" });
+            }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession]);
+    }, [activeIndex, questions, totalQuestions, courseSession, toast, wsRef]);
 
     const handlePreviousQuestion = useCallback(async () => {
         if (questions && activeIndex > 0 && courseSession) {
             setIsChangingQuestion(true);
             const prevQuestionID = questions[activeIndex - 1].id;
             setActiveQuestionId(prevQuestionID);
-            await updateActiveQuestion(prevQuestionID, String(courseSession.id));
+            try {
+                const response = await fetch(`/api/session/${courseSession.id}/activeQuestion`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ activeQuestionId: prevQuestionID }),
+                });
+                if (response.ok && wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(
+                        JSON.stringify({
+                            type: "active_question_update",
+                            questionId: prevQuestionID,
+                            courseSessionId: courseSession.id,
+                        }),
+                    );
+                    console.log("Sent active_question_update via WebSocket (prev)");
+                }
+            } catch {
+                toast({ variant: "destructive", description: "Error updating question" });
+            }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, courseSession]);
+    }, [activeIndex, questions, courseSession, toast, wsRef]);
 
     const handleQuestionSelect = useCallback(
         async (questionId: string) => {
@@ -175,11 +242,32 @@ export default function StartSession() {
                 setIsChangingQuestion(true);
                 const selectedQuestionId = parseInt(questionId);
                 setActiveQuestionId(selectedQuestionId);
-                await updateActiveQuestion(selectedQuestionId, String(courseSession.id));
+                try {
+                    const response = await fetch(
+                        `/api/session/${courseSession.id}/activeQuestion`,
+                        {
+                            method: "PATCH",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ activeQuestionId: selectedQuestionId }),
+                        },
+                    );
+                    if (response.ok && wsRef.current?.readyState === WebSocket.OPEN) {
+                        wsRef.current.send(
+                            JSON.stringify({
+                                type: "active_question_update",
+                                questionId: selectedQuestionId,
+                                courseSessionId: courseSession.id,
+                            }),
+                        );
+                        console.log("Sent active_question_update via WebSocket (select)");
+                    }
+                } catch {
+                    toast({ variant: "destructive", description: "Error updating question" });
+                }
                 setIsChangingQuestion(false);
             }
         },
-        [courseSession],
+        [courseSession, toast, wsRef],
     );
 
     const handleAddWildcard = useCallback(
@@ -226,6 +314,9 @@ export default function StartSession() {
             setIsPaused(pauseState);
             try {
                 await pauseOrResumeCourseSession(courseSession.id, pauseState);
+                if (wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify({ type: "poll_paused", paused: pauseState }));
+                }
             } catch (error) {
                 toast({
                     variant: "destructive",
@@ -234,7 +325,7 @@ export default function StartSession() {
                 console.error(error);
             }
         },
-        [courseSession, toast],
+        [courseSession, toast, wsRef],
     );
 
     const chartConfig: ChartConfig = {
@@ -244,12 +335,40 @@ export default function StartSession() {
         },
     };
 
+    // Updates chart if professor window refreshes
+    useEffect(() => {
+        if (!activeQuestionId) return;
+
+        fetch(`/api/getResponseCounts?questionId=${activeQuestionId}`)
+            .then((res) => res.json())
+            .then((data: ResponseCountsData) => {
+                if (
+                    data.optionCounts &&
+                    typeof activeQuestionId === "number" &&
+                    !isNaN(activeQuestionId)
+                ) {
+                    setAllResponseCounts(
+                        (prev) =>
+                            ({
+                                ...prev,
+                                [String(activeQuestionId)]: data.optionCounts ?? {},
+                            }) as Record<string, Record<number, number>>,
+                    );
+                }
+                if (data.responseCount) {
+                    setTotalResponses(data.responseCount);
+                }
+            })
+            .catch((error: unknown) => {
+                console.error("Failed to fetch response counts:", error);
+            });
+    }, [activeQuestionId]);
+
     if (!courseSession || questionsLoading) {
         return <GlobalLoadingSpinner />;
     }
 
     const activeQuestion = questions ? questions.find((q) => q.id === activeQuestionId) : null;
-    const totalVotes = chartData.reduce((sum, item) => sum + item.Votes, 0);
 
     return (
         <div className="flex flex-col items-center p-4">
@@ -283,51 +402,57 @@ export default function StartSession() {
                         >
                             <ResponsiveContainer width="100%" height={300}>
                                 {showResults ? (
-                                    <BarChart
-                                        data={chartData}
-                                        layout="vertical"
-                                        barCategoryGap={20}
-                                        margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
-                                    >
-                                        <XAxis type="number" domain={[0, totalVotes]} hide />
-                                        <YAxis
-                                            dataKey="option"
-                                            type="category"
-                                            tick={<LetteredYAxisTick />}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            tickMargin={8}
-                                            style={{ fill: "#000" }}
-                                        />
-                                        <ChartTooltip
-                                            cursor={false}
-                                            content={<ChartTooltipContent hideLabel />}
-                                        />
-                                        <Bar
-                                            dataKey="Votes"
-                                            fill="#F3AB7E"
-                                            barSize={30}
-                                            radius={[5, 5, 5, 5]}
-                                            background={{
-                                                fill: "#fff",
-                                                stroke: "#959595",
-                                                strokeWidth: 0.5,
-                                                radius: 5,
-                                            }}
+                                    chartData.length > 0 ? (
+                                        <BarChart
+                                            data={chartData}
+                                            layout="vertical"
+                                            barCategoryGap={20}
+                                            margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
                                         >
-                                            <LabelList
-                                                dataKey="Votes"
-                                                position="right"
-                                                offset={10}
-                                                formatter={(value: number) => {
-                                                    if (!totalVotes || !value) return "0%";
-                                                    const percent = (value / totalVotes) * 100;
-                                                    return `${percent.toFixed(1)}%`;
-                                                }}
-                                                style={{ fill: "#000", fontSize: 12 }}
+                                            <XAxis type="number" domain={[0, totalVotes]} hide />
+                                            <YAxis
+                                                dataKey="option"
+                                                type="category"
+                                                tick={<LetteredYAxisTick />}
+                                                tickLine={false}
+                                                axisLine={false}
+                                                tickMargin={8}
+                                                style={{ fill: "#000" }}
                                             />
-                                        </Bar>
-                                    </BarChart>
+                                            <ChartTooltip
+                                                cursor={false}
+                                                content={<ChartTooltipContent hideLabel />}
+                                            />
+                                            <Bar
+                                                dataKey="Votes"
+                                                fill="#F3AB7E"
+                                                barSize={30}
+                                                radius={[5, 5, 5, 5]}
+                                                background={{
+                                                    fill: "#fff",
+                                                    stroke: "#959595",
+                                                    strokeWidth: 0.5,
+                                                    radius: 5,
+                                                }}
+                                            >
+                                                <LabelList
+                                                    dataKey="Votes"
+                                                    position="right"
+                                                    offset={10}
+                                                    formatter={(value: number) => {
+                                                        if (!totalVotes || !value) return "0%";
+                                                        const percent = (value / totalVotes) * 100;
+                                                        return `${percent.toFixed(1)}%`;
+                                                    }}
+                                                    style={{ fill: "#000", fontSize: 12 }}
+                                                />
+                                            </Bar>
+                                        </BarChart>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-[300px] text-gray-500">
+                                            No responses yet
+                                        </div>
+                                    )
                                 ) : (
                                     <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
                                         <EyeOff className="w-10 h-10" />
@@ -385,7 +510,7 @@ export default function StartSession() {
                 </div>
                 <Button
                     onClick={() => {
-                        setShowResults((prev) => !prev);
+                        setShowResults((prev: boolean) => !prev);
                     }}
                 >
                     {showResults ? "Hide" : "Show"}
@@ -429,7 +554,9 @@ export default function StartSession() {
                         </Button>
                     ) : (
                         <Button
-                            onClick={() => void handleNextQuestion()}
+                            onClick={() => {
+                                void handleNextQuestion();
+                            }}
                             disabled={isAddingQuestion || isChangingQuestion}
                         >
                             Next Question &gt;

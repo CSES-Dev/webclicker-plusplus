@@ -103,15 +103,15 @@ export async function pauseOrResumeCourseSession(sessionId: number, paused: bool
     }
 }
 
-export async function getSessionPauseState(sessionId: number) {
+export async function getSessionPauseState(sessionId: number): Promise<boolean> {
     try {
         const session = await prisma.courseSession.findUnique({
             where: {
                 id: sessionId,
             },
         });
-        return session?.paused ?? false;
-    } catch (error) {
+        return Boolean(session?.paused ?? false);
+    } catch (error: unknown) {
         console.error("Error getting session pause state:", error);
         throw new Error("Failed to get session pause state");
     }
