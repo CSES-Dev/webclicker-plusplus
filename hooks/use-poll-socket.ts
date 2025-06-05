@@ -5,16 +5,20 @@ interface UsePollSocketProps {
     courseSessionId: number;
     userId: string;
     onMessage: (data: WebSocketMessage) => void;
-    onConnect: () => void;
-    onDisconnect: () => void;
+    onConnect?: () => void;
+    onDisconnect?: () => void;
 }
 
 export function usePollSocket({
     courseSessionId,
     userId,
     onMessage,
-    onConnect,
-    onDisconnect,
+    onConnect = () => {
+        console.log("New WebSocket connected");
+    },
+    onDisconnect = () => {
+        console.log("New WebSocket disconnected");
+    },
 }: UsePollSocketProps) {
     const wsRef = useRef<WebSocket | null>(null);
 

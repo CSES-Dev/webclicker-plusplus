@@ -396,13 +396,13 @@ export default function StartSession() {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        {chartData.length > 0 ? (
-                            <ChartContainer
-                                config={chartConfig}
-                                className="w-full text-base md:text-lg"
-                            >
-                                <ResponsiveContainer width="100%" height={300}>
-                                    {showResults ? (
+                        <ChartContainer
+                            config={chartConfig}
+                            className="w-full text-base md:text-lg"
+                        >
+                            <ResponsiveContainer width="100%" height={300}>
+                                {showResults ? (
+                                    chartData.length > 0 ? (
                                         <BarChart
                                             data={chartData}
                                             layout="vertical"
@@ -449,20 +449,20 @@ export default function StartSession() {
                                             </Bar>
                                         </BarChart>
                                     ) : (
-                                        <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
-                                            <EyeOff className="w-10 h-10" />
-                                            <p className="text-sm font-medium">
-                                                Poll results are hidden
-                                            </p>
+                                        <div className="flex items-center justify-center h-[300px] text-gray-500">
+                                            No responses yet
                                         </div>
-                                    )}
-                                </ResponsiveContainer>
-                            </ChartContainer>
-                        ) : (
-                            <div className="flex items-center justify-center h-[300px] text-gray-500">
-                                No responses yet
-                            </div>
-                        )}
+                                    )
+                                ) : (
+                                    <div className="w-full h-full bg-muted flex flex-col items-center justify-center space-y-2 text-muted-foreground">
+                                        <EyeOff className="w-10 h-10" />
+                                        <p className="text-sm font-medium">
+                                            Poll results are hidden
+                                        </p>
+                                    </div>
+                                )}
+                            </ResponsiveContainer>
+                        </ChartContainer>
                     </CardContent>
                 </Card>
             </div>

@@ -159,12 +159,6 @@ export default function LivePoll({
         courseSessionId,
         userId: session?.user?.id ?? "",
         onMessage: handleWebSocketMessage,
-        onConnect: () => {
-            console.log("New WebSocket connected");
-        },
-        onDisconnect: () => {
-            console.log("New WebSocket disconnected");
-        },
     });
 
     // Keep existing WebSocket setup
