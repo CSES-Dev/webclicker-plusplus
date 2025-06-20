@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDateToISO } from "@/lib/utils";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -64,7 +65,8 @@ export const StudentAnalyticsDrawer = ({ studentId, courseId }: Props) => {
     useEffect(() => {
         const fetchQuestions = async () => {
             if (!studentId) return;
-            const data = await getQuestionsAndResponsesForDate(courseId, studentId, selectedDate);
+            const formattedDate = formatDateToISO(selectedDate);
+            const data = await getQuestionsAndResponsesForDate(courseId, studentId, formattedDate);
             setQuestionsForDate(data);
         };
         void fetchQuestions();
