@@ -186,7 +186,7 @@ function PastQuestions({ courseId }: Props) {
                                 <div className="lg:col-span-2 flex lg:justify-end">
                                     <Link
                                         href={`/dashboard/course/${courseId}/questionnaire/${question.id}/responses`}
-                                        className="px-4 py-2 text-black rounded-lg border border-[#A5A5A5] text-center block"
+                                        className="px-4 py-2 text-black rounded-lg border border-[#A5A5A5] text-center block whitespace-nowrap"
                                     >
                                         Student Answers &rarr;
                                     </Link>

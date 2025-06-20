@@ -8,10 +8,10 @@ import { StringTooltipContainer, Tooltip, TooltipTrigger } from "@/components/ui
 import prisma from "@/lib/prisma";
 
 interface Props {
-    params: {
+    params: Promise<{
         courseId: string;
         questionId: string;
-    };
+    }>;
 }
 
 const questionTypeStyles = {
@@ -38,8 +38,8 @@ const formatDate = (date: Date) => {
 };
 
 export default async function QuestionResponsesPage({ params }: Props) {
-    const questionId = parseInt(params.questionId);
-    const courseId = parseInt(params.courseId);
+    const questionId = parseInt((await params).questionId);
+    const courseId = parseInt((await params).courseId);
 
     const question = await prisma.question.findUnique({
         where: { id: questionId },
@@ -122,7 +122,7 @@ export default async function QuestionResponsesPage({ params }: Props) {
                 correctOptionIds.every((id) => selectedOptionIds.includes(id));
             return { userId, isCorrect };
         } else {
-            const isCorrect = responses[0]?.option.isCorrect || false;
+            const isCorrect = responses[0]?.option.isCorrect ?? false;
             return { userId, isCorrect };
         }
     });
