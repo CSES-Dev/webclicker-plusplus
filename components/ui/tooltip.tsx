@@ -29,4 +29,8 @@ const TooltipContent = React.forwardRef<
 ));
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
+const StringTooltipContainer = ({ text }: { text: string }) => {
+    return <div className="bg-white rounded-lg p-4 max-h-40 max-w-40 overflow-scroll text-md">{text}</div>;
+};
+
+export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider, StringTooltipContainer };

@@ -115,9 +115,9 @@ function PastQuestions({ courseId }: Props) {
                 <h1 className="font-medium text-2xl sm:text-4xl text-black">Past Questions</h1>
             </section>
 
-            <div className="w-full max-w-screen-xl bg-white rounded-[20px] border border-[#A5A5A5] overflow-hidden">
+            <div className="w-full flex flex-col max-w-screen-xl max-h-[600px] bg-white rounded-[20px] border border-[#A5A5A5]">
                 {/* Filter row */}
-                <section className="grid grid-cols-12 items-center p-6 bg-[#F2F5FF] border-b border-[#D9D9D9]">
+                <section className="grid grid-cols-12 items-center p-6 bg-[#F9F9F9] border-b border-[#D9D9D9] rounded-t-[inherit]">
                     <div className="col-span-6 flex items-center space-x-4">
                         <span className="text-xl font-normal text-[#414141]">Question Type:</span>
                         <Select
@@ -144,7 +144,7 @@ function PastQuestions({ courseId }: Props) {
                 </section>
 
                 {/* Questions table */}
-                <section className="divide-y divide-[#D9D9D9]">
+                <section className="overflow-y-auto divide-y divide-[#D9D9D9]">
                     {filteredQuestions.length === 0 ? (
                         <div className="p-6 text-center text-gray-500">No past questions found</div>
                     ) : (

@@ -1,38 +1,52 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { validateUser } from "@/services/userCourse";
+import { Role } from "@prisma/client";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { courseId: string } }
-) {
-  try {
-    const courseId = parseInt(params.courseId);
+export async function GET(request: Request, { params }: { params: { courseId: string } }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
-    const pastQuestions = await prisma.question.findMany({
-      where: {
-        session: {
-          courseId: courseId,
-          endTime: { not: null },
-        },
-      },
-      include: {
-        session: { select: { startTime: true } },
-        options: true,
-        responses: {
-          include: {
-            option: true,
-            user: { select: { firstName: true, lastName: true } },
-          },
-        },
-      },
-      orderBy: { session: { startTime: "desc" } },
-    });
+        const courseId = parseInt(params.courseId);
 
-    return NextResponse.json(pastQuestions);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch past questions" },
-      { status: 500 }
-    );
-  }
+        if (!courseId || isNaN(Number(courseId))) {
+            return NextResponse.json(
+                { error: "Invalid or missing sessionId parameter" },
+                { status: 400 },
+            );
+        }
+
+        if (!validateUser(session.user.id, courseId, Role.LECTURER)) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const pastQuestions = await prisma.question.findMany({
+            where: {
+                session: {
+                    courseId: courseId,
+                    endTime: { not: null },
+                },
+            },
+            include: {
+                session: { select: { startTime: true } },
+                options: true,
+                responses: {
+                    include: {
+                        option: true,
+                        user: { select: { firstName: true, lastName: true } },
+                    },
+                },
+            },
+            orderBy: { session: { startTime: "desc" } },
+        });
+
+        return NextResponse.json(pastQuestions);
+    } catch (error) {
+        return NextResponse.json({ error: "Failed to fetch past questions" }, { status: 500 });
+    }
 }

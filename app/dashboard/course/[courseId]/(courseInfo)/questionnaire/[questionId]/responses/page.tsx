@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { CircularProgress } from "@/components/ui/circular-progress";
+import { StringTooltipContainer, Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
+import { TooltipContent } from "@radix-ui/react-tooltip";
 
 interface Props {
     params: {
@@ -180,9 +182,16 @@ export default async function QuestionResponsesPage({ params }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {/* Question and Answer Choices */}
                     <div className="order-1 md:order-none">
-                        <h1 className="text-4xl font-normal mb-6 text-[#434343]">
-                            {question.text}
-                        </h1>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <h1 className="text-4xl font-normal mb-6 text-[#434343] truncate">
+                                    {question.text}
+                                </h1>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <StringTooltipContainer text={question.text} />
+                            </TooltipContent>
+                        </Tooltip>
                         <div className="space-y-4">
                             {question.options.map((option) => {
                                 const optionCount = optionCounts.find(
@@ -194,8 +203,17 @@ export default async function QuestionResponsesPage({ params }: Props) {
 
                                 return (
                                     <div key={option.id} className="space-y-2">
-                                        <div className="flex justify-between items-center">
-                                            <span className="font-medium">{option.text}</span>
+                                        <div className="flex justify-between items-center ">
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <span className="font-mediu truncate">
+                                                        {option.text}
+                                                    </span>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <StringTooltipContainer text={option.text} />
+                                                </TooltipContent>
+                                            </Tooltip>
                                         </div>
                                         <div className="flex items-center gap-1">
                                             <div className="flex-1 relative">
@@ -237,7 +255,7 @@ export default async function QuestionResponsesPage({ params }: Props) {
                             <CircularProgress value={correctPercentage} size={180} thickness={18} />
                         </div>
                         {/* Desktop View */}
-                        <div className="hidden lg:block">
+                        <div className="hidden lg:flex justify-center items-center">
                             <CircularProgress value={correctPercentage} size={240} thickness={24} />
                         </div>
                     </div>
