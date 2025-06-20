@@ -67,7 +67,7 @@ export async function addCourse(
     const courseCodes = new Set(courseResponse.map((course) => course.code));
     while (i < 100) {
         // Limit to 100 iterations - Prevent infinite loop with unbounded search
-        const tempCode = String(Math.round(Math.random() * (1e6 - 1))).padStart(6, '0');
+        const tempCode = String(Math.round(Math.random() * (1e6 - 1))).padStart(6, "0");
 
         if (!courseCodes.has(tempCode)) {
             code = tempCode;

@@ -13,7 +13,9 @@ export default function Home() {
                         asChild
                         className="w-40 bg-secondary text-primary hover:bg-secondary hover:text-primary"
                     >
-                        <Link href="/dashboard" className="!h-12">Join a Class</Link>
+                        <Link href="/dashboard" className="!h-12">
+                            Join a Class
+                        </Link>
                     </Button>
                 </Button>
             </main>

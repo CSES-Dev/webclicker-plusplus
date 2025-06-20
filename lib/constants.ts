@@ -123,4 +123,3 @@ export const csvAdvancedFieldNames = [
     "is_correct",
     "date_of_session",
 ];
-

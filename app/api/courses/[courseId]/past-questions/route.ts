@@ -1,9 +1,9 @@
+import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
 import { validateUser } from "@/services/userCourse";
-import { Role } from "@prisma/client";
 
 export async function GET(request: Request, { params }: { params: { courseId: string } }) {
     try {
@@ -21,14 +21,14 @@ export async function GET(request: Request, { params }: { params: { courseId: st
             );
         }
 
-        if (!validateUser(session.user.id, courseId, Role.LECTURER)) {
+        if (!(await validateUser(session.user.id, courseId, Role.LECTURER))) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const pastQuestions = await prisma.question.findMany({
             where: {
                 session: {
-                    courseId: courseId,
+                    courseId,
                     endTime: { not: null },
                 },
             },
@@ -47,6 +47,7 @@ export async function GET(request: Request, { params }: { params: { courseId: st
 
         return NextResponse.json(pastQuestions);
     } catch (error) {
+        console.error("Failed to fetch past questions", error);
         return NextResponse.json({ error: "Failed to fetch past questions" }, { status: 500 });
     }
 }

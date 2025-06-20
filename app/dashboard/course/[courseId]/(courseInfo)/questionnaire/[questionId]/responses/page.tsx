@@ -1,11 +1,11 @@
-import React from "react";
-import prisma from "@/lib/prisma";
-import { notFound } from "next/navigation";
-import Link from "next/link";
+import { TooltipContent } from "@radix-ui/react-tooltip";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import React from "react";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { StringTooltipContainer, Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
-import { TooltipContent } from "@radix-ui/react-tooltip";
+import prisma from "@/lib/prisma";
 
 interface Props {
     params: {
@@ -197,8 +197,8 @@ export default async function QuestionResponsesPage({ params }: Props) {
                                 const optionCount = optionCounts.find(
                                     (oc) => oc.optionId === option.id,
                                 );
-                                const count = optionCount?.count || 0;
-                                const percentage = optionCount?.percentage || 0;
+                                const count = optionCount?.count ?? 0;
+                                const percentage = optionCount?.percentage ?? 0;
                                 const hasResponses = count > 0;
 
                                 return (
@@ -289,12 +289,12 @@ export default async function QuestionResponsesPage({ params }: Props) {
                                 ([userId, responses], index) => {
                                     const firstResponse = responses[0];
                                     const fullName =
-                                        `${firstResponse.user.firstName} ${firstResponse.user.lastName || ""}`.trim();
+                                        `${firstResponse.user.firstName} ${firstResponse.user.lastName ?? ""}`.trim();
 
                                     const studentResult = studentResults.find(
                                         (r) => r.userId === userId,
                                     );
-                                    const isCorrect = studentResult?.isCorrect || false;
+                                    const isCorrect = studentResult?.isCorrect ?? false;
 
                                     const selectedOptions = responses
                                         .map((r) => r.option.text)

@@ -70,7 +70,6 @@ export default function StudentTable({ courseId }: Props) {
     useEffect(() => {
         void fetchStudentData();
     }, [studentQuery]);
-    
 
     return (
         <div className="bg-white h-fit max-h-96 rounded-[20px] border border-[#A5A5A5] mt-4 overflow-y-auto">
