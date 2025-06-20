@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getStudents } from "@/services/userCourse";
 import { getAllSessionIds } from "@/services/session";
 import { getStudentsWithScores } from "@/lib/utils";
+import { GlobalLoadingSpinner } from "./global-loading-spinner";
 import LoaderComponent from "./loader";
 import { StudentAnalyticsDrawer } from "../StudentAnalyticsDrawer";
 
