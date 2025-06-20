@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { AddEditQuestionForm } from "@/components/AddEditQuestionForm";
 import { AddInstructorForm } from "@/components/AddInstuctorForm";
 import BeginPollDialog from "@/components/BeginPollDialog";
@@ -13,6 +10,9 @@ import { GlobalLoadingSpinner } from "@/components/ui/global-loading-spinner";
 import { useToast } from "@/hooks/use-toast";
 import { formatDateToISO } from "@/lib/utils";
 import { getCourseSessionByDate } from "@/services/session";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Page() {
     const params = useParams();
@@ -21,6 +21,8 @@ export default function Page() {
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const { toast } = useToast();
+    
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [refreshCalendar, setRefreshCalendar] = useState(false);
     const handleQuestionUpdate = () => {
         setRefreshCalendar((prev) => !prev);
@@ -78,7 +80,12 @@ export default function Page() {
                     )}
                 </div>
             </section>
-            <SlidingCalendar courseId={courseId} refreshTrigger={refreshCalendar} />
+            <SlidingCalendar
+                courseId={courseId}
+                selectedDate={selectedDate}
+                onDateChange={setSelectedDate}
+                refreshTrigger={refreshCalendar}
+            />
             <PastQuestions courseId={courseId} />
             <AddInstructorForm />
         </div>

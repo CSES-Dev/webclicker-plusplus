@@ -19,6 +19,11 @@ export const questionTypeMap = {
     MCQ: "Multiple Choice",
 };
 
+export const questionTypeColors = {
+    MSQ: { bg: "#FFFED3", fg: "#58560B" },
+    MCQ: { bg: "#EBCFFF", fg: "#602E84" },
+};
+
 // donut chart config
 export const dataKey = "count";
 export const nameKey = "result";
@@ -42,6 +47,16 @@ export const attendanceChartConfig = {
         label: "Attendance",
         color: "black",
     },
+} satisfies ChartConfig;
+
+export const studentAnalyticsScoreChartConfig = {
+    Correct: { label: "Correct", color: "#BFF2A7" },
+    Incorrect: { label: "Incorrect", color: "#FFFFFF" },
+} satisfies ChartConfig;
+
+export const studentAnalyticsAttendanceChartConfig = {
+    Correct: { label: "Attended", color: "#A7F2C2" },
+    Incorrect: { label: "Missed", color: "#FFFFFF" },
 } satisfies ChartConfig;
 
 export const analyticsPages = ["Performance", "Attendance Rate"];
@@ -99,3 +114,13 @@ export type Student = {
     firstName: string;
     lastName: string | null;
 };
+
+export const csvBasicFieldNames = ["email", "num_questions_answered", "date_of_session"];
+export const csvAdvancedFieldNames = [
+    "email",
+    "question",
+    "answer",
+    "is_correct",
+    "date_of_session",
+];
+
