@@ -87,7 +87,6 @@ export default function Page() {
                 refreshTrigger={refreshCalendar}
             />
             <PastQuestions courseId={courseId} />
-            <AddInstructorForm />
         </div>
     );
 }

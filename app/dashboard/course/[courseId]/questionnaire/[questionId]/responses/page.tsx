@@ -3,8 +3,9 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import React from "react";
-import { CircularProgress } from "@/components/ui/circular-progress";
+import DonutChart from "@/components/ui/DonutChart";
 import { StringTooltipContainer, Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
+import { studentAnalyticsScoreChartConfig } from "@/lib/charts";
 import prisma from "@/lib/prisma";
 
 interface Props {
@@ -250,13 +251,26 @@ export default async function QuestionResponsesPage({ params }: Props) {
 
                     {/* Circular Progress */}
                     <div className="flex justify-center order-2 md:order-none w-full">
-                        {/* Mobile View */}
-                        <div className="lg:hidden">
-                            <CircularProgress value={correctPercentage} size={180} thickness={18} />
-                        </div>
-                        {/* Desktop View */}
-                        <div className="hidden lg:flex justify-center items-center">
-                            <CircularProgress value={correctPercentage} size={240} thickness={24} />
+                        <div className="w-[320px] h-[320px]">
+                            <DonutChart
+                                chartData={[
+                                    {
+                                        name: studentAnalyticsScoreChartConfig.Correct.label,
+                                        value: correctPercentage ?? 0,
+                                        fill: studentAnalyticsScoreChartConfig.Correct.color,
+                                    },
+                                    {
+                                        name: studentAnalyticsScoreChartConfig.Incorrect.label,
+                                        value: 100 - (correctPercentage ?? 0),
+                                        fill: studentAnalyticsScoreChartConfig.Incorrect.color,
+                                    },
+                                ]}
+                                chartConfig={studentAnalyticsScoreChartConfig}
+                                dataKey="value"
+                                nameKey="name"
+                                description="Class Average"
+                                descriptionStatistic={correctPercentage ?? 0}
+                            />
                         </div>
                     </div>
                 </div>
