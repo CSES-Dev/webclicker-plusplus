@@ -5,7 +5,10 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { validateUser } from "@/services/userCourse";
 
-export async function GET(request: NextRequest, context: { params: Promise<{ courseId: string }> }) {
+export async function GET(
+    request: NextRequest,
+    context: { params: Promise<{ courseId: string }> },
+) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) {
