@@ -22,7 +22,7 @@ export const questionTypeColors = {
 };
 
 export const analyticsPages = ["Performance", "Attendance Rate"];
-export const coursePages = ["Questionnaire", "Analytics", "Admin", "Admin. //asda$@#!?"] as const;
+export const coursePages = ["Questionnaire", "Analytics", "Admin"] as const;
 
 export const DEFAULT_SHOW_RESULTS = false;
 
