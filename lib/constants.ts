@@ -1,8 +1,6 @@
-import { ChartConfig } from "@/components/ui/chart";
-
 export const questionTypes = ["Multiple Choice", "Select All"] as const;
-export const colorOptions = ["#ED9D9D", "#F3AB7E", "#EEF583", "#94ED79", "#8E87F2"];
 
+export const colorOptions = ["#ED9D9D", "#F3AB7E", "#EEF583", "#94ED79", "#8E87F2"];
 export const daysOptions = ["M", "T", "W", "Th", "F"] as const;
 
 export const dayLabels: Record<(typeof daysOptions)[number], string> = {
@@ -23,43 +21,8 @@ export const questionTypeColors = {
     MCQ: { bg: "#EBCFFF", fg: "#602E84" },
 };
 
-// donut chart config
-export const dataKey = "count";
-export const nameKey = "result";
-export const description = "Class Average";
-export const performanceChartConfig = {
-    count: {
-        label: "Count",
-    },
-    correct: {
-        label: "Correct",
-        color: "green",
-    },
-    incorrect: {
-        label: "Incorrect",
-        color: "gray",
-    },
-} satisfies ChartConfig;
-
-export const attendanceChartConfig = {
-    attendance: {
-        label: "Attendance",
-        color: "black",
-    },
-} satisfies ChartConfig;
-
-export const studentAnalyticsScoreChartConfig = {
-    Correct: { label: "Correct", color: "#BFF2A7" },
-    Incorrect: { label: "Incorrect", color: "#FFFFFF" },
-} satisfies ChartConfig;
-
-export const studentAnalyticsAttendanceChartConfig = {
-    Correct: { label: "Attended", color: "#A7F2C2" },
-    Incorrect: { label: "Missed", color: "#FFFFFF" },
-} satisfies ChartConfig;
-
 export const analyticsPages = ["Performance", "Attendance Rate"];
-export const coursePages = ["Questionnaire", "Analytics"];
+export const coursePages = ["Questionnaire", "Analytics", "Admin", "Admin. //asda$@#!?"] as const;
 
 export const DEFAULT_SHOW_RESULTS = false;
 

@@ -1,13 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import DonutChart from "@/components/ui/DonutChart";
-import {
-    dataKey,
-    description,
-    nameKey,
-    performanceChartConfig,
-    questionTypeColors,
-    questionTypeMap,
-} from "@/lib/constants";
+import { performanceChartConfig } from "@/lib/charts";
+import { questionTypeColors, questionTypeMap } from "@/lib/constants";
 import { useToast } from "@/hooks/use-toast";
 import { getLimitedPastQuestions, getResponses } from "@/services/question";
 import { getIncorrectAndCorrectResponseCounts, getQuestionsWithAverageScore } from "@/lib/utils";
@@ -88,9 +82,9 @@ export default function PerformanceData({ courseId }: Props) {
                     <DonutChart
                         chartData={performanceChartData}
                         chartConfig={performanceChartConfig}
-                        dataKey={dataKey}
-                        nameKey={nameKey}
-                        description={description}
+                        dataKey="count"
+                        nameKey="result"
+                        description="Class Average"
                         descriptionStatistic={
                             responseStatistics.correct + responseStatistics.incorrect !== 0
                                 ? Math.trunc(

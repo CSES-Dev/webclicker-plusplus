@@ -39,9 +39,6 @@ export async function getUserCourses(userId: string) {
         },
     });
 
-    // const courses = await Promise.all(
-    // userCourses.map(async (course) => await getCourseWithId(course.courseId)),
-    // );
     return courses.map(({ course, role }) => ({
         ...course,
         role,

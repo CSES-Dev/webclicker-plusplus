@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
     studentAnalyticsAttendanceChartConfig,
     studentAnalyticsScoreChartConfig,
-} from "@/lib/constants";
+} from "@/lib/charts";
 import { formatDateToISO } from "@/lib/utils";
 import { getQuestionsAndResponsesForDate, getStudentAnalytics } from "@/services/analytics";
 
