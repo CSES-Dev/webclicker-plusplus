@@ -61,7 +61,7 @@ export function usePollSocket({
                 wsRef.current.close();
             }
         };
-    }, [courseSessionId, userId, onConnect, onDisconnect, onMessage]);
+    }, [courseSessionId, userId]);
 
     return wsRef;
 }
