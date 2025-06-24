@@ -5,7 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { csvAdvancedFieldNames, csvBasicFieldNames } from "@/lib/constants";
 import prisma from "@/lib/prisma";
-import { ExportCSVType } from "@/types/ExportCSVType";
+import { ExportCSVType } from "@/models/ExportCSVType";
+import { validateUser } from "@/services/userCourse";
 
 export async function GET(req: NextRequest, context: { params: Promise<{ courseId: string }> }) {
     const session = await getServerSession(authOptions);
@@ -15,22 +16,8 @@ export async function GET(req: NextRequest, context: { params: Promise<{ courseI
 
     const { courseId } = await context.params;
 
-    if (!courseId || Number.isNaN(+courseId)) {
-        return NextResponse.json({ error: "Course Id is required" }, { status: 403 });
-    }
-
-    const courseLecturers = await prisma.userCourse.findMany({
-        where: {
-            courseId: +courseId,
-            role: Role.LECTURER,
-        },
-        select: {
-            userId: true,
-        },
-    });
-
-    if (!courseLecturers.find((lecturer) => lecturer.userId === session.user.id)) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!courseId || Number.isNaN(+courseId) || !(await validateUser(session.user.id, +courseId, Role.LECTURER))) {
+        return NextResponse.json({ error: "Not Found" }, { status: 404 });
     }
 
     const url = new URL(req.url);

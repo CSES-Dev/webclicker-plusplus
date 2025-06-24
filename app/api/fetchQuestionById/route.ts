@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { validateUser } from "@/services/userCourse";
 
 // Make sure we're using the correct export format for Next.js App Router
 export async function GET(request: NextRequest) {
@@ -22,6 +23,23 @@ export async function GET(request: NextRequest) {
                 { error: "Invalid or missing questionId parameter" },
                 { status: 400 },
             );
+        }
+
+        const course = await prisma.question.findFirst({
+            where: {
+                id: +questionId,
+            },
+            select: {
+                session: {
+                    select: {
+                        courseId: true,
+                    },
+                },
+            },
+        });
+
+        if (!course || !(await validateUser(session.user.id, course.session.courseId))) {
+            return NextResponse.json({ error: "Question not found" }, { status: 404 });
         }
 
         // Fetch the question with its options

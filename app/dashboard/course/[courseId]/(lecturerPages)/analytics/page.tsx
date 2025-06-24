@@ -8,7 +8,7 @@ import PerformanceData from "@/components/ui/PerformanceData";
 import StudentTable from "@/components/ui/StudentTable";
 import { toast } from "@/hooks/use-toast";
 import { analyticsPages } from "@/lib/constants";
-import { ExportCSVType } from "@/types/ExportCSVType";
+import { ExportCSVType } from "@/models/ExportCSVType";
 
 export default function Page() {
     const params = useParams();

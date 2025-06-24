@@ -7,7 +7,7 @@ import {
     QuestionWithResponesAndOptions,
     ResponseWithOptions,
     StudentWithResponses,
-} from "@/types/Analytics";
+} from "@/models/Analytics";
 /**
  * A utility function that merges tailwind classes with conditional classes combining functionalities of twMerge and clsx.
  *

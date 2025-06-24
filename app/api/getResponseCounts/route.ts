@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { validateUser } from "@/services/userCourse";
+import { Role } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,6 +20,27 @@ export async function GET(request: NextRequest) {
                 { error: "Invalid or missing questionId parameter" },
                 { status: 400 },
             );
+        }
+
+        const courseId = await prisma.course.findFirst({
+            where: {
+                sessions: {
+                    some: {
+                        questions: {
+                            some: {
+                                id: +questionId,
+                            },
+                        },
+                    },
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!courseId || !(await validateUser(session.user.id, courseId.id, Role.LECTURER))) {
+            return NextResponse.json({ error: "Responses not found" }, { status: 404 });
         }
 
         const groups = await prisma.response.groupBy({
