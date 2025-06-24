@@ -1,4 +1,4 @@
-import { TooltipContent, StringTooltipContainer, Tooltip, TooltipTrigger } from "./ui/tooltip";
+import { StringTooltipContainer, Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface EllipsisYAxisTickProps {
     x?: number;
@@ -8,7 +8,6 @@ interface EllipsisYAxisTickProps {
 
 export function LetteredYAxisTick({ x = 0, y = 0, payload }: EllipsisYAxisTickProps) {
     if (!payload) return null;
-
 
     return (
         <g transform={`translate(${x},${y})`}>
