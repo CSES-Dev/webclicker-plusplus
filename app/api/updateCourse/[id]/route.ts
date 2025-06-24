@@ -1,10 +1,10 @@
+import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { validateUser } from "@/services/userCourse";
-import { Role } from "@prisma/client";
 
 const updateSchema = z.object({
     title: z.string().min(2),

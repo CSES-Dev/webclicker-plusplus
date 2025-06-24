@@ -54,7 +54,7 @@ export async function validateUser(
         where: {
             userId,
             courseId,
-            role: undefined,
+            role,
         },
     });
     if (userCourse) {

@@ -1,9 +1,9 @@
+import { Role } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { validateUser } from "@/services/userCourse";
-import { Role } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
     try {

@@ -27,7 +27,7 @@ export async function GET(
         }
 
         if (!(await validateUser(session.user.id, courseId, Role.LECTURER))) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+            return NextResponse.json({ error: "Questions not Found" }, { status: 404 });
         }
 
         const pastQuestions = await prisma.question.findMany({

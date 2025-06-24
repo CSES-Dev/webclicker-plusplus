@@ -16,7 +16,11 @@ export async function GET(req: NextRequest, context: { params: Promise<{ courseI
 
     const { courseId } = await context.params;
 
-    if (!courseId || Number.isNaN(+courseId) || !(await validateUser(session.user.id, +courseId, Role.LECTURER))) {
+    if (
+        !courseId ||
+        Number.isNaN(+courseId) ||
+        !(await validateUser(session.user.id, +courseId, Role.LECTURER))
+    ) {
         return NextResponse.json({ error: "Not Found" }, { status: 404 });
     }
 

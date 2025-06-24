@@ -67,7 +67,7 @@ export default function CourseInfoLayout({
                     <button
                         key={tab}
                         onClick={() => {
-                            router.push(encodeURIComponent(tab.toLowerCase()))
+                            router.push(encodeURIComponent(tab.toLowerCase()));
                         }}
                         className={`pb-2 text-base font-medium ${
                             path.includes(tab.toLowerCase()) ? "text-[#1441DB]" : "text-slate-600"

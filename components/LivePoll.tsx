@@ -149,7 +149,7 @@ export default function LivePoll({
 
     // Keep existing WebSocket setup
     useEffect(() => {
-        fetchActiveQuestion();
+        void fetchActiveQuestion();
     }, []);
 
     // Handle loading state

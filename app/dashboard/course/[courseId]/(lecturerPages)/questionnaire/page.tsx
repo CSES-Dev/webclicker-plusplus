@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AddEditQuestionForm } from "@/components/AddEditQuestionForm";
-import { AddInstructorForm } from "@/components/AddInstuctorForm";
 import BeginPollDialog from "@/components/BeginPollDialog";
 import PastQuestions from "@/components/ui/PastQuestions";
 import SlidingCalendar from "@/components/ui/SlidingCalendar";

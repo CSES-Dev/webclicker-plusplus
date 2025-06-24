@@ -1,18 +1,17 @@
-import { NextResponse } from "next/server";
-import { WildcardPayload } from "@/models/CourseSession";
-import { createWildcardQuestion } from "@/services/session";
-import { validateUser } from "@/services/userCourse";
 import { Role } from "@prisma/client";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { WildcardPayload } from "@/models/CourseSession";
+import { createWildcardQuestion } from "@/services/session";
+import { validateUser } from "@/services/userCourse";
 
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ sessionId: string }> },
 ) {
     try {
-        const resolvedParams = await params;
         const session = await getServerSession(authOptions);
         if (!session?.user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

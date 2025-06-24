@@ -2,12 +2,12 @@ import { clsx } from "clsx";
 import type { ClassValue } from "clsx";
 import dayjs from "dayjs";
 import { twMerge } from "tailwind-merge";
-import { getAttendanceCount, getStudentCount } from "@/services/userCourse";
 import {
     QuestionWithResponesAndOptions,
     ResponseWithOptions,
     StudentWithResponses,
 } from "@/models/Analytics";
+import { getAttendanceCount, getStudentCount } from "@/services/userCourse";
 /**
  * A utility function that merges tailwind classes with conditional classes combining functionalities of twMerge and clsx.
  *
