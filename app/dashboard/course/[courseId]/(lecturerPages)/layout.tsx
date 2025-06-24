@@ -67,11 +67,7 @@ export default function CourseInfoLayout({
                     <button
                         key={tab}
                         onClick={() => {
-                            if (tab === "Analytics") {
-                                router.push(`/dashboard/course/${courseId}/analytics`);
-                            } else {
-                                router.push(`/dashboard/course/${courseId}/questionnaire`);
-                            }
+                            router.push(encodeURIComponent(tab.toLowerCase()));
                         }}
                         className={`pb-2 text-base font-medium ${
                             path.includes(tab.toLowerCase()) ? "text-[#1441DB]" : "text-slate-600"

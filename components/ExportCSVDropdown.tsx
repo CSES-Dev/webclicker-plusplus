@@ -8,7 +8,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ExportCSVType } from "@/types/ExportCSVType";
+import { ExportCSVType } from "@/models/ExportCSVType";
 
 interface ExportCSVDropdownProps {
     onSelect: (selectedType: ExportCSVType) => void;

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { validateUser } from "@/services/userCourse";
 
 export async function GET(request: NextRequest) {
     try {
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
             },
         });
 
-        if (!courseSession) {
+        if (!courseSession || !(await validateUser(session.user.id, courseSession.courseId))) {
             return NextResponse.json({ error: "Course session not found" }, { status: 404 });
         }
 

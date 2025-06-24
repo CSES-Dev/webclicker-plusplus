@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ChartContainer } from "@/components/ui/chart";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import dayjs from "dayjs";
-import { attendanceChartConfig } from "@/lib/constants";
+import { attendanceChartConfig } from "@/lib/charts";
 import { calculateWeekAttendance } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import LoaderComponent from "./loader";

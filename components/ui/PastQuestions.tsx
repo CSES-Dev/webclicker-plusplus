@@ -8,21 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Question, QuestionType } from "@prisma/client";
 import Link from "next/link";
-
-const questionTypeStyles = {
-    [QuestionType.MCQ]: {
-        bgColor: "#FFFED3",
-        textColor: "#58560B",
-        borderColor: "#58570B",
-        label: "Multiple Choice",
-    },
-    [QuestionType.MSQ]: {
-        bgColor: "#EBCFFF",
-        textColor: "#602E84",
-        borderColor: "#602E84",
-        label: "Select-All",
-    },
-};
+import { questionTypeColors, questionTypeMap } from "@/lib/constants";
 
 interface PastQuestion extends Question {
     session: { startTime: Date };
@@ -158,14 +144,12 @@ function PastQuestions({ courseId }: Props) {
                                     <span
                                         className="text-base lg:text-xl font-normal px-2 py-1 rounded border"
                                         style={{
-                                            backgroundColor:
-                                                questionTypeStyles[question.type].bgColor,
-                                            color: questionTypeStyles[question.type].textColor,
-                                            borderColor:
-                                                questionTypeStyles[question.type].borderColor,
+                                            backgroundColor: questionTypeColors[question.type].bg,
+                                            color: questionTypeColors[question.type].fg,
+                                            borderColor: questionTypeColors[question.type].fg,
                                         }}
                                     >
-                                        {questionTypeStyles[question.type].label}
+                                        {questionTypeMap[question.type]}
                                     </span>
                                     <p className="mt-2 text-lg lg:text-2xl font-normal text-[#1F1F1F]">
                                         {question.text}

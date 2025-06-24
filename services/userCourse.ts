@@ -39,16 +39,17 @@ export async function getUserCourses(userId: string) {
         },
     });
 
-    // const courses = await Promise.all(
-    // userCourses.map(async (course) => await getCourseWithId(course.courseId)),
-    // );
     return courses.map(({ course, role }) => ({
         ...course,
         role,
     }));
 }
 
-export async function validateUser(userId: string, courseId: number, role: Role): Promise<boolean> {
+export async function validateUser(
+    userId: string,
+    courseId: number,
+    role?: Role,
+): Promise<boolean> {
     const userCourse = await prisma.userCourse.findFirst({
         where: {
             userId,

@@ -1,5 +1,5 @@
 "use client";
-import { Option as PrismaOption, Question as PrismaQuestion } from "@prisma/client";
+import { Option as PrismaOption, Question as PrismaQuestion, Role } from "@prisma/client";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -9,15 +9,6 @@ import QuestionCard from "@/components/ui/questionCard";
 import useAccess from "@/hooks/use-access";
 import { usePollSocket } from "@/hooks/use-poll-socket";
 import { useToast } from "@/hooks/use-toast";
-// import type {
-//     WebSocketMessage,
-//     WebSocketMessageType,
-//     StudentResponseMessage,
-//     QuestionChangedMessage,
-//     ResponseSavedMessage,
-//     PollPausedMessage,
-//     WebSocketMessageBase
-// } from "@/lib/websocket";
 
 import type { StudentResponseMessage, WebSocketMessage } from "@/lib/websocket";
 
@@ -44,7 +35,7 @@ export default function LivePoll({
     const courseId = parseInt(params.courseId as string);
     const { hasAccess: _hasAccess, isLoading: isAccessLoading } = useAccess({
         courseId,
-        role: "STUDENT",
+        role: Role.STUDENT,
     });
 
     const [currentQuestion, setCurrentQuestion] = useState<QuestionWithOptions | null>(null);
@@ -52,13 +43,11 @@ export default function LivePoll({
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [questionCount, setQuestionCount] = useState("1");
-    const [isConnected, setIsConnected] = useState(false);
     const [_messages, setMessages] = useState<string[]>([]);
     const [isPaused, setIsPaused] = useState(false);
 
     // Use useRef for activeQuestionId to prevent unnecessary re-renders
     const activeQuestionIdRef = useRef<number | null>(null);
-    const wsRef = useRef<WebSocket | null>(null);
 
     // Unified state for selected values (either single number or array of numbers)
     const [selectedValues, setSelectedValues] = useState<number | number[] | null>(null);
@@ -126,36 +115,33 @@ export default function LivePoll({
         } finally {
             setLoading(false);
         }
-    }, [courseSessionId, toast, router]); // Added dependencies
+    }, [courseSessionId]); // Added dependencies
 
     // Add this new handler but keep existing code
-    const handleWebSocketMessage = useCallback(
-        (data: WebSocketMessage) => {
-            if (data?.type) {
-                if (data.type === "question_changed" && "questionId" in data) {
-                    activeQuestionIdRef.current = null;
-                    void fetchActiveQuestion();
-                } else if (data.type === "response_saved") {
-                    toast({ description: data.message ?? "Response saved" });
-                    setSubmitting(false);
-                } else if (data.type === "error") {
-                    toast({
-                        variant: "destructive",
-                        description: data.message ?? "Error occurred",
-                    });
-                    setSubmitting(false);
-                } else if (data.type === "connected") {
-                    console.log("WebSocket connection confirmed:", data.message);
-                } else if (data.type === "poll_paused" && "paused" in data) {
-                    setIsPaused(data.paused);
-                }
+    const handleWebSocketMessage = useCallback((data: WebSocketMessage) => {
+        if (data?.type) {
+            if (data.type === "question_changed" && "questionId" in data) {
+                activeQuestionIdRef.current = null;
+                void fetchActiveQuestion();
+            } else if (data.type === "response_saved") {
+                toast({ description: data.message ?? "Response saved" });
+                setSubmitting(false);
+            } else if (data.type === "error") {
+                toast({
+                    variant: "destructive",
+                    description: data.message ?? "Error occurred",
+                });
+                setSubmitting(false);
+            } else if (data.type === "connected") {
+                console.log("WebSocket connection confirmed:", data.message);
+            } else if (data.type === "poll_paused" && "paused" in data) {
+                setIsPaused(data.paused);
             }
-        },
-        [fetchActiveQuestion, toast],
-    );
+        }
+    }, []);
 
     // Add this alongside existing WebSocket setup
-    const _newWsRef = usePollSocket({
+    const wsRef = usePollSocket({
         courseSessionId,
         userId: session?.user?.id ?? "",
         onMessage: handleWebSocketMessage,
@@ -163,139 +149,8 @@ export default function LivePoll({
 
     // Keep existing WebSocket setup
     useEffect(() => {
-        if (!courseSessionId || !session?.user?.id) return;
-
-        let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
-        const reconnectDelay = 1000; // Start with 1 second
-
-        const connectWebSocket = () => {
-            const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-            const ws = new WebSocket(
-                `${protocol}//${window.location.host}/ws/poll?sessionId=${courseSessionId}&userId=${session.user.id}`,
-            );
-            wsRef.current = ws;
-
-            ws.onopen = () => {
-                console.log("WebSocket connection established");
-                setIsConnected(true);
-                setMessages((prev) => [...prev, "Connected to WebSocket"]);
-                reconnectAttempts = 0; // Reset reconnect attempts on successful connection
-            };
-
-            ws.onmessage = (event) => {
-                let data: WebSocketMessage | null = null;
-                let messageText = "";
-
-                // Display the raw message for debugging
-                console.log("Raw message received:", event.data);
-
-                // Try to parse as JSON, but handle plain text too
-                try {
-                    if (typeof event.data === "string") {
-                        try {
-                            // Try to parse as JSON
-                            data = JSON.parse(event.data) as WebSocketMessage;
-                            messageText = `Received JSON: ${JSON.stringify(data)}`;
-                            console.log("Parsed JSON:", data);
-
-                            // Process valid JSON message
-                            if (data?.type) {
-                                if (data.type === "question_changed" && "questionId" in data) {
-                                    activeQuestionIdRef.current = null;
-                                    void fetchActiveQuestion();
-                                } else if (data.type === "response_saved") {
-                                    toast({ description: data.message ?? "Response saved" });
-                                    setSubmitting(false);
-                                } else if (data.type === "error") {
-                                    toast({
-                                        variant: "destructive",
-                                        description: data.message ?? "Error occurred",
-                                    });
-                                    setSubmitting(false);
-                                } else if (data.type === "connected") {
-                                    console.log("WebSocket connection confirmed:", data.message);
-                                } else if (data.type === "echo") {
-                                    console.log("Server echo:", data.message);
-                                } else if (data.type === "poll_paused") {
-                                    if ("paused" in data) {
-                                        setIsPaused(data.paused);
-                                    }
-                                }
-                            }
-                        } catch {
-                            const message = event.data;
-                            messageText = `Received text: ${message}`;
-
-                            // Check if this is a response to our student submission
-                            if (
-                                typeof message === "string" &&
-                                message.includes("student_response") &&
-                                submitting
-                            ) {
-                                //  likely a response to our student submission
-                                toast({ description: "Your answer has been recorded" });
-                                setSubmitting(false);
-                            }
-                        }
-                    } else {
-                        data = {
-                            type: "binary",
-                            message: "Binary data received",
-                        };
-                        messageText = "Received: Binary data";
-                        console.log("Received binary data");
-                    }
-
-                    setMessages((prev) => [...prev, messageText]);
-                } catch (err: unknown) {
-                    const errorStr = err instanceof Error ? err.message : "Unknown error";
-                    console.error("Error processing message:", errorStr);
-                    setMessages((prev) => [...prev, `Error processing message: ${errorStr}`]);
-                    setSubmitting(false);
-                }
-            };
-
-            ws.onclose = () => {
-                console.log("WebSocket connection closed");
-                setIsConnected(false);
-                setMessages((prev) => [...prev, "Disconnected from WebSocket"]);
-                setSubmitting(false);
-
-                // Attempt to reconnect if we haven't exceeded max attempts
-                if (reconnectAttempts < maxReconnectAttempts) {
-                    reconnectAttempts++;
-                    const delay = reconnectDelay * Math.pow(2, reconnectAttempts - 1); // Exponential backoff
-                    console.log(
-                        `Attempting to reconnect in ${delay}ms (attempt ${reconnectAttempts}/${maxReconnectAttempts})`,
-                    );
-                    setTimeout(connectWebSocket, delay);
-                } else {
-                    toast({
-                        variant: "destructive",
-                        description: "Lost connection to server. Please refresh the page.",
-                    });
-                }
-            };
-
-            ws.onerror = (wsError) => {
-                console.error("WebSocket error:", wsError);
-                setMessages((prev) => [...prev, "WebSocket error occurred"]);
-                setSubmitting(false);
-            };
-
-            // Initial fetch
-            void fetchActiveQuestion();
-        };
-
-        connectWebSocket();
-
-        return () => {
-            if (wsRef.current?.readyState === WebSocket.OPEN) {
-                wsRef.current.close();
-            }
-        };
-    }, [courseSessionId, session?.user?.id, fetchActiveQuestion, toast]);
+        void fetchActiveQuestion();
+    }, []);
 
     // Handle loading state
     if ((loading && !currentQuestion) || isAccessLoading) {
@@ -397,9 +252,9 @@ export default function LivePoll({
                 <div className="w-full max-w-[330px] mb-4">
                     <div className="flex items-center gap-2">
                         <div
-                            className={`w-3 h-3 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`}
+                            className={`w-3 h-3 rounded-full ${wsRef.current?.OPEN ? "bg-green-500" : "bg-red-500"}`}
                         />
-                        <span>{isConnected ? "Connected" : "Disconnected"}</span>
+                        <span>{wsRef.current?.OPEN ? "Connected" : "Disconnected"}</span>
                     </div>
                 </div>
 
@@ -434,7 +289,7 @@ export default function LivePoll({
                         !selectedValues ||
                         (Array.isArray(selectedValues) && selectedValues.length === 0) ||
                         submitting ||
-                        !isConnected
+                        !wsRef.current?.OPEN
                     }
                     className={`mt-6 px-6 py-2 rounded-lg text-white font-medium ${
                         submitting ||

@@ -94,11 +94,10 @@ export async function getQuestionsAndResponsesForDate(
     courseId: number,
     studentId: string,
     isoDate: string,
-
 ) {
-    const start = new Date(isoDate)
-    const end = new Date(start)
-    end.setUTCHours(23, 59, 59, 999)
+    const start = new Date(isoDate);
+    const end = new Date(start);
+    end.setUTCHours(23, 59, 59, 999);
     try {
         const sessions = await prisma.courseSession.findMany({
             where: {

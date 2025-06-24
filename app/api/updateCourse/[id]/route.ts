@@ -1,8 +1,10 @@
+import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { validateUser } from "@/services/userCourse";
 
 const updateSchema = z.object({
     title: z.string().min(2),
@@ -34,17 +36,8 @@ export async function PUT(request: Request) {
         const courseId = getCourseId(request);
 
         // Verify user has permission
-        const userCourse = await prisma.userCourse.findUnique({
-            where: {
-                userId_courseId: {
-                    userId: session.user.id,
-                    courseId,
-                },
-            },
-        });
-
-        if (!userCourse || userCourse.role !== "LECTURER") {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        if (!courseId || !(await validateUser(session.user.id, courseId, Role.LECTURER))) {
+            return NextResponse.json({ error: "Course not found" }, { status: 404 });
         }
 
         // Validate request body

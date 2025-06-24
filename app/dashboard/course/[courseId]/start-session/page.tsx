@@ -206,7 +206,7 @@ export default function StartSession() {
             }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, totalQuestions, courseSession, toast, wsRef]);
+    }, [activeIndex, questions, totalQuestions, courseSession, wsRef.current]);
 
     const handlePreviousQuestion = useCallback(async () => {
         if (questions && activeIndex > 0 && courseSession) {
@@ -234,7 +234,7 @@ export default function StartSession() {
             }
             setIsChangingQuestion(false);
         }
-    }, [activeIndex, questions, courseSession, toast, wsRef]);
+    }, [activeIndex, questions, courseSession, wsRef.current]);
 
     const handleQuestionSelect = useCallback(
         async (questionId: string) => {
@@ -267,7 +267,7 @@ export default function StartSession() {
                 setIsChangingQuestion(false);
             }
         },
-        [courseSession, toast, wsRef],
+        [courseSession, wsRef.current],
     );
 
     const handleAddWildcard = useCallback(
@@ -289,7 +289,7 @@ export default function StartSession() {
                 setIsAddingQuestion(false); // re-enable the button
             }
         },
-        [activeQuestionId, courseSession, questions, refetchQuestions, toast],
+        [activeQuestionId, courseSession, questions, refetchQuestions],
     );
 
     const handleEndPoll = useCallback(async () => {
@@ -306,7 +306,7 @@ export default function StartSession() {
         } finally {
             setIsEndingSession(false);
         }
-    }, [courseSession, courseId, router, toast]);
+    }, [courseSession, courseId]);
 
     const handlePauseResume = useCallback(
         async (pauseState: boolean) => {
@@ -325,7 +325,7 @@ export default function StartSession() {
                 console.error(error);
             }
         },
-        [courseSession, toast, wsRef],
+        [courseSession, wsRef.current],
     );
 
     const chartConfig: ChartConfig = {
@@ -407,7 +407,7 @@ export default function StartSession() {
                                             data={chartData}
                                             layout="vertical"
                                             barCategoryGap={20}
-                                            margin={{ left: 100, right: 20, top: 20, bottom: 20 }}
+                                            margin={{ left: 10, right: 20, top: 20, bottom: 20 }}
                                         >
                                             <XAxis type="number" domain={[0, totalVotes]} hide />
                                             <YAxis

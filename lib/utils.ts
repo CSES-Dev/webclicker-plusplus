@@ -2,7 +2,11 @@ import { clsx } from "clsx";
 import type { ClassValue } from "clsx";
 import dayjs from "dayjs";
 import { twMerge } from "tailwind-merge";
-import { QuestionWithResponesAndOptions, Response, Student } from "./constants";
+import {
+    QuestionWithResponesAndOptions,
+    ResponseWithOptions,
+    StudentWithResponses,
+} from "@/models/Analytics";
 import { getAttendanceCount, getStudentCount } from "@/services/userCourse";
 /**
  * A utility function that merges tailwind classes with conditional classes combining functionalities of twMerge and clsx.
@@ -27,8 +31,8 @@ export function greetUser(name: string): string {
 /**
  * A utility function that replaces date objects time to 00:00:00 and returns ISO String.
  *
- * @param date - The name to greet.
- * @returns A greeting message.
+ * @param date - Date object to convert.
+ * @returns Formattted Date object.
  */
 export function formatDateToISO(date: Date) {
     return new Date(date.setHours(0, 0, 0, 0)).toISOString();
@@ -74,7 +78,7 @@ export function getQuestionsWithAverageScore(questions: QuestionWithResponesAndO
     return questionsWithScores;
 }
 
-export function getIncorrectAndCorrectResponseCounts(responses: Response[]) {
+export function getIncorrectAndCorrectResponseCounts(responses: ResponseWithOptions[]) {
     let correctResponses = 0;
     let incorrectReponses = 0;
 
@@ -97,7 +101,7 @@ export function getIncorrectAndCorrectResponseCounts(responses: Response[]) {
     return { incorrect: incorrectReponses, correct: correctResponses };
 }
 
-export function getStudentsWithScores(students: Student[], sessionIds: number[]) {
+export function getStudentsWithScores(students: StudentWithResponses[], sessionIds: number[]) {
     const studentData = students.map((student) => {
         // get total number of sessions
         const totalSessions = sessionIds.length;
